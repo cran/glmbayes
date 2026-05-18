@@ -1,5 +1,8 @@
 # glmbayes
 
+![CRAN status](https://www.r-pkg.org/badges/version/glmbayes)
+![CRAN downloads](https://cranlogs.r-pkg.org/badges/grand-total/glmbayes)
+![Monthly downloads](https://cranlogs.r-pkg.org/badges/glmbayes)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/knygren/glmbayes?label=version)
 ![License: GPL-3](https://img.shields.io/badge/license-GPL--3-blue.svg)
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/knygren/glmbayes/R-CMD-check.yaml?label=R%20CMD%20Check)
@@ -14,18 +17,30 @@ The package includes a rich set of supporting tools for prior specification, mod
 that mirror those for lm() and glm(). Most functions are extensively documented, and a comprehensive set of vignettes
 are available to guide users through the package's capabilities.
 
-The package is currently available on R-Universe, with plans for a future CRAN submission. For recent updates and planned enhancements, see
-https://github.com/knygren/glmbayes/blob/main/NEWS.md
+The current **CRAN release is version 0.9.5**
+([CRAN](https://CRAN.R-project.org/package=glmbayes)).
+The [GitHub](https://github.com/knygren/glmbayes) repository holds the source; [R-Universe](https://knygren.r-universe.dev/glmbayes) builds binaries from it.
+See [NEWS.md](https://github.com/knygren/glmbayes/blob/main/NEWS.md) for changes.
 
 ## Installation
 
-To install the current development version (excluding OpenCL functionality):
+**CRAN (release 0.9.5)**
 
+```r
+install.packages("glmbayes")
+```
+
+**GitHub / R-Universe** (install from both CRAN and R-Universe repositories if you want R-Universe binaries or faster mirrors):
+
+```r
 install.packages("glmbayes",
                  repos = c("https://cloud.r-project.org",
                            "https://knygren.r-universe.dev"))
+```
 
-To install a version suitable for large models with GPU acceleration, follow the instructions from 
+Prebuilt binaries from CRAN (0.9.5) and R-Universe are built **without OpenCL GPU
+support**. For the CRAN release, OpenCL requires installing **from source** on a
+system with OpenCL development files available. To set up GPU acceleration, follow
 
 **Chapter 12 - Large Models: GPU Acceleration using OpenCL**
 https://knygren.r-universe.dev/articles/glmbayes/Chapter-12.html
@@ -311,7 +326,6 @@ details behind the samplers.
 
 ## Future Plans
 
-- Full CRAN submission 
 - Poisson speed (OpenCL and simulation): Precompute the log-factorial term `log(y!)`
   once per observation and reuse it in both OpenCL envelope construction and
   accept-reject simulation, since it depends only on the response, to reduce

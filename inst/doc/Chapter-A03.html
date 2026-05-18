@@ -12,7 +12,7 @@
 
 <meta name="author" content="Kjell Nygren" />
 
-<meta name="date" content="2026-04-30" />
+<meta name="date" content="2026-05-18" />
 
 <title>Chapter A03: Methods available in glmbayes</title>
 
@@ -364,7 +364,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Chapter A03: Methods available in
 glmbayes</h1>
 <h4 class="author">Kjell Nygren</h4>
-<h4 class="date">2026-04-30</h4>
+<h4 class="date">2026-05-18</h4>
 
 
 
@@ -464,11 +464,11 @@ glm maximum likelihood estimates.</p>
 <span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; Posterior Mean Coefficients:</span></span>
 <span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt; (Intercept)     outcome2     outcome3   treatment2   treatment3  </span></span>
-<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt;    3.045375    -0.469607    -0.303245    -0.019815    -0.007108  </span></span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt;    3.027907    -0.443521    -0.286392    -0.005008    -0.004942  </span></span>
 <span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 4.918062 </span></span>
-<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 10.09891 </span></span>
-<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="co">#&gt; DIC: 56.64915</span></span></code></pre></div>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 4.865805 </span></span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 10.03232 </span></span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="co">#&gt; DIC: 56.5303</span></span></code></pre></div>
 <p>In addition to the posterior means, the <em>glmb</em> printed output
 also returned three pieces of information that are similar to (but not
 quite the same) as the classical output. The “Effective Number of
@@ -562,7 +562,7 @@ information (the details of which are discussed elsewhere).</p>
 <span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co">#&gt; Expected Residuals:</span></span>
 <span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt;        Min         1Q     Median         3Q        Max </span></span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt; -0.9276586 -0.6953010 -0.1542997  0.8542582  1.1469176 </span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt; -0.9402467 -0.6185983 -0.1431006  0.9254662  1.0880032 </span></span>
 <span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt; Prior and Maximum Likelihood Estimates with Standard Deviations</span></span>
 <span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
@@ -576,44 +576,44 @@ information (the details of which are discussed elsewhere).</p>
 <span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a><span class="co">#&gt; Bayesian Estimates Based on 1000 iid draws</span></span>
 <span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a><span class="co">#&gt;              Post.Mode  Post.Mean    Post.Sd   MC Error Pr(Null_tail) SE(tail)</span></span>
-<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a><span class="co">#&gt; (Intercept)  3.042e+00  3.045e+00  1.629e-01  5.151e-03     8.300e-02    0.009</span></span>
-<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a><span class="co">#&gt; outcome2    -4.497e-01 -4.696e-01  2.000e-01  6.325e-03     9.000e-03    0.003</span></span>
-<span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a><span class="co">#&gt; outcome3    -2.901e-01 -3.032e-01  1.857e-01  5.871e-03     4.900e-02    0.007</span></span>
-<span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a><span class="co">#&gt; treatment2  -1.395e-05 -1.982e-02  2.048e-01  6.476e-03     4.390e-01    0.016</span></span>
-<span id="cb10-27"><a href="#cb10-27" tabindex="-1"></a><span class="co">#&gt; treatment3   1.209e-06 -7.108e-03  2.013e-01  6.365e-03     4.990e-01    0.016</span></span>
-<span id="cb10-28"><a href="#cb10-28" tabindex="-1"></a><span class="co">#&gt;             Pr(Prior_tail)   </span></span>
-<span id="cb10-29"><a href="#cb10-29" tabindex="-1"></a><span class="co">#&gt; (Intercept)          0.083 . </span></span>
-<span id="cb10-30"><a href="#cb10-30" tabindex="-1"></a><span class="co">#&gt; outcome2             0.009 **</span></span>
-<span id="cb10-31"><a href="#cb10-31" tabindex="-1"></a><span class="co">#&gt; outcome3             0.049 * </span></span>
-<span id="cb10-32"><a href="#cb10-32" tabindex="-1"></a><span class="co">#&gt; treatment2           0.439   </span></span>
-<span id="cb10-33"><a href="#cb10-33" tabindex="-1"></a><span class="co">#&gt; treatment3           0.499   </span></span>
+<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a><span class="co">#&gt; (Intercept)  3.042e+00  3.028e+00  1.685e-01  5.327e-03     1.010e-01    0.010</span></span>
+<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a><span class="co">#&gt; outcome2    -4.497e-01 -4.435e-01  1.998e-01  6.319e-03     1.400e-02    0.004</span></span>
+<span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a><span class="co">#&gt; outcome3    -2.901e-01 -2.864e-01  1.909e-01  6.036e-03     5.800e-02    0.007</span></span>
+<span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a><span class="co">#&gt; treatment2  -1.395e-05 -5.008e-03  1.991e-01  6.296e-03     4.830e-01    0.016</span></span>
+<span id="cb10-27"><a href="#cb10-27" tabindex="-1"></a><span class="co">#&gt; treatment3   1.209e-06 -4.942e-03  2.064e-01  6.526e-03     4.800e-01    0.016</span></span>
+<span id="cb10-28"><a href="#cb10-28" tabindex="-1"></a><span class="co">#&gt;             Pr(Prior_tail)  </span></span>
+<span id="cb10-29"><a href="#cb10-29" tabindex="-1"></a><span class="co">#&gt; (Intercept)          0.101  </span></span>
+<span id="cb10-30"><a href="#cb10-30" tabindex="-1"></a><span class="co">#&gt; outcome2             0.014 *</span></span>
+<span id="cb10-31"><a href="#cb10-31" tabindex="-1"></a><span class="co">#&gt; outcome3             0.058 .</span></span>
+<span id="cb10-32"><a href="#cb10-32" tabindex="-1"></a><span class="co">#&gt; treatment2           0.483  </span></span>
+<span id="cb10-33"><a href="#cb10-33" tabindex="-1"></a><span class="co">#&gt; treatment3           0.480  </span></span>
 <span id="cb10-34"><a href="#cb10-34" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
 <span id="cb10-35"><a href="#cb10-35" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
 <span id="cb10-36"><a href="#cb10-36" tabindex="-1"></a><span class="co">#&gt;   Directional Tail Summaries:</span></span>
 <span id="cb10-37"><a href="#cb10-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb10-38"><a href="#cb10-38" tabindex="-1"></a><span class="co">#&gt;                Metric vs Null vs Prior</span></span>
-<span id="cb10-39"><a href="#cb10-39" tabindex="-1"></a><span class="co">#&gt;  Mahalanobis Distance  2.4364   2.4364</span></span>
+<span id="cb10-39"><a href="#cb10-39" tabindex="-1"></a><span class="co">#&gt;  Mahalanobis Distance  2.2993   2.2993</span></span>
 <span id="cb10-40"><a href="#cb10-40" tabindex="-1"></a><span class="co">#&gt;      Tail Probability  0.0100   0.0100</span></span>
 <span id="cb10-41"><a href="#cb10-41" tabindex="-1"></a><span class="co">#&gt;   [Tail probabilities are P(delta^T * Z &lt;= 0) in whitened space]</span></span>
 <span id="cb10-42"><a href="#cb10-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb10-43"><a href="#cb10-43" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb10-44"><a href="#cb10-44" tabindex="-1"></a><span class="co">#&gt; Distribution Percentiles</span></span>
 <span id="cb10-45"><a href="#cb10-45" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb10-46"><a href="#cb10-46" tabindex="-1"></a><span class="co">#&gt;                  1.0%      2.5%      5.0%    Median     95.0%     97.5%  99.0%</span></span>
-<span id="cb10-47"><a href="#cb10-47" tabindex="-1"></a><span class="co">#&gt; (Intercept)  2.662145  2.721820  2.775757  3.045359  3.308822  3.338802  3.399</span></span>
-<span id="cb10-48"><a href="#cb10-48" tabindex="-1"></a><span class="co">#&gt; outcome2    -0.910834 -0.852322 -0.793186 -0.474863 -0.146508 -0.074720 -0.027</span></span>
-<span id="cb10-49"><a href="#cb10-49" tabindex="-1"></a><span class="co">#&gt; outcome3    -0.761660 -0.666781 -0.602717 -0.295056 -0.006935  0.057228  0.139</span></span>
-<span id="cb10-50"><a href="#cb10-50" tabindex="-1"></a><span class="co">#&gt; treatment2  -0.488061 -0.415362 -0.343864 -0.029525  0.327688  0.390714  0.457</span></span>
-<span id="cb10-51"><a href="#cb10-51" tabindex="-1"></a><span class="co">#&gt; treatment3  -0.484902 -0.414396 -0.352729  0.001169  0.324980  0.376591  0.440</span></span>
+<span id="cb10-46"><a href="#cb10-46" tabindex="-1"></a><span class="co">#&gt;                  1.0%      2.5%      5.0%    Median     95.0%     97.5% 99.0%</span></span>
+<span id="cb10-47"><a href="#cb10-47" tabindex="-1"></a><span class="co">#&gt; (Intercept)  2.601929  2.698662  2.753420  3.025358  3.287703  3.348876 3.418</span></span>
+<span id="cb10-48"><a href="#cb10-48" tabindex="-1"></a><span class="co">#&gt; outcome2    -0.885851 -0.813247 -0.777302 -0.440005 -0.084873 -0.041754 0.012</span></span>
+<span id="cb10-49"><a href="#cb10-49" tabindex="-1"></a><span class="co">#&gt; outcome3    -0.757835 -0.663464 -0.603148 -0.286946  0.017116  0.087008 0.153</span></span>
+<span id="cb10-50"><a href="#cb10-50" tabindex="-1"></a><span class="co">#&gt; treatment2  -0.485779 -0.404673 -0.341493 -0.005840  0.320885  0.371684 0.451</span></span>
+<span id="cb10-51"><a href="#cb10-51" tabindex="-1"></a><span class="co">#&gt; treatment3  -0.447433 -0.393536 -0.346218 -0.007991  0.334258  0.403172 0.491</span></span>
 <span id="cb10-52"><a href="#cb10-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb10-53"><a href="#cb10-53" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 4.918062 </span></span>
-<span id="cb10-54"><a href="#cb10-54" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 10.09891 </span></span>
-<span id="cb10-55"><a href="#cb10-55" tabindex="-1"></a><span class="co">#&gt; DIC: 56.64915 </span></span>
+<span id="cb10-53"><a href="#cb10-53" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 4.865805 </span></span>
+<span id="cb10-54"><a href="#cb10-54" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 10.03232 </span></span>
+<span id="cb10-55"><a href="#cb10-55" tabindex="-1"></a><span class="co">#&gt; DIC: 56.5303 </span></span>
 <span id="cb10-56"><a href="#cb10-56" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb10-57"><a href="#cb10-57" tabindex="-1"></a><span class="co">#&gt; Expected Mean dispersion: 1 </span></span>
 <span id="cb10-58"><a href="#cb10-58" tabindex="-1"></a><span class="co">#&gt; Sq.root of Expected Mean dispersion: 1 </span></span>
 <span id="cb10-59"><a href="#cb10-59" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb10-60"><a href="#cb10-60" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 1.827</span></span></code></pre></div>
+<span id="cb10-60"><a href="#cb10-60" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 1.839</span></span></code></pre></div>
 <p><strong>Model Fit, Predictions, Deviance Residuals, Covariance
 Matrices, and Confidence/Credible Intervals</strong></p>
 <p>Let’s next take a look at the outputs from these additional methods
@@ -631,9 +631,9 @@ are mostly used in these comparisons.</p>
 <span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="do">## works without a &quot;glmb&quot; class specific generic function</span></span>
 <span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="fu">colMeans</span>(<span class="fu">fitted</span>(glmb.D93))</span>
 <span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co">#&gt;        1        2        3        4        5        6        7        8 </span></span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&gt; 21.29688 13.38418 15.77647 20.90986 13.14965 15.48002 21.17498 13.31044 </span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&gt; 20.94561 13.50086 15.77634 20.83699 13.43617 15.70752 20.86736 13.43200 </span></span>
 <span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co">#&gt;        9 </span></span>
-<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co">#&gt; 15.68789</span></span></code></pre></div>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co">#&gt; 15.69822</span></span></code></pre></div>
 <p><em>Predictions(linear predictors)</em></p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="do">## predictions for the glm function</span></span>
 <span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">predict</span>(glm.D93)</span>
@@ -644,14 +644,14 @@ are mostly used in these comparisons.</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="do">## predictions for the glmb function</span></span>
 <span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">colMeans</span>(glmb.D93<span class="sc">$</span>linear.predictors) <span class="co"># no current predict function</span></span>
 <span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="co">#&gt;        1        2        3        4        5        6        7        8 </span></span>
-<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co">#&gt; 3.045375 2.575768 2.742129 3.025559 2.555953 2.722314 3.038267 2.568660 </span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co">#&gt; 3.027907 2.584385 2.741514 3.022899 2.579378 2.736507 3.022965 2.579443 </span></span>
 <span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="co">#&gt;        9 </span></span>
-<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co">#&gt; 2.735021</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co">#&gt; 2.736572</span></span>
 <span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="fu">colMeans</span>(<span class="fu">predict</span>(glmb.D93)) </span>
 <span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#&gt;        1        2        3        4        5        6        7        8 </span></span>
-<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt; 3.045375 2.575768 2.742129 3.025559 2.555953 2.722314 3.038267 2.568660 </span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt; 3.027907 2.584385 2.741514 3.022899 2.579378 2.736507 3.022965 2.579443 </span></span>
 <span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt;        9 </span></span>
-<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt; 2.735021</span></span></code></pre></div>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt; 2.736572</span></span></code></pre></div>
 <p><em>Residuals</em></p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="do">## residuals for the glm function</span></span>
 <span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">residuals</span>(glm.D93)</span>
@@ -661,10 +661,10 @@ are mostly used in these comparisons.</p>
 <span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="co">#&gt;  0.84715368 -0.09167147 -0.96656372</span></span></code></pre></div>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="do">## residuals for the glmb function</span></span>
 <span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="fu">colMeans</span>(<span class="fu">residuals</span>(glmb.D93))</span>
-<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="co">#&gt;           1           2           3           4           5           6 </span></span>
-<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a><span class="co">#&gt; -0.69530096  0.99567823 -0.15429968 -0.15633497 -0.86121772  1.14691762 </span></span>
-<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="co">#&gt;           7           8           9 </span></span>
-<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a><span class="co">#&gt;  0.85425816 -0.03755228 -0.92765863</span></span></code></pre></div>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="co">#&gt;          1          2          3          4          5          6          7 </span></span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a><span class="co">#&gt; -0.6185983  0.9626354 -0.1527931 -0.1431006 -0.9402467  1.0880032  0.9254662 </span></span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="co">#&gt;          8          9 </span></span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a><span class="co">#&gt; -0.0744562 -0.9323209</span></span></code></pre></div>
 <p><em>vcov</em></p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="do">## vcov for the glm function</span></span>
 <span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="fu">vcov</span>(glm.D93)</span>
@@ -676,12 +676,12 @@ are mostly used in these comparisons.</p>
 <span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a><span class="co">#&gt; treatment3  -0.02000000 -7.435533e-18 -6.847584e-18  2.000000e-02  4.000000e-02</span></span></code></pre></div>
 <div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="do">## vcov for the glmb function</span></span>
 <span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="fu">vcov</span>(glmb.D93)</span>
-<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="co">#&gt;             (Intercept)      outcome2      outcome3    treatment2    treatment3</span></span>
-<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a><span class="co">#&gt; (Intercept)  0.02653307 -0.0150206964 -0.0141197005 -0.0194907847 -0.0186977072</span></span>
-<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a><span class="co">#&gt; outcome2    -0.01502070  0.0400022842  0.0143093362  0.0009934275  0.0003620475</span></span>
-<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a><span class="co">#&gt; outcome3    -0.01411970  0.0143093362  0.0344740844 -0.0004603668  0.0001177139</span></span>
-<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a><span class="co">#&gt; treatment2  -0.01949078  0.0009934275 -0.0004603668  0.0419343750  0.0200409058</span></span>
-<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a><span class="co">#&gt; treatment3  -0.01869771  0.0003620475  0.0001177139  0.0200409058  0.0405073918</span></span></code></pre></div>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="co">#&gt;             (Intercept)      outcome2      outcome3    treatment2   treatment3</span></span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a><span class="co">#&gt; (Intercept)  0.02838182 -0.0155781745 -0.0152513656 -0.0200122571 -0.020158202</span></span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a><span class="co">#&gt; outcome2    -0.01557817  0.0399350808  0.0166409200  0.0003499645 -0.001517464</span></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a><span class="co">#&gt; outcome3    -0.01525137  0.0166409200  0.0364356097  0.0008903492 -0.001174078</span></span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a><span class="co">#&gt; treatment2  -0.02001226  0.0003499645  0.0008903492  0.0396406838  0.021349520</span></span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a><span class="co">#&gt; treatment3  -0.02015820 -0.0015174644 -0.0011740780  0.0213495205  0.042582346</span></span></code></pre></div>
 <p><em>confint</em></p>
 <p>Confidence intervals</p>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="do">## confint for the glm function</span></span>
@@ -696,11 +696,11 @@ are mostly used in these comparisons.</p>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="do">## confint for the glmb function</span></span>
 <span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="fu">confint</span>(glmb.D93)</span>
 <span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="co">#&gt;                   2.5%       97.5%</span></span>
-<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="co">#&gt; (Intercept)  2.7218196  3.33880223</span></span>
-<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a><span class="co">#&gt; outcome2    -0.8523221 -0.07471989</span></span>
-<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a><span class="co">#&gt; outcome3    -0.6667814  0.05722808</span></span>
-<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a><span class="co">#&gt; treatment2  -0.4153618  0.39071396</span></span>
-<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a><span class="co">#&gt; treatment3  -0.4143964  0.37659097</span></span></code></pre></div>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="co">#&gt; (Intercept)  2.6986617  3.34887586</span></span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a><span class="co">#&gt; outcome2    -0.8132475 -0.04175357</span></span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a><span class="co">#&gt; outcome3    -0.6634643  0.08700805</span></span>
+<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a><span class="co">#&gt; treatment2  -0.4046731  0.37168418</span></span>
+<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a><span class="co">#&gt; treatment3  -0.3935361  0.40317213</span></span></code></pre></div>
 <p><strong>AIC/DIC, Deviance, and the Log-Likelihood</strong></p>
 <p>These model statistics are useful when comparing different model
 specifications. The Bayesian versions of these will be discussed in
@@ -712,7 +712,7 @@ greater detail in a separate Vignette.</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="do">## DIC for the glmb function (estimated effective number of parameters and the DIC)</span></span>
 <span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="fu">extractAIC</span>(glmb.D93)</span>
 <span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="co">#&gt;        pD       DIC </span></span>
-<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="co">#&gt;  4.918062 56.649153</span></span></code></pre></div>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="co">#&gt;  4.865805 56.530303</span></span></code></pre></div>
 <p><em>Deviance</em></p>
 <div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="do">## Deviance for the glm function</span></span>
 <span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a><span class="fu">deviance</span>(glm.D93)</span>
@@ -720,14 +720,14 @@ greater detail in a separate Vignette.</p>
 <div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="do">## Deviance for the glmb function</span></span>
 <span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a><span class="do">## works without a &quot;glmb&quot; class specific generic function</span></span>
 <span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a><span class="fu">mean</span>(<span class="fu">deviance</span>(glmb.D93))</span>
-<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a><span class="co">#&gt; [1] 10.09891</span></span></code></pre></div>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a><span class="co">#&gt; [1] 10.03232</span></span></code></pre></div>
 <p><em>Log-Likelihoods</em></p>
 <div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="do">## Deviance for the glm function</span></span>
 <span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a><span class="fu">logLik</span>(glm.D93)</span>
 <span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a><span class="co">#&gt; &#39;log Lik.&#39; -23.38066 (df=5)</span></span></code></pre></div>
 <div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="do">## Deviance for the glmb function</span></span>
 <span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a><span class="fu">mean</span>(<span class="fu">logLik</span>(glmb.D93))</span>
-<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a><span class="co">#&gt; [1] -25.86555</span></span></code></pre></div>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a><span class="co">#&gt; [1] -25.83225</span></span></code></pre></div>
 <p><strong>Model Frame, formula, family, nobs, and show</strong></p>
 <p>These are mostly useful for understanding various aspects of the
 model.</p>

@@ -1,5 +1,43 @@
+# glmbayes 0.9.5
+
+* **Tests / CRAN:** All **OpenCL**-specific **testthat** blocks now call
+  **`skip_on_cran()`** (in addition to **`skip_if_no_opencl()`**), consistent
+  with existing Boston/Cleveland OpenCL tests. OpenCL coverage remains for local
+  checks and source builds with OpenCL; CRAN checks avoid parallel/GPU-heavy
+  tests that could trigger **CPU time vs elapsed time** NOTES.
+
+# glmbayes 0.9.4
+
+* **Vignettes:** A vignette that previously used the `notangle` engine now
+  uses the standard R Markdown vignette machinery (`knitr` /
+  `rmarkdown::html_vignette`), so builds align with CRAN expectations and
+  vignette index ordering should be consistent with the rest of the package.
+
+* **OpenCL sources (`inst/cl`):** Removed unused or superseded material,
+  consolidated kernels and library fragments, and aligned `.cl` layout and
+  dependency tagging with the conventions used in 'openclport' and
+  'nmathopencl' (prelude, shims, `nmath/` stems, family kernels under
+  `src/`). See `inst/cl/README.md` for how the assembled program is stitched.
+
+* **OpenCL program assembly:** Reworked loading so the full OpenCL program is
+  built from explicit fragments (global header, `nmath` closure, family/link
+  kernels) rather than ad hoc concatenation—clearer ownership of what enters
+  GPU compilation and easier parity with CPU paths.
+
+* **Tests:** Added and expanded **testthat** coverage aimed at OpenCL code
+  paths (including binomial examples that exercise GPU envelope evaluation),
+  complementing existing Cleveland-style checks.
+
+* **Bug fix — binomial OpenCL:** Binomial `f2_f3` OpenCL kernels now evaluate
+  the data log-likelihood with the same **proportion × trial-count**
+  semantics as **`dbinom_glmb`** on the CPU (`round` successes and trials,
+  clamped probability). This fixes envelope / PLSD failures for aggregated
+  binomial data (e.g. `cbind(successes, failures)` / `MASS::menarche`) where
+  the previous kernels treated **`y`** like a raw success count.
+
 # glmbayes 0.9.3
 
+* Published on CRAN.
 * Version bump in response to CRAN resubmission feedback.
 
 # glmbayes 0.9.2
@@ -12,7 +50,7 @@
 * Reduced iteration counts in rlmb Gibbs sampler example to stay within
   CRAN example time limits on slower check machines.
 
-# glmbayes 0.9.1
+# glmbayes 0.9.0
 
 First CRAN submission. This release is a stable pre-release with a
 near-complete feature set relative to earlier development builds.
