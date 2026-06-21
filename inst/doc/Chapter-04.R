@@ -1,621 +1,231 @@
 ## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  df_print = "default"
 )
 
-## ----setup,results="hide",echo = FALSE----------------------------------------
+
+## ----setup,echo = FALSE-------------------------------------------------------
 library(glmbayes)
+## Annette Dobson (1990) "An Introduction to Generalized Linear Models".
+## Page 9: Plant Weight Data.
+ctl    <- c(4.17, 5.58, 5.18, 6.11, 4.50, 4.61, 5.17, 4.53, 5.33, 5.14)
+trt    <- c(4.81, 4.17, 4.41, 3.59, 5.87, 3.83, 6.03, 4.89, 4.32, 4.69)
+group  <- gl(2, 10, 20, labels = c("Ctl", "Trt"))
+weight <- c(ctl, trt)
 
-## ----menarche data,results = "hide",echo = FALSE------------------------------
-## Load menarche data
-data(menarche,package="MASS")
-head(menarche, 5)
-
-
-## ----Analysis Setup,echo = FALSE----------------------------------------------
-## Number of variables in model
-Age=menarche$Age
-nvars=2
+dat <- data.frame(weight, group)
 set.seed(333)
 
-## Reference Ages for setting of priors and Age_Difference
-ref_age1=13  # user can modify this
-ref_age2=15  ## user can modify this
+## ----Plant_Prior--------------------------------------------------------------
+ps = Prior_Setup(
+  weight ~ group, data = dat, family = gaussian(), pwt = 0.001,
+  n_prior = NULL, sd = NULL,
+  intercept_source = c("null_model", "full_model"),
+  effects_source = c("null_effects", "full_model"),
+  mu = NULL
+)
 
-## Define variables used later in analysis
-Age2=Age-ref_age1
-Age_Diff=ref_age2-ref_age1
+#mu       = ps$mu
+#V        = ps$Sigma
+#disp_ML  = ps$dispersion
 
+## ----Plant_w_intercept--------------------------------------------------------
+lm.D9 <- lm(weight ~ group)
+sumlm<-summary(lm.D9)
+sumlm$coefficients
 
-## ----Prior Info,echo = FALSE--------------------------------------------------
+## ----Plant_lmb_call1----------------------------------------------------------
+lmb.D9=lmb(weight ~ group,dNormal(mu=ps$mu,Sigma=ps$Sigma,dispersion=ps$dispersion),n=1000)
+sumlmb<-summary(lmb.D9)
+sumlmb$coefficients
 
-## Point estimates at reference ages
-m1=0.5  
-m2=0.9
+## ----Plant_lmb_call2----------------------------------------------------------
+lmb.D9=lmb(weight ~ group,dNormal(mu=ps$mu,Sigma=ps$Sigma,dispersion=ps$dispersion),n=100000)
+sumlmb<-summary(lmb.D9)
+sumlmb$coefficients
 
-## Lower bound of prior credible intervals for point estimates
-m1_lower=0.3
-m2_lower=0.7
+## ----MTCars Data--------------------------------------------------------------
+data(mtcars)
 
-## Assumed correlation between the two (on link scale)
-m_corr=0.4
+# Create gallons per mile
+mtcars$gpm <- 1 / mtcars$mpg
 
-## ----Logit: set up link function info and initialize prior matrices,echo = FALSE----
+## ----MeanCenter---------------------------------------------------------------
+# Mean-center predictors
+#mtcars$c_hp <- scale(mtcars$hp, center = TRUE, scale = FALSE)
+#mtcars$c_drat <- scale(mtcars$drat, center = TRUE, scale = FALSE)
+#mtcars$c_qsec <- scale(mtcars$qsec, center = TRUE, scale = FALSE)
 
-## Set up link function and initialize prior mean and Variance-Covariance matrices
-bi_logit <- binomial(link="logit")
-mu1<-matrix(0,nrow=nvars,ncol=1)
-rownames(mu1)=c("Intercept","Age2")
-colnames(mu1)=c("Prior Mean")
-V1<-1*diag(nvars)
-rownames(V1)=c("Intercept","Age2")
-colnames(V1)=c("Intercept","Age2")
+mtcars$c_wt  <- as.numeric(scale(mtcars$wt, center = TRUE, scale = FALSE))
+mtcars$c_cyl <- as.numeric(scale(mtcars$cyl, center = TRUE, scale = FALSE))
 
-## ----Logit:set prior means,results = "hide",echo = FALSE----------------------
-## Prior mean for intercept is set to point estimate 
-## at reference age1 (on logit scale)
-mu1[1,1]=bi_logit$linkfun(m1)
+## ----weight_v_gpm-------------------------------------------------------------
 
-## Prior mean for slope is set to difference in point estimates
-## on logit scale divided by Age_Diff
+# Fit linear model
+fit <- lm(gpm ~ c_wt, data = mtcars)
 
-mu1[2,1]=(bi_logit$linkfun(m2) -bi_logit$linkfun(m1))/Age_Diff 
-print(mu1)
+# Create scatter plot
+plot(mtcars$c_wt, mtcars$gpm,
+     pch = 19, col = "steelblue",
+     xlab = "Mean-Centered Weight (c_wt)",
+     ylab = "Gallons per Mile (gpm)",
+     main = "Fuel Consumption vs. Mean-Centered Weight")
 
+# Add regression line
+abline(fit, col = "darkred", lwd = 2)
 
-## ----Logit:set prior Variance Covariance matrix,results = "hide",echo = FALSE----
-## Implied standard deviations for point estimates on logit scale
+# Optional: Add confidence band manually
+x_vals <- seq(min(mtcars$c_wt), max(mtcars$c_wt), length.out = 100)
+pred <- predict(fit, newdata = data.frame(c_wt = x_vals), interval = "confidence")
 
-sd_m1= (bi_logit$linkfun(m1) -bi_logit$linkfun(m1_lower))/1.96
-sd_m2= (bi_logit$linkfun(m2) -bi_logit$linkfun(m2_lower))/1.96
+lines(x_vals, pred[, "lwr"], col = "darkred", lty = 2)
+lines(x_vals, pred[, "upr"], col = "darkred", lty = 2)
 
-## Also compute implied estimate for upper bound of confidence intervals
 
-m1_upper=bi_logit$linkinv(bi_logit$linkfun(m1)+sd_m1*1.96)
-m2_upper=bi_logit$linkinv(bi_logit$linkfun(m2)+sd_m2*1.96)
-print("m1_upper is:")
-m1_upper
-print("m2_upper is:")
-m2_upper
+## ----cyl_v_gpm----------------------------------------------------------------
+# Ensure gpm is defined
+mtcars$gpm <- 1 / mtcars$mpg
 
+# Create boxplot
+boxplot(gpm ~ factor(cyl), data = mtcars,
+        col = "lightblue", border = "darkblue",
+        xlab = "Number of Cylinders",
+        ylab = "Gallons per Mile (gpm)",
+        main = "Fuel Consumption by Number of Cylinders")
 
-## Implied Standard deviation for slope (using variance formula for difference between two variables)
-a=(1/Age_Diff)
-sd_slope=sqrt((a*sd_m1)^2+(a*sd_m2)^2-2*a*a*(sd_m1*sd_m2*m_corr))
+# Add jittered points
+set.seed(123)  # for reproducibility
+points(jitter(as.numeric(factor(mtcars$cyl)), amount = 0.2), mtcars$gpm,
+       pch = 19, col = rgb(70/255, 130/255, 180/255, alpha = 0.6))
 
-#Cov(m1,slope)=cov(m1, a*(m2-m1)) =a*E[(m1-E[m1])((m2-m1)-E[m2-m1])]
-#   =a*E[(m1-E[m1])(m2-E[m2])]- a* E[(m1-E[m1])(m1-E[m1])]
-##   =a*Cov[m1,m2] - a*Var[m1]
-##  =a*sd_m1*sd_m2*m_corr-a* sd_m1*sd_m1
-cov_V1=a*sd_m1*sd_m2*m_corr-a* sd_m1*sd_m1
 
-# Set covariance matrix
-V1[1,1]=sd_m1^2
-V1[2,2]=sd_slope^2
-V1[1,2]=cov_V1
-V1[2,1]=V1[1,2]
-print("V1 is:")
-print(V1)
+## ----Mt_cars_Default_Prior----------------------------------------------------
+# Use Prior_Setup to illustrate prior strength
+pscars  <- Prior_Setup(formula = gpm ~  c_wt+c_cyl,family=gaussian(),data = mtcars,pwt=0.01) ## pwt=0.01-->n_prior= 32/99
+pscars2 <- Prior_Setup(formula = gpm ~  c_wt+c_cyl,family=gaussian(),data = mtcars,pwt=0.5)  ## pwt=0.5-->n_prior= 32
+pscars3 <- Prior_Setup(formula = gpm ~  c_wt+c_cyl,family=gaussian(),data = mtcars,pwt=0.55) ## pwt=0.55-->n_prior= 39.111
 
-## ----Run Logit,results = "hide",echo = FALSE----------------------------------
-Menarche_Model_Data=data.frame(Age=menarche$Age,Total=menarche$Total,Menarche=menarche$Menarche,Age2)
-prior1=list(mu=mu1,Sigma=V1)
-#glmb.out1<-glmb(n=1000,cbind(Menarche, Total-Menarche) ~ #Age2,family=binomial(logit),mu=mu1,Sigma=V1,data=Menarche_Model_Data)
-glmb.out1<-glmb(n=1000,cbind(Menarche, Total-Menarche) ~ Age2,family=binomial(logit),pfamily=dNormal(mu=mu1,Sigma=V1),data=Menarche_Model_Data)
+## ----print_priors-------------------------------------------------------------
+pscars
 
+## ----print_priors2------------------------------------------------------------
+pscars2
 
-## ----Summary Logit------------------------------------------------------------
-summary(glmb.out1)
+## ----print_priors3------------------------------------------------------------
+pscars3
 
-## ----Model_Preds1,fig.height = 5, fig.width = 7-------------------------------
-## Predicting for original data
+## ----run_lmb------------------------------------------------------------------
 
-pred1=predict(glmb.out1,type="response")
-pred1_m=colMeans(pred1)
+set.seed(333)
 
-plot(Menarche/Total ~ Age, data=menarche,main="% of girls Who have had their first period")
-lines(menarche$Age, pred1_m,lty=1)
+lmb_cars<- lmb(formula = gpm ~  c_wt+c_cyl,pfamily=dNormal(mu=pscars$mu,Sigma=pscars$Sigma, dispersion = pscars$dispersion),data =mtcars)
+lmb_cars2<-lmb(formula = gpm ~  c_wt+c_cyl,pfamily=dNormal(mu=pscars2$mu,Sigma=pscars2$Sigma, dispersion = pscars2$dispersion),data =mtcars)
+lmb_cars3<-lmb(formula = gpm ~  c_wt+c_cyl,pfamily=dNormal(mu=pscars3$mu,Sigma=pscars3$Sigma, dispersion = pscars3$dispersion),data =mtcars)
 
 
+sum_lmbcars<-summary(lmb_cars)  
+sum_lmbcars2<-summary(lmb_cars2)
+sum_lmbcars3<-summary(lmb_cars3)
 
-## ----Setup_NewData------------------------------------------------------------
-## Pull Model Info
-mod_Object=glmb.out1
-n=nrow(mod_Object$coefficients)
-obs_size=median(menarche$Total) ## Median of Total counts
 
-# Generate New Data for The Independent Variable
-Age_New <- seq(8, 20, 0.25)
-Age2_New=Age_New-13
+## ----sumlmb_out---------------------------------------------------------------
+sum_lmbcars$coefficients
 
-# olddata - Should contain all variables used in original model formula
-olddata=data.frame(Age=menarche$Age,
-Menarche=menarche$Menarche,Total=menarche$Total,Age2=Age2)
+## ----sumlmb_out2--------------------------------------------------------------
+sum_lmbcars2$coefficients
 
-# Should contain all variables used on RHS of model formula
-newdata=data.frame(Age=Age_New,Age2=Age2_New)
+## ----sumlmb_out3--------------------------------------------------------------
+sum_lmbcars3$coefficients
 
+## ----Mt_cars_Default_Prior2---------------------------------------------------
+# Use Prior_Setup to illustrate prior strength
+pscars4 <- Prior_Setup(formula = gpm ~  c_wt+c_cyl,family=gaussian(),data = mtcars,n_prior=1)  ## n_prior=1--> pwt=0.0303
+pscars5 <- Prior_Setup(formula = gpm ~  c_wt+c_cyl,family=gaussian(),data = mtcars,n_prior=10)  ## n_prior=10--> pwt=0.2381
+pscars6 <- Prior_Setup(formula = gpm ~  c_wt+c_cyl,family=gaussian(),data = mtcars,n_prior=32)  ## n_prior=32--> pwt=0.5
 
-## ----Model_Sims---------------------------------------------------------------
-## Predict and Simulate for newdata
+set.seed(333)
 
-pred_menarche=predict(mod_Object,newdata=newdata,olddata=olddata,type="response")
-pred_y=matrix(0,nrow=n,ncol=length(Age_New))
-for(i in 1:n){
-  pred_y[i,1:length(Age_New)]=rbinom(length(Age_New),size=obs_size,
-  prob=pred_menarche[i,1:length(Age_New)])
-}
+lmb_cars4<-lmb(formula = gpm ~  c_wt+c_cyl,pfamily=dNormal(mu=pscars4$mu,Sigma=pscars4$Sigma, dispersion = pscars4$dispersion),data =mtcars)
+lmb_cars5<-lmb(formula = gpm ~  c_wt+c_cyl,pfamily=dNormal(mu=pscars5$mu,Sigma=pscars5$Sigma, dispersion = pscars5$dispersion),data =mtcars)
+lmb_cars6<-lmb(formula = gpm ~  c_wt+c_cyl,pfamily=dNormal(mu=pscars6$mu,Sigma=pscars6$Sigma, dispersion = pscars6$dispersion),data =mtcars)
 
+sum_lmbcars4<-summary(lmb_cars4)
+sum_lmbcars5<-summary(lmb_cars5)
+sum_lmbcars6<-summary(lmb_cars6)
 
-## ----Mean_and_Quartile_Info---------------------------------------------------
 
-## Produce mean and quantile information
+## ----sumlmb_out4--------------------------------------------------------------
+sum_lmbcars4$coefficients
 
-pred_m=colMeans(pred_menarche)
-pred_y_m=colMeans(pred_y/obs_size)
-quant1_m=apply(pred_menarche,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-quant2_m=apply(pred_menarche,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
-quant1_m_y=apply(pred_y/obs_size,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-quant2_m_y=apply(pred_y/obs_size,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
+## ----sumlmb_out5--------------------------------------------------------------
+sum_lmbcars5$coefficients
 
+## ----sumlmb_out6--------------------------------------------------------------
+sum_lmbcars5$coefficients
 
-## ----Model_Plots,fig.height = 5, fig.width = 7--------------------------------
+## ----Mt_cars_sd_Prior1--------------------------------------------------------
+pscars7 <- Prior_Setup(formula = gpm ~  c_wt+c_cyl,family=gaussian(),data =mtcars,sd=c(0.005,0.010,0.0015),n_prior=(0.01/0.99)*32)  ## 
+pscars7
 
-plot(Menarche/Total ~ Age, data=menarche,main="Percentage of girls Who have had their first period")
-lines(Age_New, pred_m,lty=1)
-lines(Age_New, quant1_m,lty=2)
-lines(Age_New, quant2_m,lty=2)
-lines(Age_New, quant1_m_y,lty=2)
-lines(Age_New, quant2_m_y,lty=2)
+## ----sumlmb_out7--------------------------------------------------------------
 
+set.seed(333)
+lmb_cars7<-lmb(formula = gpm ~  c_wt+c_cyl,pfamily=dNormal(mu=pscars7$mu,Sigma=pscars7$Sigma, dispersion = pscars7$dispersion),data =mtcars)
+sum_lmbcars7<-summary(lmb_cars7)
+sum_lmbcars7
 
-## ----Store_Preds--------------------------------------------------------------
+## ----Mt_cars_prior_full_model-------------------------------------------------
+pscars8 <- Prior_Setup(formula = gpm ~  c_wt+c_cyl,family=gaussian(),data =mtcars,intercept_source = "full_model",effects_source = "full_model")  ## 
+pscars8
 
-outdata=data.frame(Age=Age_New,Age2=Age2_New,pred_m=pred_m, quant1_m, quant2_m,quant1_m_y,quant2_m_y)
+## ----sumlmb_out8--------------------------------------------------------------
 
-print("Prior credible set at age 13 was")
-cbind(m1_lower,m1_upper)
+set.seed(333)
+lmb_cars8<-lmb(formula = gpm ~  c_wt+c_cyl,pfamily=dNormal(mu=pscars8$mu,Sigma=pscars8$Sigma, dispersion = pscars8$dispersion),data =mtcars)
+sum_lmbcars8<-summary(lmb_cars8)
+sum_lmbcars8$coefficients1
+sum_lmbcars8$coefficients
 
-print("Prior credible set at age 15 was")
-cbind(m2_lower,m2_upper)
+## ----Mt_cars_small------------------------------------------------------------
+# Use Prior_Setup to illustrate prior strength
+lmcars_small <- lm(formula = gpm ~  c_wt,  data = mtcars)
+lmcars_small
 
-print("Posterior Predictions between ages 13 and 15 are")
-outdata[which(outdata$Age >= 13&outdata$Age <= 15 ),]
+## ----Mt_cars_Default_Prior5---------------------------------------------------
+# Use Prior_Setup to illustrate prior strength
+pscars9 <- Prior_Setup(  formula = gpm ~  c_wt+c_cyl,family=gaussian(),  data = mtcars,  pwt=0.01,mu=c(0.05423,0.01494,0))
+pscars9
 
+## ----sumlmb_out9--------------------------------------------------------------
+set.seed(333)
+lmb_cars9<-lmb(formula = gpm ~  c_wt+c_cyl,pfamily=dNormal(mu=pscars9$mu,Sigma=pscars9$Sigma, dispersion = pscars9$dispersion),data =mtcars)
+sum_lmbcars9<-summary(lmb_cars9)
+sum_lmbcars9$coefficients1
+sum_lmbcars9$coefficients
 
-## ----Residual_Analysis--------------------------------------------------------
+## ----Mt_cars_Default_Prior4---------------------------------------------------
+# Use Prior_Setup to illustrate prior strength
+ps4 <- Prior_Setup(
+  formula = gpm ~  c_wt+c_cyl,
+  family=gaussian(),
+  data = mtcars,
+  n_prior=1
+##  ,pwt = c(0.1, 0.5),     # Example vector weights
+##  priorsd = c(5, 2),     # Custom SDs for each predictor
+##  priorN = NULL          # Leave NULL to focus on pwt and priorsd
+)
+ps4
 
-## Get Residuals for model, their means, and credible bounds
-res_out=residuals(glmb.out1)
-res_mean=colMeans(res_out)
-sqrt(mean(res_mean^2))
+## ----Custom_prior-------------------------------------------------------------
 
-res_low1=apply(res_out,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-res_high1=apply(res_out,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
+ps_custom <- Prior_Setup(
+  gpm ~ c_wt + c_cyl,
+  data = mtcars,
+  pwt  = 0.01,
+  mu   = c(0.05423, 0.01494, 0)   # intercept, c_wt, c_cyl
+)
 
-## ----Simulate_New_Residuals---------------------------------------------------
-## Simulate new data and get residuals for simulated data
-
-ysim1=simulate(glmb.out1,nsim=1,seed=10401L,pred=pred1,family="binomial",
-                        prior.weights=weights(glmb.out1))
-res_ysim_out1=residuals(glmb.out1,ysim=ysim1)
-res_low=apply(res_ysim_out1,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-res_high=apply(res_ysim_out1,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
-
-## ----Residual_Plot,fig.height = 5, fig.width = 7------------------------------
-# Plot Credible Interval bounds for Deviance Residuals
-
-plot(res_mean~Age,ylim=c(-2.5,2.5),
-  main="Credible Interval Bounds for Logit Model Deviance Residuals",
-  xlab = "Age", ylab = "Dev. Residuals")
-lines(Age, 0*res_mean,lty=1)
-lines(Age, res_low,lty=1)
-lines(Age, res_high,lty=1)
-lines(Age, res_low1,lty=2)
-lines(Age, res_high1,lty=2)
-
-## ----Probit_Model-------------------------------------------------------------
-## ----Probit: set up link function info and initialize prior matrices-----------
-
-## Set up link function and initialize prior mean and Variance-Covariance matrices
-bi_probit <- binomial(link="probit")
-mu2<-matrix(0,nrow=nvars,ncol=1)
-rownames(mu2)=c("Intercept","Age2")
-colnames(mu2)=c("Prior Mean")
-V2<-1*diag(nvars)
-rownames(V2)=c("Intercept","Age2")
-colnames(V2)=c("Intercept","Age2")
-
-
-## ----Probit:set prior means----------------------------------------------------
-## Prior mean for intercept is set to point estimate 
-## at reference age1 (on probit scale)
-mu2[1,1]=bi_probit$linkfun(m1)
-
-## Prior mean for slope is set to difference in point estimates
-## on probit scale divided by Age_Diff
-
-mu2[2,1]=(bi_probit$linkfun(m2) -bi_probit$linkfun(m1))/Age_Diff 
-print(mu2)
-
-
-## ----Probit:set prior Variance Covariance matrix-------------------------------
-## Implied standard deviations for point estimates on probit scale
-
-sd_m1= (bi_probit$linkfun(m1) -bi_probit$linkfun(m1_lower))/1.96
-sd_m2= (bi_probit$linkfun(m2) -bi_probit$linkfun(m2_lower))/1.96
-
-## Implied Standard deviation for slope (using variance formula for difference between two variables)
-a=(1/Age_Diff)
-sd_slope=sqrt((a*sd_m1)^2+(a*sd_m2)^2-2*a*a*(sd_m1*sd_m2*m_corr))
-
-#Cov(m1,slope)=cov(m1, a*(m2-m1)) =a*E[(m1-E[m1])((m2-m1)-E[m2-m1])]
-#   =a*E[(m1-E[m1])(m2-E[m2])]- a* E[(m1-E[m1])(m1-E[m1])]
-##   =a*Cov[m1,m2] - a*Var[m1]
-##  =a*sd_m1*sd_m2*m_corr-a* sd_m1*sd_m1
-cov_V2=a*sd_m1*sd_m2*m_corr-a* sd_m1*sd_m1
-
-# Set covariance matrix
-V2[1,1]=sd_m1^2
-V2[2,2]=sd_slope^2
-V2[1,2]=cov_V2
-V2[2,1]=V2[1,2]
-print(V2)
-
-
-## ----Run Probit,results = "hide"-----------------------------------------------
-Menarche_Model_Data=data.frame(Age=menarche$Age,Total=menarche$Total,
-                               Menarche=menarche$Menarche,Age2)
-
-glmb.out2<-glmb(n=1000,cbind(Menarche, Total-Menarche) ~Age2,family=binomial(probit),
-                pfamily=dNormal(mu=mu2,Sigma=V2),data=Menarche_Model_Data)
-
-print(glmb.out2)
-summary(glmb.out2)
-
-## ----cloglog_Model------------------------------------------------------------
-
-## ----cloglog: set up link function info and initialize prior matrices-----------
-
-## Set up link function and initialize prior mean and Variance-Covariance matrices
-bi_cloglog <- binomial(link="cloglog")
-mu3<-matrix(0,nrow=nvars,ncol=1)
-rownames(mu3)=c("Intercept","Age2")
-colnames(mu3)=c("Prior Mean")
-V3<-1*diag(nvars)
-rownames(V3)=c("Intercept","Age2")
-colnames(V3)=c("Intercept","Age2")
-
-
-## ----cloglog:set prior means----------------------------------------------------
-## Prior mean for intercept is set to point estimate 
-## at reference age1 (on cloglog scale)
-mu3[1,1]=bi_cloglog$linkfun(m1)
-
-## Prior mean for slope is set to difference in point estimates
-## on cloglog scale divided by Age_Diff
-
-mu3[2,1]=(bi_cloglog$linkfun(m2) -bi_cloglog$linkfun(m1))/Age_Diff 
-print(mu3)
-
-
-## ----Cloglog:set prior Variance Covariance matrix-------------------------------
-## Implied standard deviations for point estimates on clolog scale
-
-sd_m1= (bi_cloglog$linkfun(m1) -bi_cloglog$linkfun(m1_lower))/1.96
-sd_m2= (bi_cloglog$linkfun(m2) -bi_cloglog$linkfun(m2_lower))/1.96
-
-## Implied Standard deviation for slope (using variance formula for difference between two variables)
-a=(1/Age_Diff)
-sd_slope=sqrt((a*sd_m1)^2+(a*sd_m2)^2-2*a*a*(sd_m1*sd_m2*m_corr))
-
-#Cov(m1,slope)=cov(m1, a*(m2-m1)) =a*E[(m1-E[m1])((m2-m1)-E[m2-m1])]
-#   =a*E[(m1-E[m1])(m2-E[m2])]- a* E[(m1-E[m1])(m1-E[m1])]
-##   =a*Cov[m1,m2] - a*Var[m1]
-##  =a*sd_m1*sd_m2*m_corr-a* sd_m1*sd_m1
-cov_V3=a*sd_m1*sd_m2*m_corr-a* sd_m1*sd_m1
-
-# Set covariance matrix
-V3[1,1]=sd_m1^2
-V3[2,2]=sd_slope^2
-V3[1,2]=cov_V3
-V3[2,1]=V3[1,2]
-print(V3)
-
-
-## ----Run cloglog,results = "hide"-----------------------------------------------
-Menarche_Model_Data=data.frame(Age=menarche$Age,Total=menarche$Total,
-                               Menarche=menarche$Menarche,Age2)
-
-glmb.out3<-glmb(n=1000,cbind(Menarche, Total-Menarche) ~Age2,family=binomial(cloglog),
-                pfamily=dNormal(mu=mu3,Sigma=V3),data=Menarche_Model_Data)
-
-print(glmb.out3)
-summary(glmb.out3)
-
-
-
-## ----cloglog_Model2-----------------------------------------------------------
-
-## ----cloglog: set up link function info and initialize prior matrices-----------
-
-## Set up link function and initialize prior mean and Variance-Covariance matrices
-bi_cloglog <- binomial(link="cloglog")
-mu4<-matrix(0,nrow=nvars,ncol=1)
-rownames(mu4)=c("Intercept","Age2")
-colnames(mu4)=c("Prior Mean")
-V4<-1*diag(nvars)
-rownames(V4)=c("Intercept","Age2")
-colnames(V4)=c("Intercept","Age2")
-
-
-## ----cloglog:set prior means----------------------------------------------------
-## Prior mean for intercept is set to point estimate 
-## at reference age1 (on logit scale)
-mu4[1,1]=bi_cloglog$linkfun((1-m1))
-
-## Prior mean for slope is set to difference in point estimates
-## on logit scale divided by Age_Diff
-
-mu4[2,1]=(bi_cloglog$linkfun((1-m2))-bi_cloglog$linkfun((1-m1)))/Age_Diff 
-print(mu4)
-
-
-## ----Probit:set prior Variance Covariance matrix-------------------------------
-## Implied standard deviations for point estimates on logit scale
-
-sd_m1= (bi_cloglog$linkfun((1-m1_lower))-bi_cloglog$linkfun((1-m1)))/1.96
-sd_m2= (bi_cloglog$linkfun((1-m2_lower))-bi_cloglog$linkfun((1-m2)))/1.96
-
-## Implied Standard deviation for slope (using variance formula for difference between two variables)
-a=(1/Age_Diff)
-sd_slope=sqrt((a*sd_m1)^2+(a*sd_m2)^2-2*a*a*(sd_m1*sd_m2*m_corr))
-
-#Cov(m1,slope)=cov(m1, a*(m2-m1)) =a*E[(m1-E[m1])((m2-m1)-E[m2-m1])]
-#   =a*E[(m1-E[m1])(m2-E[m2])]- a* E[(m1-E[m1])(m1-E[m1])]
-##   =a*Cov[m1,m2] - a*Var[m1]
-##  =a*sd_m1*sd_m2*m_corr-a* sd_m1*sd_m1
-cov_V4=a*sd_m1*sd_m2*m_corr-a* sd_m1*sd_m1
-
-# Set covariance matrix
-V4[1,1]=sd_m1^2
-V4[2,2]=sd_slope^2
-V4[1,2]=cov_V4
-V4[2,1]=V4[1,2]
-print(V4)
-
-
-## ----Run cloglog,results = "hide"-----------------------------------------------
-Menarche_Model_Data=data.frame(Age=menarche$Age,Total=menarche$Total,
-                               Menarche=menarche$Menarche,Age2)
-
-glmb.out4<-glmb(n=1000,cbind(Total-Menarche,Menarche) ~Age2,family=binomial(cloglog),
-                pfamily=dNormal(mu=mu4,Sigma=V4),data=Menarche_Model_Data)
-
-print(glmb.out4)
-summary(glmb.out4)
-
-
-## ----Compare_DIC--------------------------------------------------------------
-DIC_Out=rbind(
-  extractAIC(glmb.out1),
-  extractAIC(glmb.out2),
-  extractAIC(glmb.out3),
-  extractAIC(glmb.out4))
-
-rownames(DIC_Out)=c("Logit","Probit","Clog-Log","Reverse Clog-Log")
-DIC_Out
-
-## ----Compare_AIC--------------------------------------------------------------
-
-glm.out1=glm(cbind(Menarche, Total-Menarche) ~Age2,family=binomial(logit),data=Menarche_Model_Data)
-glm.out2=glm(cbind(Menarche, Total-Menarche) ~Age2,family=binomial(probit),data=Menarche_Model_Data)
-glm.out3=glm(cbind(Menarche, Total-Menarche) ~Age2,family=binomial(cloglog),data=Menarche_Model_Data)
-glm.out4=glm(cbind(Total-Menarche,Menarche ) ~Age2,family=binomial(cloglog),data=Menarche_Model_Data)
-
-AIC_Out=rbind(extractAIC(glm.out1),
-extractAIC(glm.out2),
-extractAIC(glm.out3),
-extractAIC(glm.out4))
-
-rownames(AIC_Out)=c("Logit","Probit","Clog-Log","Reverse Clog-Log")
-colnames(AIC_Out)=c("edf","AIC")
-AIC_Out
-
-## ----Model_Sims2--------------------------------------------------------------
-## Predict and Simulate for newdata
-
-mod_Object=glmb.out2
-pred1=predict(glmb.out2,type="response")
-pred1_m=colMeans(pred1)
-n=nrow(mod_Object$coefficients)
-pred_menarche=predict(mod_Object,newdata=newdata,olddata=olddata,type="response")
-pred_y=matrix(0,nrow=n,ncol=length(Age_New))
-for(i in 1:n){
-  pred_y[i,1:length(Age_New)]=rbinom(length(Age_New),size=obs_size,
-  prob=pred_menarche[i,1:length(Age_New)])
-}
-
-
-## ----Mean_and_Quartile_Info2--------------------------------------------------
-
-## Produce mean and quantile information
-
-pred_m=colMeans(pred_menarche)
-pred_y_m=colMeans(pred_y/obs_size)
-quant1_m=apply(pred_menarche,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-quant2_m=apply(pred_menarche,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
-quant1_m_y=apply(pred_y/obs_size,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-quant2_m_y=apply(pred_y/obs_size,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
-
-
-## ----Model_Plots2,fig.height = 5, fig.width = 7-------------------------------
-
-plot(Menarche/Total ~ Age, data=menarche,main="Percentage of girls Who have had their first period")
-lines(Age_New, pred_m,lty=1)
-lines(Age_New, quant1_m,lty=2)
-lines(Age_New, quant2_m,lty=2)
-lines(Age_New, quant1_m_y,lty=2)
-lines(Age_New, quant2_m_y,lty=2)
-
-
-## ----Residual_Analysis2-------------------------------------------------------
-## Get Residuals for model, their means, and credible bounds
-res_out=residuals(glmb.out2)
-res_mean=colMeans(res_out)
-sqrt(mean(res_mean^2))
-res_low1=apply(res_out,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-res_high1=apply(res_out,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
-
-## ----Simulate_New_Residuals2--------------------------------------------------
-## Simulate new data and get residuals for simulated data
-
-ysim1=simulate(glmb.out2,nsim=1,seed=10402L,pred=pred1,family="binomial",
-                        prior.weights=weights(glmb.out2))
-res_ysim_out1=residuals(glmb.out2,ysim=ysim1)
-res_low=apply(res_ysim_out1,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-res_high=apply(res_ysim_out1,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
-
-## ----Residual_Plot2,fig.height = 5, fig.width = 7-----------------------------
-# Plot Credible Interval bounds for Deviance Residuals
-
-plot(res_mean~Age,ylim=c(-2.5,2.5),
-  main="Credible Interval Bounds for Probit Model Deviance Residuals",
-  xlab = "Age", ylab = "Dev. Residuals")
-lines(Age, 0*res_mean,lty=1)
-lines(Age, res_low,lty=1)
-lines(Age, res_high,lty=1)
-lines(Age, res_low1,lty=2)
-lines(Age, res_high1,lty=2)
-
-## ----Model_Sims3--------------------------------------------------------------
-## Predict and Simulate for newdata
-mod_Object=glmb.out3
-pred1=predict(glmb.out3,type="response")
-pred1_m=colMeans(pred1)
-n=nrow(mod_Object$coefficients)
-pred_menarche=predict(mod_Object,newdata=newdata,olddata=olddata,type="response")
-pred_y=matrix(0,nrow=n,ncol=length(Age_New))
-for(i in 1:n){
-  pred_y[i,1:length(Age_New)]=rbinom(length(Age_New),size=obs_size,
-  prob=pred_menarche[i,1:length(Age_New)])
-}
-
-
-## ----Mean_and_Quartile_Info3--------------------------------------------------
-
-## Produce mean and quantile information
-
-pred_m=colMeans(pred_menarche)
-pred_y_m=colMeans(pred_y/obs_size)
-quant1_m=apply(pred_menarche,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-quant2_m=apply(pred_menarche,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
-quant1_m_y=apply(pred_y/obs_size,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-quant2_m_y=apply(pred_y/obs_size,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
-
-
-## ----Model_Plots3,fig.height = 5, fig.width = 7-------------------------------
-
-plot(Menarche/Total ~ Age, data=menarche,main="Percentage of girls Who have had their first period")
-lines(Age_New, pred_m,lty=1)
-lines(Age_New, quant1_m,lty=2)
-lines(Age_New, quant2_m,lty=2)
-lines(Age_New, quant1_m_y,lty=2)
-lines(Age_New, quant2_m_y,lty=2)
-
-
-## ----Residual_Analysis3-------------------------------------------------------
-## Get Residuals for model, their means, and credible bounds
-res_out=residuals(glmb.out3)
-res_mean=colMeans(res_out)
-sqrt(mean(res_mean^2))
-res_low1=apply(res_out,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-res_high1=apply(res_out,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
-
-## ----Simulate_New_Residuals3--------------------------------------------------
-## Simulate new data and get residuals for simulated data
-
-ysim1=simulate(glmb.out3,nsim=1,seed=10403L,pred=pred1,family="binomial",
-                        prior.weights=weights(glmb.out3))
-res_ysim_out1=residuals(glmb.out3,ysim=ysim1)
-res_low=apply(res_ysim_out1,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-res_high=apply(res_ysim_out1,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
-
-## ----Residual_Plot3,fig.height = 5, fig.width = 7-----------------------------
-# Plot Credible Interval bounds for Deviance Residuals
-
-plot(res_mean~Age,ylim=c(-4.0,4.0),
-  main="Credible Interval Bounds for cloglog Model Deviance Residuals",
-  xlab = "Age", ylab = "Dev. Residuals")
-lines(Age, 0*res_mean,lty=1)
-lines(Age, res_low,lty=1)
-lines(Age, res_high,lty=1)
-lines(Age, res_low1,lty=2)
-lines(Age, res_high1,lty=2)
-
-## ----Model_Sims4--------------------------------------------------------------
-## Predict and Simulate for newdata
-mod_Object=glmb.out4
-pred1=predict(glmb.out4,type="response")
-pred1_m=colMeans(pred1)
-n=nrow(mod_Object$coefficients)
-pred_menarche=predict(mod_Object,newdata=newdata,olddata=olddata,type="response")
-pred_y=matrix(0,nrow=n,ncol=length(Age_New))
-for(i in 1:n){
-  pred_y[i,1:length(Age_New)]=rbinom(length(Age_New),size=obs_size,
-  prob=pred_menarche[i,1:length(Age_New)])
-}
-
-
-## ----Mean_and_Quartile_Info4--------------------------------------------------
-
-## Produce mean and quantile information
-
-pred_m=colMeans(pred_menarche)
-pred_y_m=colMeans(pred_y/obs_size)
-quant1_m=apply(pred_menarche,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-quant2_m=apply(pred_menarche,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
-quant1_m_y=apply(pred_y/obs_size,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-quant2_m_y=apply(pred_y/obs_size,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
-
-
-## ----Model_Plots4,fig.height = 5, fig.width = 7-------------------------------
-
-plot(Menarche/Total ~ Age, data=menarche,main="Percentage of girls Who have had their first period")
-lines(Age_New, 1-pred_m,lty=1)
-lines(Age_New, 1-quant1_m,lty=2)
-lines(Age_New, 1-quant2_m,lty=2)
-lines(Age_New, 1-quant1_m_y,lty=2)
-lines(Age_New, 1-quant2_m_y,lty=2)
-
-
-## ----Residual_Analysis4-------------------------------------------------------
-## Get Residuals for model, their means, and credible bounds
-res_out=residuals(glmb.out4)
-res_mean=colMeans(res_out)
-sqrt(mean(res_mean^2))
-res_low1=apply(res_out,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-res_high1=apply(res_out,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
-
-## ----Simulate_New_Residuals4--------------------------------------------------
-## Simulate new data and get residuals for simulated data
-
-ysim1=simulate(glmb.out4,nsim=1,seed=10404L,pred=pred1,family="binomial",
-                        prior.weights=weights(glmb.out4))
-res_ysim_out1=residuals(glmb.out4,ysim=ysim1)
-res_low=apply(res_ysim_out1,2,FUN=quantile,probs=c(0.025),na.rm=TRUE)
-res_high=apply(res_ysim_out1,2,FUN=quantile,probs=c(0.975),na.rm=TRUE)
-
-## ----Residual_Plot4,fig.height = 5, fig.width = 7-----------------------------
-# Plot Credible Interval bounds for Deviance Residuals
-
-plot(-res_mean~Age,ylim=c(-3.0,3.0),
-  main="Credible Interval Bounds - Rev. clog-log Model Deviance Residuals",
-  xlab = "Age", ylab = "Dev. Residuals")
-lines(Age, 0*res_mean,lty=1)
-lines(Age, -res_low,lty=1)
-lines(Age, -res_high,lty=1)
-lines(Age, -res_low1,lty=2)
-lines(Age, -res_high1,lty=2)
+ps_custom$mu
 

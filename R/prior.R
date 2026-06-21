@@ -89,6 +89,21 @@
 #' }
 #' where \eqn{\circ} denotes elementwise multiplication.
 #'
+#' \strong{Intercept-only Poisson(link = "identity") conjugate prior on the rate}
+#'
+#' When the design is a single column (intercept only), \code{family = poisson()},
+#' \code{link = "identity"}, scalar \code{pwt}, and offsets are zero, the effective
+#' conjugate prior observation count \eqn{n_{\mathrm{prior}}} already satisfies
+#' \eqn{n_{\mathrm{prior}} / (n_{\mathrm{prior}} + n_{\mathrm{effective}}) = \mathrm{pwt}}
+#' (otherwise \code{conj_poisson} remains \code{NULL} with a warning).  Writing the
+#' weighted mean \eqn{\bar{y}_w = \sum_i w_i y_i / \sum_i w_i}, the output list
+#' component \code{conj_poisson} stores
+#' \eqn{\texttt{shape} = n_{\mathrm{prior}} \bar{y}_w} and \eqn{\texttt{rate} =
+#' n_{\mathrm{prior}}}, so the prior mean for the rate matches \eqn{\bar{y}_w}.
+#' Omitting optional \code{mu} resets the surrogate Normal summaries \code{mu} and the
+#' sole diagonal element of \code{Sigma} to these Gamma moments (\code{Sigma_{11}} =
+#' \eqn{\bar{y}_w / n_{\mathrm{prior}}}).
+#'
 #' For Gaussian families, `Prior_Setup()` also constructs the dispersion-free
 #' covariance
 #' \deqn{
@@ -229,6 +244,13 @@
 #' \item{PriorSettings}{A list containing prior configuration details, including
 #'   \code{pwt}, \code{n_prior}, \code{n_effective}, \code{n_likelihood},
 #'   \code{intercept_source}, and \code{effects_source}.}
+#' \item{conj_poisson}{\code{NULL} unless \code{family = poisson(link = "identity")} with a
+#'   single-column design (intercept-only), scalar \code{pwt}, finite positive scalar
+#'   \code{n_prior}, and negligible \code{offset}.  Then a named list with conjugate
+#'   \code{Gamma(shape, rate)} hyperparameters on the Poisson rate, with \eqn{\texttt{shape} =
+#'   n_{\mathrm{prior}}\,\bar{y}_w}, \eqn{\texttt{rate} = n_{\mathrm{prior}}}, and \code{beta}
+#'   centered at the weighted sample mean \eqn{\bar{y}_w}; pass to \code{\link{dGamma}} with \code{Inv_Dispersion = FALSE}.
+#'   See Details.}
 #'
 #' @family prior
 #' @seealso
@@ -242,7 +264,10 @@
 #' structure; \code{\link{simfuncs}} for functions that take a \code{prior_list}
 #' assembled from those components (including
 #' \code{\link{rindepNormalGamma_reg}} for
-#' \code{\link{dIndependent_Normal_Gamma}()}). 
+#' \code{\link{dIndependent_Normal_Gamma}()}).
+#' \code{\link{multi_prior_setup}} for a matrix/cbind response with Gaussian;
+#' use with \code{\link{lmb}}
+#' \code{Prior_Setup} per column. 
 #'
 #' \insertCite{zellner1986gprior}{glmbayes};
 #' \insertCite{Raiffa1961}{glmbayes};
@@ -494,7 +519,33 @@ Prior_Setup <- function(
   
 
   V0 <- vcov(glm_full)
-  
+  ## Saturated Gaussian blocks (n = p, RSS = 0): vcov(glm) is NA; use dispersion * (X'WX)^{-1}.
+  if (anyNA(V0) && family$family %in% c("gaussian", "poisson")) {
+    d_v0 <- if (!is.null(dispersion_input)) {
+      dispersion_input
+    } else if (identical(family$family, "poisson")) {
+      1
+    } else {
+      NULL
+    }
+    if (!is.null(d_v0)) {
+    w_fit <- if (is.null(weights)) rep(1, n_obs) else as.numeric(weights)
+    XtW <- sweep(x, 1, w_fit, `*`)
+    Gm <- crossprod(XtW, x)
+    Ginv <- tryCatch(
+      solve(Gm),
+      error = function(e) {
+        stop(
+          "vcov(glm_full) is NA and (X'WX) is singular; the design is rank-deficient.",
+          call. = FALSE
+        )
+      }
+    )
+    V0 <- d_v0 * Ginv
+    dimnames(V0) <- list(var_names, var_names)
+    }
+  }
+
   glm_summary=summary(glm_full)
   
   ##n_likelihood <- glm_summary$df.residual + glm_summary$df[1]  # residual df + model rank
@@ -569,26 +620,32 @@ if (!is.null(sd)) {
     res <- residuals(glm_full, type = "response")
     w   <- glm_full$prior.weights
     rss_weighted <- sum(w * res^2)
-    if (!is.finite(rss_weighted) || rss_weighted <= 0) {
-      stop("Weighted RSS must be strictly positive for Gaussian dispersion priors.")
-    }
-    if (!is.finite(n_effective) || n_effective <= 0) {
-      stop("n_effective must be strictly positive to compute Gaussian dispersion.")
-    }
-    if (n_effective <= nvar) {
-      stop(
-        "Gaussian dispersion requires n_effective > p (number of coefficients); ",
-        "use denominator n_effective - p. Got n_effective = ", n_effective,
-        ", p = ", nvar, "."
-      )
-    }
-    dispersion <- rss_weighted / (n_effective - nvar)
-    if (!is.finite(dispersion) || dispersion <= 0) {
-      stop("Computed Gaussian dispersion must be strictly positive.")
-    }
     rss_weighted_stored <- rss_weighted
-    dispersion_classical <- dispersion
-    
+    if (!is.null(dispersion_input)) {
+      dispersion <- dispersion_input
+      dispersion_classical <- dispersion_input
+    } else {
+      if (!is.finite(rss_weighted) || rss_weighted <= 0) {
+        stop("Weighted RSS must be strictly positive for Gaussian dispersion priors.")
+      }
+      if (!is.finite(n_effective) || n_effective <= 0) {
+        stop("n_effective must be strictly positive to compute Gaussian dispersion.")
+      }
+      if (n_effective <= nvar) {
+        stop(
+          "Gaussian dispersion requires n_effective > p (number of coefficients); ",
+          "use denominator n_effective - p, or pass a positive scalar `dispersion`. ",
+          "Got n_effective = ", n_effective, ", p = ", nvar, ".",
+          call. = FALSE
+        )
+      }
+      dispersion <- rss_weighted / (n_effective - nvar)
+      if (!is.finite(dispersion) || dispersion <= 0) {
+        stop("Computed Gaussian dispersion must be strictly positive.")
+      }
+      dispersion_classical <- dispersion
+    }
+
   } else if (family$family == "Gamma") {
     
     # MASS::gamma.dispersion() already returns the correct quasi-likelihood
@@ -748,6 +805,7 @@ if (!is.null(sd)) {
   Sigma_pre_nm <- Sigma
   .gauss_helper_preview <- NULL
   if (identical(family$family, "gaussian") &&
+      n_effective > nvar &&
       is.finite(dispersion_classical) && dispersion_classical > 0 &&
       !is.null(n_prior) && length(n_prior) == 1L && is.finite(n_prior) && n_prior > 0 &&
       !is.null(mu) && length(as.numeric(mu)) == nvar && all(is.finite(as.numeric(mu)))) {
@@ -832,7 +890,171 @@ if (!is.null(sd)) {
       colnames(Sigma_0_out) <- var_names
     }
   }
-  
+
+  ## ---------------------------------------------------------------------------
+  ## Step 10b: Gamma–Poisson conjugate λ prior (intercept-only Poisson(link = "identity"))
+  ##
+  ## Effective prior observation count links to scalar pwt via
+  ##   n_prior / (n_prior + n_eff) = pwt  <=>  n_prior = (pwt / (1 - pwt)) * n_eff
+  ## Weighted arithmetic mean λ̄_w = Σ w_i y_i / Σ w_i.  Choosing
+  ##   λ ~ Gamma(shape = n_prior λ̄_w, rate = n_prior),
+  ## gives E[λ] = λ̄_w so the conjugate Poisson posterior mean remains λ̄_w.
+  ## ---------------------------------------------------------------------------
+
+  conj_poisson <- NULL
+  mu_arg_missing <- missing(mu)
+
+  gamma_poisson_conj_ok <- (
+    identical(family$family, "poisson") &&
+      identical(family$link, "identity") &&
+      ncol(x) == 1L &&
+      length(pwt) == 1L
+  )
+
+  if (gamma_poisson_conj_ok && !is.null(offset)) {
+    of <- suppressWarnings(as.numeric(offset))
+    if (length(of) != n_obs || any(!is.finite(of)) ||
+        max(abs(of), na.rm = TRUE) > sqrt(.Machine$double.eps)) {
+      gamma_poisson_conj_ok <- FALSE
+    }
+  }
+
+  if (gamma_poisson_conj_ok) {
+    ww <- glm_full$prior.weights
+    if (is.null(ww) || length(ww) != n_obs) ww <- rep(1, n_obs)
+
+    ## Nonnegative Poisson observations
+    if (any(as.numeric(Y) < 0, na.rm = TRUE)) {
+      stop(
+        "`Prior_Setup()` Poisson conjugate calibration requires nonnegative responses.", call. = FALSE
+      )
+    }
+
+    ybar <- sum(as.numeric(Y) * as.numeric(ww)) / sum(as.numeric(ww))
+    if (!(is.finite(ybar) && ybar > 0)) {
+      stop(
+        "`Prior_Setup()` Poisson(link='identity'), intercept-only conjugate calibration requires ",
+        "positive weighted mean counts (Gamma prior requires a positive Poisson rate); weighted mean ",
+        "= ", paste0("`", prettyNum(ybar), "`."), call. = FALSE
+      )
+    }
+
+    if (is.null(n_prior) || length(n_prior) != 1L || !is.finite(n_prior) || n_prior <= 0) {
+      warning(
+        "Poisson(link='identity') intercept-only: skipping `conj_poisson` Gamma rate prior ",
+        "calibration because scalar `n_prior` is unavailable or non-positive; supply finite positive ",
+        "`pwt` or `n_prior`.",
+        call. = FALSE
+      )
+    } else {
+      np <- as.numeric(n_prior)
+      ## Prior mean E[lambda] matches weighted data mean; conjugate Gamma(shape,rate) hyperparameters:
+      conj_shape <- np * ybar
+      conj_rate <- np
+
+      bm <- matrix(as.numeric(ybar), nrow = 1L, ncol = 1L,
+                   dimnames = list(NULL, var_names))
+
+      conj_poisson <- list(
+        shape = conj_shape,
+        rate = conj_rate,
+        beta = bm,
+        weighted_mean_rate = ybar,
+        n_prior_eff = np
+      )
+
+      ## Moment-matched surrogate Normal summaries for `\u03bc`/`Sigma` (single intercept only):
+      if (mu_arg_missing && nvar == 1L && is.finite(ybar) && is.finite(np) && np > 0) {
+        mu[1, 1] <- as.numeric(ybar)
+        Sigma[1, 1] <- as.numeric(ybar / np)
+        rownames(mu) <- var_names
+        colnames(mu) <- "mu"
+        rownames(Sigma) <- colnames(Sigma) <- var_names
+      }
+    }
+  }
+
+  ## ---------------------------------------------------------------------------
+  ## Step 10c: Beta–Binomial conjugate θ prior (intercept-only Binomial(link = "identity"))
+  ##
+  ## Effective prior observation count:
+  ##   n_prior / (n_prior + n_eff) = pwt  <=>  n_prior = (pwt / (1 - pwt)) * n_eff
+  ## Weighted proportion p̄_w = Σ w_i y_i / Σ w_i.  Choosing
+  ##   θ ~ Beta(shape1 = n_prior * p̄, shape2 = n_prior * (1 - p̄))
+  ## gives E[θ] = p̄ so the conjugate Binomial posterior mean starts at p̄.
+  ## ---------------------------------------------------------------------------
+
+  conj_binomial <- NULL
+
+  beta_binom_conj_ok <- (
+    identical(family$family, "binomial") &&
+      identical(family$link, "identity") &&
+      ncol(x) == 1L &&
+      length(pwt) == 1L
+  )
+
+  if (beta_binom_conj_ok && !is.null(offset)) {
+    of <- suppressWarnings(as.numeric(offset))
+    if (length(of) != n_obs || any(!is.finite(of)) ||
+        max(abs(of), na.rm = TRUE) > sqrt(.Machine$double.eps)) {
+      beta_binom_conj_ok <- FALSE
+    }
+  }
+
+  if (beta_binom_conj_ok) {
+    ww <- glm_full$prior.weights
+    if (is.null(ww) || length(ww) != n_obs) ww <- rep(1, n_obs)
+
+    y_num <- as.numeric(Y)
+    if (any(y_num < 0, na.rm = TRUE) || any(y_num > 1, na.rm = TRUE)) {
+      stop(
+        "`Prior_Setup()` Binomial(identity) conjugate calibration requires response in [0, 1].",
+        call. = FALSE
+      )
+    }
+
+    pbar <- sum(y_num * as.numeric(ww)) / sum(as.numeric(ww))
+    if (!(is.finite(pbar) && pbar > 0 && pbar < 1)) {
+      warning(
+        "Binomial(link='identity') intercept-only: skipping `conj_binomial` Beta prior ",
+        "calibration because the weighted proportion is not strictly in (0, 1); ",
+        "weighted proportion = ", paste0("`", prettyNum(pbar), "`."),
+        call. = FALSE
+      )
+    } else if (is.null(n_prior) || length(n_prior) != 1L || !is.finite(n_prior) || n_prior <= 0) {
+      warning(
+        "Binomial(link='identity') intercept-only: skipping `conj_binomial` Beta prior ",
+        "calibration because scalar `n_prior` is unavailable or non-positive; supply finite positive ",
+        "`pwt` or `n_prior`.",
+        call. = FALSE
+      )
+    } else {
+      np <- as.numeric(n_prior)
+      conj_shape1 <- np * pbar
+      conj_shape2 <- np * (1 - pbar)
+
+      bm <- matrix(as.numeric(pbar), nrow = 1L, ncol = 1L,
+                   dimnames = list(NULL, var_names))
+
+      conj_binomial <- list(
+        shape1             = conj_shape1,
+        shape2             = conj_shape2,
+        beta               = bm,
+        weighted_mean_prop = pbar,
+        n_prior_eff        = np
+      )
+
+      ## Moment-matched surrogate Normal mu/Sigma for single intercept
+      if (mu_arg_missing && nvar == 1L && is.finite(pbar) && is.finite(np) && np > 0) {
+        mu[1, 1] <- as.numeric(pbar)
+        Sigma[1, 1] <- as.numeric(pbar * (1 - pbar) / np)
+        rownames(mu) <- var_names
+        colnames(mu) <- "mu"
+        rownames(Sigma) <- colnames(Sigma) <- var_names
+      }
+    }
+  }
+
   ## ---------------------------------------------------------------------------
   ## Step 11: Assemble and return PriorSetup object.
   ## ---------------------------------------------------------------------------
@@ -846,6 +1068,8 @@ if (!is.null(sd)) {
     rate = rate,
     rate_gamma = rate_gamma,
     coefficients = coefficients,
+    conj_poisson  = conj_poisson,
+    conj_binomial = conj_binomial,
     model = mf,
     x = x,
     y = Y,
@@ -1006,7 +1230,41 @@ print.PriorSetup <- function(x, ...) {
     cat("  Applicable to gaussian models with compound pfamilies (e.g., dNormal_Gamma, dIndependent_Normal_Gamma),\n")
     cat("  as well as for Gamma regression, quasipoisson, and quasibinomial models.\n\n")
   }
-  
+
+  if (!is.null(x$conj_poisson)) {
+    cp <- x$conj_poisson
+    cat("Poisson rate prior (Gamma conjugate; pass to dGamma(Inv_Dispersion=FALSE)):\n")
+    cat(
+      "  shape = ",
+      round(as.numeric(cp$shape), 6),
+      "; rate = ",
+      round(as.numeric(cp$rate), 6),
+      " (prior mean lambda = ",
+      round(as.numeric(cp$weighted_mean_rate), 6),
+      "; n_prior = ",
+      round(as.numeric(cp$n_prior_eff), 6),
+      ")\n\n",
+      sep = ""
+    )
+  }
+
+  if (!is.null(x$conj_binomial)) {
+    cb <- x$conj_binomial
+    cat("Binomial probability prior (Beta conjugate; pass to dBeta()):\n")
+    cat(
+      "  shape1 = ",
+      round(as.numeric(cb$shape1), 6),
+      "; shape2 = ",
+      round(as.numeric(cb$shape2), 6),
+      " (prior mean theta = ",
+      round(as.numeric(cb$weighted_mean_prop), 6),
+      "; n_prior = ",
+      round(as.numeric(cb$n_prior_eff), 6),
+      ")\n\n",
+      sep = ""
+    )
+  }
+
   if (is.null(x$shape) && is.null(x$rate) && !is.null(x$dispersion)) {
     cat("Note: Gaussian family detected, but shape/rate parameters were not computed.\n")
     cat("This may occur if n_prior is not scalar.\n\n")

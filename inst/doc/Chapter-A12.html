@@ -12,7 +12,7 @@
 
 <meta name="author" content="Kjell Nygren" />
 
-<meta name="date" content="2026-05-18" />
+<meta name="date" content="2026-06-21" />
 
 <title>Chapter A12: Technical Derivations for Priors Returned by `Prior_Setup()</title>
 
@@ -364,7 +364,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Chapter A12: Technical Derivations for
 Priors Returned by `Prior_Setup()</h1>
 <h4 class="author">Kjell Nygren</h4>
-<h4 class="date">2026-05-18</h4>
+<h4 class="date">2026-06-21</h4>
 
 
 
@@ -383,9 +383,13 @@ purpose is to make explicit how the returned quantities—<code>mu</code>,
 <strong>weighted Gaussian likelihood</strong>, the <strong>Normal–Gamma
 algebra</strong>, and the <strong>Zellner‑type calibration</strong> used
 by the package.</p>
-<p>Unlike Chapter 11, which focuses on modeling workflow and examples,
-this chapter focuses on the <strong>mathematical structure</strong>
-underlying the priors:</p>
+<p>This appendix contrasts with applied chapters such as
+<strong>Chapter 03</strong> (Bayesian linear models with
+<strong><code>lmb()</code></strong>), <strong>Chapter 04</strong>
+(<code>Prior_Setup()</code> workflow), <strong>Chapter 07</strong> (GLM
+foundations), and <strong>Chapter 08</strong> (estimating Bayesian
+GLMs), where the emphasis is intuitive model building rather than
+proofs. Instead, here we focus on <strong>mathematics</strong>:</p>
 <ul>
 <li>the weighted Gaussian likelihood and its precision form,</li>
 <li>the conjugate Normal–Gamma posterior and the derivation of its
@@ -399,9 +403,8 @@ prior strength,</li>
 Gaussian prior families converge.</li>
 </ul>
 <p>All formulas needed by the main vignettes are derived here from first
-principles. No results are imported from Chapter 11; instead, Chapter 11
-now serves as a conceptual overview, while this appendix provides the
-full algebraic details.</p>
+principles, without relying on other vignettes purely as
+prerequisites.</p>
 <p>The goal is to make the calibration used by
 <code>Prior_Setup()</code> transparent, reproducible, and extensible, so
 that users can confidently interpret or modify the priors supplied to
@@ -423,12 +426,12 @@ implementation quantities (<code>mu</code>, <code>Sigma</code>,
 <code>Sigma_0</code>, <code>dispersion</code>, <code>shape</code>,
 <code>rate</code>, and related settings) to the <strong>weighted
 likelihood notation</strong> and <strong><span class="math inline">\(S_{\mathrm{marg}}\)</span></strong> machinery in
-Chapter 11 (especially Section 3.2 and Appendix A3), with steps spelled
+Chapter 15 (especially Section 3.2 and Appendix A3), with steps spelled
 out rather than only stated.</p>
 <p>This chapter is a companion to the main vignettes: it emphasizes
 <strong>theory</strong>, mapping to <code>pfamily</code> constructors,
 and how defaults encode prior strength.</p>
-<p><strong>Roadmap.</strong> Chapter 11 fixes notation for weighted
+<p><strong>Roadmap.</strong> Chapter 15 fixes notation for weighted
 Gaussian regression (<span class="math inline">\(n_w\)</span>, <span class="math inline">\(G = X^{\mathsf T} W X\)</span>, precision <span class="math inline">\(\tau = 1/\phi\)</span>, and the conjugate
 Normal–Gamma structure). Appendix A3 there gives closed-form posterior
 moments for <span class="math inline">\(\beta\)</span> under the
@@ -2867,7 +2870,7 @@ McCullagh, P., and J. A. Nelder. 1989. <em><span>Generalized Linear
 Models</span></em>. Chapman; Hall.
 </div>
 <div id="ref-glmbayesChapter03" class="csl-entry">
-Nygren, Kjell. 2025. <em>Chapter 03: Tailoring Priors - Leveraging the
+Nygren, Kjell. 2025. <em>Chapter 04: Tailoring Priors — Leveraging the
 Prior_setup Function</em>. Vignette in the glmbayes R package.
 </div>
 <div id="ref-Raiffa1961" class="csl-entry">

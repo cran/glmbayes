@@ -25,11 +25,11 @@ library(glmbayes)
 
 # Chapter 00: Introduction
 
-This vignette introduces **glmbayes**, a package for fitting Bayesian generalized linear models via efficient envelope-based sampling. The vignette series is organized into five main parts and a set of technical appendices. You will move from basic installation and first models, through linear and generalized linear models, to advanced prior structures, dispersion modeling, and GPU-accelerated computation. The appendices document the underlying simulation methods and implementation details. The envelope sampling methodology builds on the likelihood subgradient framework of [@Nygren2006].
+This vignette introduces **glmbayes**, a package for fitting Bayesian generalized linear models via efficient envelope-based sampling. The vignette series is organized into five main parts and a set of technical appendices. You will move from basic installation and first models, through linear and generalized linear models (with optional **`bayestestR`** summaries and external **`bayesplot`** graphics), to advanced prior structures, dispersion modeling, and GPU-accelerated computation. The appendices document the underlying simulation methods and implementation details. The envelope sampling methodology builds on the likelihood subgradient framework of [@Nygren2006].
 
 ## Part 1: An Introduction
 
-These chapters provide a high-level overview of the package, its design philosophy, and the basic workflow for fitting Bayesian linear and generalized linear models.
+These chapters provide a high-level overview of the package, its design philosophy, conjugate Bayesian building blocks for single parameters, and the basic workflow for fitting Bayesian linear and generalized linear models.
 
 - **Chapter 00 - Introduction**  
   Overview of the vignette structure, major modeling capabilities, and how the different parts fit together.  
@@ -39,69 +39,94 @@ These chapters provide a high-level overview of the package, its design philosop
   Install and load `glmbayes`, fit your first Bayesian GLM using `glmb()`, and interpret posterior summaries (means, credible intervals) via an interface that mirrors base `glm()`.  
   <https://knygren.r-universe.dev/articles/glmbayes/Chapter-01.html>
 
-## Part 2: Estimating Bayesian Linear Models
+- **Chapter 02 — Conjugate inference for single parameters** (series)  
+  Conceptual introduction and worked conjugate updates before multivariate regression with `lmb()` and `glmb()`:
+  - **Chapter 02-S01** — Introduction and overview  
+    <https://knygren.r-universe.dev/articles/glmbayes/Chapter-02-S01.html>
+  - **Chapter 02-S02** — Normal–Normal conjugacy for one mean  
+    <https://knygren.r-universe.dev/articles/glmbayes/Chapter-02-S02.html>
+  - **Chapter 02-S03** — Beta–Binomial conjugacy for one proportion  
+    <https://knygren.r-universe.dev/articles/glmbayes/Chapter-02-S03.html>
+  - **Chapter 02-S04** — Gamma–Poisson conjugacy for one count rate  
+    <https://knygren.r-universe.dev/articles/glmbayes/Chapter-02-S04.html>
+  - **Chapter 02-S05** — Gamma–Gamma conjugacy for one response rate  
+    <https://knygren.r-universe.dev/articles/glmbayes/Chapter-02-S05.html>
 
-This part focuses on Bayesian linear regression under the Gaussian family and identity link. It establishes the foundational ideas in a setting where exact multivariate normal posteriors are available.
+## Part 2: Bayesian regression models
 
-- **Chapter 02 - Estimating Bayesian Linear Models**  
+This part focuses on Bayesian **linear** regression (Gaussian family, identity link): model fitting with `lmb()`, tailoring priors via `Prior_Setup()`, and tools for predictions, posterior predictive checks (optional **bayesplot**; see **`legacy_code/`**), deviance residuals, and model comparison.
+
+- **Chapter 03 — Estimating Bayesian linear models**  
   Work with the Gaussian identity-link case using `lmb()`. Draw from the multivariate normal posterior, compare Bayesian estimates to classical least squares, and explore shrinkage behavior.  
-  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-02.html>
-
-- **Chapter 03 - Tailoring Priors - Leveraging the Prior_Setup Function**  
-  Construct multivariate normal priors via `Prior_Setup()`. Specify prior mean vectors and covariance matrices, and study how these hyperparameters influence posterior inference and regularization.  
   <https://knygren.r-universe.dev/articles/glmbayes/Chapter-03.html>
 
-- **Chapter 04 - Reviewing Model Predictions, Deviance Residuals and Model Statistics**  
-  Generate fitted values and posterior predictive draws, compute deviance residuals, and review model-fit summaries such as deviance-based measures and related diagnostics.  
+- **Chapter 04 — Tailoring priors — leveraging the Prior_Setup function**  
+  Construct multivariate normal priors via `Prior_Setup()`. Specify prior mean vectors and covariance matrices, and study how these hyperparameters influence posterior inference and regularization.  
   <https://knygren.r-universe.dev/articles/glmbayes/Chapter-04.html>
+
+- **Chapter 05 — Model predictions and posterior predictive checks**  
+  Generate fitted values and posterior predictive draws; optional **bayesplot** `ppc_*` examples are commented out (see **`legacy_code/pp_check.glmb.R`**).  
+  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-05.html>
+
+- **Chapter 06 — Deviance residuals, model statistics and posterior inference (+ bayestestR)**  
+  Compute deviance residuals, review model-fit summaries (e.g. deviance-based measures, DIC comparisons), and relate discussion to **bayestestR**-style posterior summaries where relevant.  
+  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-06.html>
 
 ## Part 3: Generalized Linear Models
 
-This part presents Bayesian GLMs across the major likelihood families, including Binomial, quasi-Binomial, Poisson, quasi-Poisson, and Gamma models. It emphasizes link functions, log-concavity, and practical posterior interpretation.
+This part presents Bayesian GLMs across the major likelihood families, including Binomial, quasi-Binomial, Poisson, quasi-Poisson, and Gamma models. It emphasizes link functions, log-concavity, and practical posterior interpretation, then shows how to **summarize** posterior distributions with **bayestestR** and optionally **visualize** fits with **bayesplot** (install separately; Chapter 12 code is commented out).
 
-- **Chapter 05 - Foundations of GLMs - Families, Links, and Log-Concave Likelihoods**  
+- **Chapter 07 — Foundations of GLMs — families, links, and log-concave likelihoods**  
   Review exponential-family GLMs, canonical and non-canonical link functions, and the log-concave likelihood property that enables envelope-based accept-reject sampling.  
-  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-05.html>
-
-- **Chapter 06 - Estimating Bayesian Generalized Linear Models**  
-  Move beyond Gaussian models and fit Binomial, Poisson, and Gamma GLMs with `glmb()`. See how the envelope engine adapts to each family and compare posterior summaries under different links.  
-  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-06.html>
-
-- **Chapter 07 - Models for the Binomial Family**  
-  Work with logistic and probit regressions. Handle binomial outcomes, specify informative priors, and interpret posterior distributions for classification and proportion-type data.  
   <https://knygren.r-universe.dev/articles/glmbayes/Chapter-07.html>
 
-- **Chapter 08 - Models for the Poisson Family**  
-  Fit count models with a log link. Explore overdispersion diagnostics, zero-inflation checks, and the impact of prior choice on rate parameters.  
+- **Chapter 08 — Estimating Bayesian generalized linear models**  
+  Move beyond Gaussian models and fit Binomial, Poisson, and Gamma GLMs with `glmb()`. See how the envelope engine adapts to each family and compare posterior summaries under different links.  
   <https://knygren.r-universe.dev/articles/glmbayes/Chapter-08.html>
 
-- **Chapter 09 - Models for the Gamma Family**  
-  Model positive continuous outcomes using Gamma regression. Combine regression and dispersion modeling, and interpret overdispersion in applications such as insurance claims or reaction-time data.  
+- **Chapter 09 — Models for the Binomial family**  
+  Work with logistic and probit regressions. Handle binomial outcomes, specify informative priors, and interpret posterior distributions for classification and proportion-type data.  
   <https://knygren.r-universe.dev/articles/glmbayes/Chapter-09.html>
+
+- **Chapter 10 — Models for the Poisson family**  
+  Fit count models with a log link. Explore overdispersion diagnostics, zero-inflation checks, and the impact of prior choice on rate parameters.  
+  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-10.html>
+
+- **Chapter 11 — Models for the Gamma family**  
+  Model positive continuous outcomes using Gamma regression. Combine regression and dispersion modeling, and interpret overdispersion in applications such as insurance claims or reaction-time data.  
+  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-11.html>
+
+- **Chapter 12 — Visualizing posteriors with bayesplot (optional)**  
+  Prepares `glmb` draws and replicated responses; **bayesplot** plotting examples are commented out in the source unless you install **bayesplot** from CRAN and restore those blocks.  
+  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-12.html>
+
+- **Chapter 13 — Bayesian inference and decision making with bayestestR**  
+  Summarize posterior samples with **bayestestR** utilities (e.g. central tendency, credible intervals, region of practical equivalence) applied to coefficient draws from **`glmb()`** fits.  
+  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-13.html>
 
 ## Part 4: Advanced Topics
 
-These chapters explore more complex modeling scenarios and computational strategies, including informative priors, unknown dispersion parameters, hierarchical (random effects) models, and GPU-accelerated envelope construction.
+These chapters explore more complex modeling scenarios and computational strategies, including informative priors, unknown dispersion parameters, linear and generalized linear mixed-effects (hierarchical) models, and GPU-accelerated envelope construction.
 
-- **Chapter 10 - Informative Priors: Centering and priors with differential prior weights**  
-  Construct more flexible priors by centering on domain-specific values and assigning variable-specific scales. Examine how differentiated prior weights influence shrinkage and interpretability.  
-  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-10.html>
-
-- **Chapter 11 - Estimating Models with Unknown Dispersion Parameters**  
-  Extend envelope-based methods to models with unknown dispersion (e.g., Gamma and quasi-families). Use dedicated dispersion samplers to obtain joint posterior draws and quantify overdispersion uncertainty.  
-  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-11.html>
-
-- **Chapter 12 - Large Models: GPU Acceleration using OpenCL**  
-  Scale Bayesian GLMs to higher-dimensional settings by offloading key computations to the GPU. Configure OpenCL, tune envelope construction for large models, and benchmark performance gains.  
-  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-12.html>
-
-- **Chapter 13 - Hierarchical Linear Models**  
-  Fit hierarchical (random effects) linear models using block Gibbs sampling with `rlmb`. Covers dispersion-and-coefficients sampling (e.g., Dobson plant weight) and the Eight Schools example with conjugate and non-conjugate priors.  
-  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-13.html>
-
-- **Chapter 14 - Hierarchical Generalized Linear Models**  
-  Extend hierarchical modeling to non-Gaussian families. Implements a two-block Gibbs sampler for Poisson regression with observation-level random effects using the BikeSharing dataset and `rglmb`.  
+- **Chapter 14 — Informative priors — centering and differential prior weights**  
+  Construct more flexible priors by centering on domain-specific values and assigning variable-specific scales. Examine how differential prior weights influence shrinkage and interpretability.  
   <https://knygren.r-universe.dev/articles/glmbayes/Chapter-14.html>
+
+- **Chapter 15 — Estimating models with unknown dispersion parameters**  
+  Extend envelope-based methods to models with unknown dispersion (e.g., Gamma and quasi-families). Use dedicated dispersion samplers to obtain joint posterior draws and quantify overdispersion uncertainty.  
+  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-15.html>
+
+- **Chapter 16 — Large models: GPU acceleration using OpenCL**  
+  Scale Bayesian GLMs to higher-dimensional settings by offloading key computations to the GPU. Configure OpenCL, tune envelope construction for large models, and benchmark performance gains.  
+  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-16.html>
+
+- **Chapter 17 — Linear mixed-effects models**  
+  Fit hierarchical (random effects) linear models using block Gibbs sampling with `rlmb`. Covers dispersion-and-coefficients sampling (e.g., Dobson plant weight) and the Eight Schools example with conjugate and non-conjugate priors.  
+  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-17.html>
+
+- **Chapter 18 — Generalized linear mixed-effects models**  
+  Extend mixed-effects modeling to non-Gaussian families. Implements a two-block Gibbs sampler for Poisson regression with observation-level random effects using the BikeSharing dataset and `rglmb`.  
+  <https://knygren.r-universe.dev/articles/glmbayes/Chapter-18.html>
 
 ## Part 5: Simulation Methods and Technical Implementation
 
@@ -154,6 +179,23 @@ The appendices document the mathematical and algorithmic foundations of the samp
 - **Chapter A12 - Technical Derivations for Priors Returned by `Prior_Setup()`**  
   Full mathematical derivations for Gaussian calibration, Normal--Gamma and independent Normal--Gamma prior pieces, and the objects returned by `Prior_Setup()` (including `compute_gaussian_prior`).  
   <https://knygren.r-universe.dev/articles/glmbayes/Chapter-A12.html>
+
+## Companion textbooks
+
+Several vignettes include optional **appendices** that reproduce examples from [@JohnsonLauEtAl2022] using **glmbayes** syntax (`lmb()`, `glmb()`, `Prior_Setup()`, `dNormal()`).  Those appendices require the suggested package **`bayesrules`** (for data only); the main chapter body knits without it.  Posterior **comparison tables** use coefficient summaries **printed in the book** (not live `rstanarm` fits).
+
+| glmbayes vignette | Main teaching example | Bayes Rules! book | Appendix |
+|-------------------|----------------------|-------------------|----------|
+| **Chapter 02-S04** | Gamma–Poisson conjugacy (daily counts) | Ch. 12 (conjugate illustration) | **Appendix A** — Albert / `LearnBayes` heart transplants |
+| **Chapter 03** | Dobson plant weight (`lmb`) | **Ch. 9** — `bikes`, `rides ~ temp_feel` | **Appendix A** |
+| **Chapter 08** | Menarche (`glmb`, prior construction) | **Ch. 13** — `weather_perth`, logistic priors | **Appendix A** |
+| **Chapter 09** | Menarche (logit / probit / cloglog) | **Ch. 13** — `weather_perth`, `raintomorrow ~ humidity9am` | **Appendix A** |
+| **Chapter 10** | Dobson randomized controlled trial (RCT) Poisson counts | **Ch. 12** — `equality_index`, `laws ~ percent_urban + historical` | **Appendix A** |
+| **Chapter 11** | `carinsca` Gamma regression | *(no full Gamma-regression chapter)* | **Appendix A** — scope note + Ch. 02-S05 pointer |
+
+**Priors.**  Use **informative** Bayes Rules! priors only where the book is **fully** informative on the coefficients you fit (e.g. Ch. 9 bike ridership, Ch. 13 Perth rain).  Where the book is **only partially** informative (e.g. Ch. 12 Poisson intercept informative, slopes weak / `autoscale`), the appendix uses **`Prior_Setup()`** defaults for **`glmb()`** / **`lmb()`**.  Encode fully informative book beliefs on the **link scale** as `dNormal(mu, Sigma)`; fixed dispersion at the MLE where the main chapter does (see Chapters 03, 08, 11).
+
+**Other texts.**  Chapter 01 and Chapter 03 §6.1 map sections to @Agresti2015.  Chapter 02-S04 Appendix A maps to @Albert2009 / `LearnBayes`.  Additional textbook appendices may be added in the same pattern.
 
 ---
 

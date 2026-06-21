@@ -147,6 +147,7 @@ Prior_Check(counts ~ outcome + treatment,family = poisson(),
 \insertCite{glmbayesChapterA12}{glmbayes} for full derivations.
 
 Other prior: 
-\code{\link{Prior_Setup}()}
+\code{\link{Prior_Setup}()},
+\code{\link{multi_prior_setup}()}
 }
 \concept{prior}

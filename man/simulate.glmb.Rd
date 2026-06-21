@@ -55,6 +55,11 @@ glmb.out1<-glmb(n=1000,cbind(Menarche, Total-Menarche) ~Age2,family=binomial(log
 # Prediction from original model
 pred1=predict(glmb.out1,type="response")
 
+## Posterior predictive check (bayesplot): disabled in package examples.
+## Former pp_check.glmb() lives in legacy_code/pp_check.glmb.R — source after
+## install.packages("bayesplot") to restore, then:
+##   bayesplot::pp_check(glmb.out1, ndraws = 100L, fun = "hist")
+
 ## Get Original Residuals, their means, and credible bounds
 res_out=residuals(glmb.out1)
 colMeans(res_out, na.rm=TRUE)
@@ -99,5 +104,5 @@ par(oldpar)
 \code{\link{predict.glmb}}, \code{\link{glmb}}, \code{\link{glmbayes-package}};
 \code{\link{rglmb}}, \code{\link{rlmb}}, \code{\link{lmb}};
 \code{\link[stats]{simulate}} (e.g. \code{simulate.glm}, \code{simulate.lm} for classical fits);
-see \insertCite{glmbayesChapter04}{glmbayes} for model statistics.
+see \insertCite{glmbayesChapter06}{glmbayes} for model statistics.
 }

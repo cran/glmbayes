@@ -476,9 +476,637 @@ print.rGamma_reg<-function (x, digits = max(3, getOption("digits") - 3), ...)
 
 
 
+## Internal: intercept-only likelihood + ancillary restrictions for scalar closed-form conjugate updates
+## (dGamma_Conjugate with Gamma / Poisson families). Not used for dNormal or other pfamilies.
+.check_gamma_conjugate_scalar_design <- function(x, beta, alpha, wt, family_label = "", ctx = "") {
+  xf <- if (is.matrix(x)) x else as.matrix(x)
+  if (ncol(xf) != 1L) {
+    stop(
+      gettextf(
+        "%sdGamma(Inv_Dispersion=FALSE) supports only a single linear predictor (intercept-only model; ncol(x) == 1). Got ncol(x) = %d for family %s. Use dNormal() for regression with multiple predictors.",
+        if (nzchar(ctx)) paste0(ctx, ": ") else "",
+        ncol(xf),
+        family_label
+      ),
+      domain = NA
+    )
+  }
+  bb <- tryCatch(as.matrix(beta, ncol = 1L), error = function(e) NULL)
+  if (is.null(bb) || nrow(bb) != 1L || ncol(bb) != 1L) {
+    stop(
+      gettextf(
+        "%sprior_list$beta must be a single fixed coefficient (1x1) matching the intercept-only design for dGamma(Inv_Dispersion=FALSE); use dNormal() for vector beta.",
+        if (nzchar(ctx)) paste0(ctx, ": ") else ""
+      ),
+      domain = NA
+    )
+  }
+  ## Offsets shift the linear predictor; scalar conjugate updates are not implemented with non-zero offset.
+  if (length(alpha) != nrow(xf)) {
+    stop(
+      gettextf(
+        "%sinternal length mismatch: offset vector and design matrix rows",
+        if (nzchar(ctx)) paste0(ctx, ": ") else ""
+      ),
+      domain = NA
+    )
+  }
+  if (any(!is.finite(alpha)) || max(abs(as.numeric(alpha))) > 1e-12) {
+    stop(
+      gettextf(
+        "%snon-zero `offset` is not implemented for scalar dGamma_Conjugate models (family %s).",
+        if (nzchar(ctx)) paste0(ctx, ": ") else "",
+        family_label
+      ),
+      domain = NA
+    )
+  }
+  ## Heterogeneous prior weights/exposures require a conjugate derivation not wired here yet.
+  if (length(wt) == nrow(xf) && nrow(xf) > 1L && (max(as.numeric(wt)) - min(as.numeric(wt)) > 1e-12 * max(1, mean(as.numeric(wt))))) {
+    stop(
+      gettextf(
+        "%snon-constant observation `weights` are not implemented for scalar dGamma conjugate (family %s).",
+        if (nzchar(ctx)) paste0(ctx, ": ") else "",
+        family_label
+      ),
+      domain = NA
+    )
+  }
+  invisible(TRUE)
+}
 
 
-#' @family simfuncs 
+
+
+#' @family simfuncs
+#' @usage rGamma_Conjugate_reg(n, y, x, prior_list, offset = NULL, weights = 1, family = gaussian(),
+#'            Gridtype = 2,n_envopt = NULL,
+#'             use_parallel = TRUE, use_opencl = FALSE, verbose = FALSE,progbar=FALSE)
+#' @export
+#' @rdname simfuncs
+#' @order 10
+rGamma_Conjugate_reg <- function(
+    n,
+    y,
+    x,
+    prior_list,
+    offset = NULL,
+    weights = 1,
+    family = gaussian(),
+    Gridtype = 2,
+    n_envopt = NULL,
+    use_parallel = TRUE,
+    use_opencl = FALSE,
+    verbose = FALSE, progbar = FALSE
+) {
+  call <- match.call()
+
+  ## rGamma_Conjugate_reg: scaffold for IID conjugate sampling (intercept-only safeguards below).
+
+  ## Argument renaming and prior
+  wt    <- weights
+  alpha <- offset
+  
+  ## Basic checks on y and x
+  n1 <- length(y)
+  if (!is.matrix(x)) x <- as.matrix(x)
+  if (nrow(x) != n1)
+    stop("Number of rows in x must match length of y.")
+  
+  ## 1) Validate and normalize offset (alpha)
+  if (is.null(alpha)) {
+    alpha <- rep(0, n1)
+  } else {
+    if (!is.numeric(alpha))
+      stop("offset (alpha) must be numeric if supplied.")
+    if (length(alpha) == 1L) {
+      alpha <- rep(alpha, n1)
+    } else if (length(alpha) != n1) {
+      stop("offset (alpha) must be scalar or have length equal to length(y).")
+    }
+  }
+  
+  ## 2) Validate and normalize weights (wt)
+  if (!is.numeric(wt))
+    stop("weights must be numeric.")
+  
+  if (length(wt) == 1L) {
+    wt <- rep(wt, n1)
+  } else if (length(wt) != n1) {
+    stop("weights must be either a scalar or have length equal to length(y).")
+  }
+  
+  if (any(wt < 0))
+    stop("weights must be nonnegative.")
+  
+  b         <- prior_list$beta
+  shape     <- prior_list$shape
+  rate      <- prior_list$rate
+  lik_shape <- as.numeric(if (!is.null(prior_list$lik_shape)) prior_list$lik_shape else 1)[[1L]]
+
+  if (!is.null(prior_list$max_disp_perc)) {
+    max_disp_perc <- prior_list$max_disp_perc
+  } else {
+    max_disp_perc <- 0.99
+  }
+  
+  ## Extract optional dispersion bounds from prior_list
+  if (!is.null(prior_list$disp_lower))  disp_lower <- prior_list$disp_lower  else disp_lower <- NULL
+  if (!is.null(prior_list$disp_upper))  disp_upper <- prior_list$disp_upper  else disp_upper <- NULL
+  
+  if (!is.null(disp_lower) && !is.null(disp_upper)) {
+    if (!is.numeric(disp_lower) || !is.numeric(disp_upper)) {
+      stop("prior_list$disp_lower and prior_list$disp_upper must be numeric.")
+    }
+    if (disp_lower <= 0 || disp_upper <= 0) {
+      stop("prior_list$disp_lower and prior_list$disp_upper must be positive.")
+    }
+    if (disp_upper <= disp_lower) {
+      stop("prior_list$disp_upper must be strictly greater than prior_list$disp_lower.")
+    }
+  }
+  
+  ## Family handling
+  if (is.character(family))
+    family <- get(family, mode = "function", envir = parent.frame())
+  if (is.function(family))
+    family <- family()
+  if (is.null(family$family)) {
+    print(family)
+    stop("'family' not recognized")
+  }
+
+  ## Scalar conjugate guard: intercept-only, zero offset, constant weights required for
+  ## closed-form Gamma–Poisson and Gamma–Gamma(identity) conjugate updates.
+  conjugate_scalar_families <- c("poisson", "quasipoisson")
+  if (family$family == "Gamma" && family$link == "identity")
+    conjugate_scalar_families <- c(conjugate_scalar_families, "Gamma")
+  if (family$family %in% conjugate_scalar_families) {
+    .check_gamma_conjugate_scalar_design(
+      x,
+      prior_list$beta,
+      alpha,
+      wt,
+      family_label = family$family,
+      ctx = "`rGamma_Conjugate_reg()`"
+    )
+  }
+  
+  okfamilies <- c("gaussian", "Gamma", "poisson", "quasipoisson")
+  if (family$family %in% okfamilies) {
+    oklinks <- if (family$family == "gaussian") {
+      c("identity")
+    } else if (family$family == "Gamma") {
+      ## identity: closed-form Gamma-Gamma conjugate (rate as coefficient).
+      ## log: C++ dispersion sampler path.
+      c("identity", "log")
+    } else if (family$family %in% c("poisson", "quasipoisson")) {
+      ## Closed-form conjugate: Gamma prior on λ with identity linear predictor η = λ.
+      c("identity")
+    }
+    if (!(family$link %in% oklinks)) {
+      stop(gettextf(
+        "link \"%s\" not available for selected family; available links are %s",
+        family$link, paste(sQuote(oklinks), collapse = ", ")
+      ), domain = NA)
+    }
+  } else {
+    stop(gettextf(
+      "family \"%s\" not available in glmbdisp; available families are %s",
+      family$family, paste(sQuote(okfamilies), collapse = ", ")
+    ), domain = NA)
+  }
+
+  ## Number of requested posterior draws (matches `rglmb()` / roxygen convention for `n`).
+  n_draw <- if (length(n) > 1L) length(n) else as.integer(n)
+  if (!is.finite(n_draw) || n_draw < 1L) {
+    stop("`n` must be a positive scalar or a vector whose length defines the number of draws.", call. = FALSE)
+  }
+
+  coef_out <- NULL
+  disp_out <- NULL
+  coef_mode_out <- NULL
+  draws_out <- NULL
+
+  ## ----------------------
+  ## Gaussian case (updated)
+  ## ----------------------
+  if (family$family == "gaussian") {
+
+
+    sim<-  .rGammaGaussian_cpp(
+      n, y, x, b, wt, alpha, shape, rate,
+      disp_lower, disp_upper, verbose = verbose
+    )
+    
+    # Validate output
+    if (!is.list(sim) || is.null(sim$dispersion) || is.null(sim$draws)) {
+      stop("C++ .rGammaGaussian_cpp returned an invalid structure.")
+    }
+
+    disp_out  <- sim$dispersion
+    draws_out <- sim$draws
+    coef_out <- matrix(as.numeric(b), nrow = 1L, ncol = length(as.numeric(b)))
+
+  }
+
+  ## ----------------------
+  ## Gamma(log): C++ dispersion sampler (existing path; coefficient fixed at beta)
+  ## ----------------------
+  if (family$family == "Gamma" && family$link == "log") {
+    
+    sim <- .rGammaGamma_cpp(
+      n, y, x, b, wt, alpha, shape, rate,
+      max_disp_perc, disp_lower, disp_upper,
+      verbose = verbose
+    )
+    
+    if (!is.list(sim) || is.null(sim$dispersion) || is.null(sim$draws)) {
+      stop("C++ .rGammaGamma_cpp returned an invalid structure.")
+    }
+    
+    disp_out  <- sim$dispersion
+    draws_out <- sim$draws
+    coef_out <- matrix(as.numeric(b), nrow = 1L, ncol = length(as.numeric(b)))
+
+  }
+
+  ## ----------------------
+  ## Gamma(identity): closed-form Gamma–Gamma conjugate update (rate as coefficient)
+  ## ----------------------
+  ##
+  ## Sampling model (intercept-only, identity link: η = β = rate of the Gamma responses):
+  ##   Y_i | β ~ Gamma(shape = lik_shape, rate = β),  i = 1,...,n_obs.
+  ## lik_shape k is the *known* Gamma likelihood shape (default 1 = exponential).
+  ##
+  ## Prior on β (R's shape-rate Gamma):
+  ##   β ~ Gamma(shape = alpha0, rate = beta0)
+  ##
+  ## Likelihood kernel in β:
+  ##   prod_i β^k * exp(-β * y_i)  =  β^(n*k) * exp(-β * sum_i y_i)
+  ##
+  ## Conjugate posterior:
+  ##   β | y ~ Gamma(shape = alpha0 + n*k,  rate = beta0 + sum_i y_i).
+  ##
+  ## Note: the posterior *mean of β* = (alpha0 + n*k) / (beta0 + sum_y);
+  ##       the posterior *mean of the Gamma response mean* = k / E[β] (not directly available
+  ##       from β alone without further integration, but the mode of 1/β ≈ k / mode(β)).
+  if (family$family == "Gamma" && family$link == "identity") {
+    if (!isTRUE(all(y > 0))) {
+      stop("`rGamma_Conjugate_reg()`: Gamma(identity) responses must be strictly positive.", call. = FALSE)
+    }
+    shape0     <- as.numeric(shape)[[1L]]
+    rate0      <- as.numeric(rate)[[1L]]
+    sum_y      <- sum(as.numeric(y))
+    sum_w      <- sum(as.numeric(wt))
+    shape_post <- shape0 + sum_w * lik_shape
+    rate_post  <- rate0  + sum_y
+
+    coef_out <- matrix(
+      stats::rgamma(n_draw, shape = shape_post, rate = rate_post),
+      nrow = n_draw,
+      ncol = 1L
+    )
+
+    coef_mode_out <- matrix(
+      if (shape_post > 1) ((shape_post - 1) / rate_post) else NA_real_,
+      nrow = 1L,
+      ncol = 1L
+    )
+
+    ## Dispersion for Gamma GLM = 1/lik_shape; stored as a constant across draws.
+    disp_out  <- rep(1 / lik_shape, n_draw)
+    draws_out <- matrix(1L, nrow = n_draw, ncol = 1L)
+
+    coef_nm <- if (!is.null(colnames(x)) && nzchar(colnames(x)[[1L]])) colnames(x)[[1L]] else "(Intercept)"
+    colnames(coef_out)      <- coef_nm
+    colnames(coef_mode_out) <- coef_nm
+    rownames(coef_mode_out) <- "(Mode)"
+  }
+
+  ## ----------------------
+  ## Poisson / quasi-Poisson (identity link, Gamma prior on rate lambda): closed-form update
+  ## ----------------------
+  ##
+  ## Scalar intercept-only linear predictor with identity link: eta = lambda (one column in `x`,
+  ## offset zero; enforced by `.check_gamma_conjugate_scalar_design()`).
+  ##
+  ## Sampling model (constant rate across observations; prior weights act as identical exposures):
+  ##   Y_i | lambda ~ Poisson(lambda * omega_i),  i = 1,...,n_obs.
+  ## Constant omega (for n_obs > 1) gives sum_i omega_i = n_obs * omega.
+  ##
+  ## Prior on lambda (R's shape-rate Gamma: see `?rgamma`; pdf proportional to
+  ## lambda^(alpha0-1) * exp(-beta0 * lambda)):
+  ##   lambda ~ Gamma(shape = alpha0, rate = beta0)
+  ## using prior_list$shape and prior_list$rate.
+  ##
+  ## Likelihood kernel in lambda (dropping factors not depending on lambda):
+  ##   prod_i lambda^y_i exp(-omega_i lambda)
+  ##     = lambda^(sum_i y_i) * exp(-lambda * sum_i omega_i).
+  ##
+  ## Conjugate posterior:
+  ##   lambda | y ~ Gamma(shape = alpha0 + sum_i y_i,  rate = beta0 + sum_i omega_i).
+  ##
+  ## Each requested draw is IID: stats::rgamma(1, shape = shape_post, rate = rate_post), repeated
+  ## n_draw times.  The vector `dispersion` mirrors `family$dispersion` (1 for Poisson; fixed
+  ## quasi factor if present) and is not assigned a sampling role here.
+
+  if (family$family %in% c("poisson", "quasipoisson")) {
+    if (!isTRUE(all(y >= 0))) {
+      stop("`rGamma_Conjugate_reg()`: Poisson / quasi-Poisson responses must be nonnegative.", call. = FALSE)
+    }
+    shape0 <- as.numeric(shape)[[1L]]
+    rate0 <- as.numeric(rate)[[1L]]
+    sum_y <- sum(as.numeric(y))
+    sum_w <- sum(as.numeric(wt))
+    shape_post <- shape0 + sum_y
+    rate_post <- rate0 + sum_w
+
+    coef_out <- matrix(
+      stats::rgamma(n_draw, shape = shape_post, rate = rate_post),
+      nrow = n_draw,
+      ncol = 1L
+    )
+
+    coef_mode_out <- matrix(
+      if (shape_post > 1) ((shape_post - 1) / rate_post) else NA_real_,
+      nrow = 1L,
+      ncol = 1L
+    )
+
+    phi <- suppressWarnings(as.numeric(family$dispersion))
+    if (length(phi) < 1L || !is.finite(phi[[1L]]) || phi[[1L]] <= 0) {
+      phi <- 1
+    } else {
+      phi <- phi[[1L]]
+    }
+    disp_out <- rep(phi, n_draw)
+
+    draws_out <- matrix(1L, nrow = n_draw, ncol = 1L)
+
+    coef_nm <- if (!is.null(colnames(x)) && nzchar(colnames(x)[[1L]])) colnames(x)[[1L]] else "(Intercept)"
+    colnames(coef_out) <- coef_nm
+    colnames(coef_mode_out) <- coef_nm
+    rownames(coef_mode_out) <- "(Mode)"
+  }
+
+  if (is.null(coef_out) || is.null(disp_out) || is.null(draws_out)) {
+    stop("`rGamma_Conjugate_reg()`: incomplete sampler output.", call. = FALSE)
+  }
+
+  closed_form_path <- family$family %in% c("poisson", "quasipoisson") ||
+                      (family$family == "Gamma" && family$link == "identity")
+  if (closed_form_path) {
+    if (nrow(coef_out) != n_draw || length(disp_out) != n_draw || nrow(draws_out) != n_draw) {
+      stop(
+        "`rGamma_Conjugate_reg()`: draw dimension mismatch in closed-form conjugate path.",
+        call. = FALSE
+      )
+    }
+  }
+
+  ## Assemble returned object (class `"rglmb"`):
+  ## Gaussian / Gamma conjugate dispersion paths reuse fixed `prior_list$beta` in each row dimension
+  ## (historic layout: one coefficient row paired with dispersion vector of length `n_draw`).
+  ## Poisson / quasi-Poisson: each row is an IID λ draw (`identity` link ⇒ intercept equals λ);
+  ## dispersion holds nominal φ (not a conjugate dispersion draw here).
+
+  sh <- as.numeric(shape)[[1L]]
+  rt <- as.numeric(rate)[[1L]]
+  if (!is.finite(sh) || !is.finite(rt) || sh <= 0 || rt <= 0) {
+    stop("`rGamma_Conjugate_reg()`: prior `shape` and `rate` must be finite and positive.", call. = FALSE)
+  }
+  ## Moments for Gamma(shape, rate) (stats parameterization): mean = sh/rt, variance = sh/rt^2,
+  ## precision = rt^2/sh.  `summary.rglmb()` expects `Prior$mean` and `Prior$Precision` compatible
+  ## with `ncol(x)` coefficient columns (intercept-only scalar conjugate repeats the same marginal).
+  cn_x <- colnames(x)
+  if (is.null(cn_x)) {
+    cn_x <- paste0("V", seq_len(ncol(x)))
+  }
+  prior_mean <- stats::setNames(rep(sh / rt, length.out = ncol(x)), cn_x)
+  prior_prec_diag <- rep((rt * rt) / sh, length.out = ncol(x))
+  prior_precision <- diag(prior_prec_diag, nrow = ncol(x), ncol = ncol(x))
+  dimnames(prior_precision) <- list(cn_x, cn_x)
+
+  outlist <- list(
+    coefficients   = coef_out,
+    coef.mode      = coef_mode_out,
+    dispersion     = disp_out,
+    Prior          = list(
+      shape      = shape,
+      rate       = rate,
+      mean       = prior_mean,
+      Precision  = prior_precision
+    ),
+    prior.weights  = wt,
+    y              = y,
+    x              = x,
+    famfunc        = glmbfamfunc(family, lik_shape = lik_shape),
+    iters          = draws_out,
+    Envelope       = NULL
+  )
+
+  colnames(outlist$coefficients) <- colnames(x)
+
+  ## Structural parity with `rNormal_reg()`/`rNormalGLM` `rglmb` returns (`family`, `offset2`,
+  ## reconstructed model objects). Stochastic draws above are unchanged.
+  offset2 <- alpha
+  rglmb_df <- as.data.frame(cbind(y, x))
+  rglmb_f <- DF2formula(rglmb_df)
+  rglmb_mf <- stats::model.frame(rglmb_f, rglmb_df)
+  outlist$family <- family
+  outlist$offset2 <- offset2
+  outlist$formula <- rglmb_f
+  outlist$model <- rglmb_mf
+  outlist$data <- rglmb_df
+
+  outlist$call <- call
+  class(outlist) <- c(outlist$class, "rglmb", "glmb", "glm", "lm")
+
+  return(outlist)
+}
+
+
+## ---------------------------------------------------------------------------
+## rBeta_reg: IID conjugate sampler for Beta–Binomial(identity) models.
+##
+## Model:  Y_i | θ ~ Binomial(n_i, θ),  θ = Xβ  (identity link, intercept only)
+##         θ ~ Beta(shape1, shape2)
+## Posterior: θ | y ~ Beta(shape1 + Σ n_i y_i,  shape2 + Σ n_i (1 − y_i))
+## ---------------------------------------------------------------------------
+
+#' @family simfuncs
+#' @usage rBeta_reg(n, y, x, prior_list, offset = NULL, weights = 1,
+#'                 family = gaussian(), Gridtype = 2, n_envopt = NULL,
+#'                 use_parallel = TRUE, use_opencl = FALSE,
+#'                 verbose = FALSE, progbar = FALSE)
+#' @export
+#' @rdname simfuncs
+
+rBeta_reg <- function(
+    n,
+    y,
+    x,
+    prior_list,
+    offset       = NULL,
+    weights      = 1,
+    family       = gaussian(),
+    Gridtype     = 2,
+    n_envopt     = NULL,
+    use_parallel = TRUE,
+    use_opencl   = FALSE,
+    verbose      = FALSE,
+    progbar      = FALSE
+) {
+  call <- match.call()
+
+  wt    <- weights
+  alpha <- offset
+
+  ## Basic checks on y and x
+  n1 <- length(y)
+  if (!is.matrix(x)) x <- as.matrix(x)
+  if (nrow(x) != n1)
+    stop("Number of rows in x must match length of y.")
+
+  ## Normalize offset
+  if (is.null(alpha)) {
+    alpha <- rep(0, n1)
+  } else {
+    if (!is.numeric(alpha))
+      stop("offset (alpha) must be numeric if supplied.")
+    if (length(alpha) == 1L) alpha <- rep(alpha, n1)
+    else if (length(alpha) != n1)
+      stop("offset (alpha) must be scalar or have length equal to length(y).")
+  }
+
+  ## Normalize weights (= number of trials for binomial)
+  if (!is.numeric(wt)) stop("weights must be numeric.")
+  if (length(wt) == 1L) {
+    wt <- rep(wt, n1)
+  } else if (length(wt) != n1) {
+    stop("weights must be either a scalar or have length equal to length(y).")
+  }
+  if (any(wt < 0)) stop("weights must be nonneg.")
+
+  ## Extract prior hyperparameters
+  shape1 <- prior_list$shape1
+  shape2 <- prior_list$shape2
+  b      <- prior_list$beta
+
+  if (is.null(shape1) || is.null(shape2))
+    stop("`rBeta_reg()`: prior_list must contain `shape1` and `shape2`.")
+  s1 <- as.numeric(shape1)[[1L]]
+  s2 <- as.numeric(shape2)[[1L]]
+
+  ## Family handling
+  if (is.character(family))
+    family <- get(family, mode = "function", envir = parent.frame())
+  if (is.function(family)) family <- family()
+  if (is.null(family$family)) stop("'family' not recognized")
+
+  ## Family / link guard
+  if (!family$family %in% c("binomial", "quasibinomial"))
+    stop("`rBeta_reg()`: only binomial / quasibinomial families are supported.")
+  if (family$link != "identity")
+    stop("`rBeta_reg()`: only the identity link is supported (theta = Xbeta).")
+
+  ## Scalar design guard (intercept-only, zero offset, constant weights)
+  if (ncol(x) != 1L)
+    stop("`rBeta_reg()`: dBeta supports only intercept-only models (ncol(x) == 1). Use dNormal() for multiple predictors.")
+  bb <- tryCatch(as.matrix(b, ncol = 1L), error = function(e) NULL)
+  if (is.null(bb) || nrow(bb) != 1L || ncol(bb) != 1L)
+    stop("`rBeta_reg()`: prior_list$beta must be a 1x1 matrix for the intercept-only model.")
+  if (any(!is.finite(alpha)) || max(abs(as.numeric(alpha))) > 1e-12)
+    stop("`rBeta_reg()`: non-zero offset is not implemented for dBeta models.")
+  if (n1 > 1L &&
+      (max(as.numeric(wt)) - min(as.numeric(wt))) > 1e-12 * max(1, mean(as.numeric(wt))))
+    stop("`rBeta_reg()`: non-constant weights are not implemented for dBeta. Use dNormal() if trial counts vary.")
+
+  ## Response guard: y must be proportions in [0, 1]
+  y_num <- as.numeric(y)
+  if (any(!is.finite(y_num)))
+    stop("`rBeta_reg()`: response y contains non-finite values.")
+  if (any(y_num < 0) || any(y_num > 1))
+    stop("`rBeta_reg()`: response y must be in [0, 1] (proportions) for binomial(identity).")
+
+  ## Conjugate posterior update
+  ## With constant weights n (number of trials):
+  ##   shape1_post = shape1 + sum(n * y) = shape1 + total successes
+  ##   shape2_post = shape2 + sum(n * (1-y)) = shape2 + total failures
+  sum_successes <- sum(y_num * wt)
+  sum_failures  <- sum((1 - y_num) * wt)
+
+  shape1_post <- s1 + sum_successes
+  shape2_post <- s2 + sum_failures
+
+  n_draw    <- as.integer(n)
+  coef_out  <- matrix(
+    stats::rbeta(n_draw, shape1 = shape1_post, shape2 = shape2_post),
+    nrow = n_draw, ncol = 1L
+  )
+  disp_out  <- rep(1, n_draw)          ## binomial dispersion = 1
+  draws_out <- matrix(1L, nrow = n_draw, ncol = 1L)
+
+  ## Posterior mode: (shape1_post - 1) / (shape1_post + shape2_post - 2) when both > 1
+  s12_post <- shape1_post + shape2_post
+  if (shape1_post > 1 && shape2_post > 1) {
+    mode_val <- (shape1_post - 1) / (s12_post - 2)
+  } else {
+    mode_val <- shape1_post / s12_post   ## fall back to posterior mean
+  }
+  coef_mode_out <- matrix(mode_val, nrow = 1L, ncol = 1L)
+  rownames(coef_mode_out) <- "(Mode)"
+
+  ## Prior moments for output Prior slot
+  cn_x <- colnames(x)
+  if (is.null(cn_x)) cn_x <- paste0("V", seq_len(ncol(x)))
+  prior_mean_val <- s1 / (s1 + s2)
+  prior_var_val  <- s1 * s2 / ((s1 + s2)^2 * (s1 + s2 + 1))
+  prior_prec_val <- 1 / prior_var_val
+  prior_mean_vec <- stats::setNames(rep(prior_mean_val, ncol(x)), cn_x)
+  prior_precision <- diag(rep(prior_prec_val, ncol(x)), nrow = ncol(x), ncol = ncol(x))
+  dimnames(prior_precision) <- list(cn_x, cn_x)
+
+  outlist <- list(
+    coefficients  = coef_out,
+    coef.mode     = coef_mode_out,
+    dispersion    = disp_out,
+    Prior         = list(
+      shape1     = shape1,
+      shape2     = shape2,
+      mean       = prior_mean_vec,
+      Precision  = prior_precision
+    ),
+    prior.weights = wt,
+    y             = y,
+    x             = x,
+    famfunc       = glmbfamfunc(family),
+    iters         = draws_out,
+    Envelope      = NULL
+  )
+
+  colnames(outlist$coefficients) <- colnames(x)
+
+  offset2  <- alpha
+  rglmb_df <- as.data.frame(cbind(y, x))
+  rglmb_f  <- DF2formula(rglmb_df)
+  rglmb_mf <- stats::model.frame(rglmb_f, rglmb_df)
+  outlist$family  <- family
+  outlist$offset2 <- offset2
+  outlist$formula <- rglmb_f
+  outlist$model   <- rglmb_mf
+  outlist$data    <- rglmb_df
+
+  outlist$call <- call
+  class(outlist) <- c(outlist$class, "rglmb", "glmb", "glm", "lm")
+
+  return(outlist)
+}
+
+
+
+#' @family simfuncs
 #' @example inst/examples/Ex_rindepNormalGamma_reg.R
 #' @usage rindepNormalGamma_reg(n, y, x, prior_list, offset = NULL, weights = 1,
 #'                              family = gaussian(), Gridtype = 2,n_envopt = NULL,
@@ -580,6 +1208,27 @@ rindepNormalGamma_reg<-function(n,y,x,prior_list,offset=NULL,weights=1,family=ga
   # Dimension checks
   stopifnot(nrow(x) == length(y))
   stopifnot(length(mu) == ncol(x))
+  
+  ## Prior-vs-data balance guard. The dispersion envelope caps the log-tilt
+  ## at n_w/2 (the data contribution to shape2; see Remark 4.1.3 of the ING
+  ## vignette), which presumes a likelihood-dominated regime. Under the
+  ## Prior_Setup ING calibration shape = (n_prior + 1 + p)/2, so the implied
+  ## effective prior sample size must not exceed the weighted observation
+  ## count n_w = sum(wt) (equivalently pwt <= 0.5).
+  if (!is.null(shape)) {
+    n_w <- sum(wt)
+    n_prior_implied <- 2 * shape - 1 - ncol(x)
+    if (n_prior_implied > n_w) {
+      stop(
+        "dIndependent_Normal_Gamma prior implies n_prior = ",
+        signif(n_prior_implied, 4), " effective prior observations, but the ",
+        "data supply only n_w = sum(weights) = ", signif(n_w, 4), ". The ",
+        "dispersion envelope requires n_prior <= n_w (prior weight pwt <= 0.5); ",
+        "weaken the prior (smaller shape) or supply more data.",
+        call. = FALSE
+      )
+    }
+  }
   
   # Reconstruct P from Sigma and enforce SPD
   R    <- chol(Sigma)

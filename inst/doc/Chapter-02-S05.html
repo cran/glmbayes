@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Kjell Nygren" />
+
+<meta name="date" content="2026-06-21" />
+
+<title>Chapter 02-S05: Gamma–Gamma Conjugacy for One Response Rate</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+}
+.hanging div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Chapter 02-S05: Gamma–Gamma Conjugacy for
+One Response Rate</h1>
+<h4 class="author">Kjell Nygren</h4>
+<h4 class="date">2026-06-21</h4>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(glmbayes)</span></code></pre></div>
+<hr />
+<div id="the-model" class="section level2">
+<h2>1. The model</h2>
+<div id="likelihood" class="section level3">
+<h3>1.1 Likelihood</h3>
+<p>Suppose we observe <span class="math inline">\(n\)</span> positive
+continuous responses <span class="math inline">\(y_1, \dots,
+y_n\)</span> — waiting times, survival times, monetary amounts — drawn
+from a Gamma distribution with <strong>known shape</strong> <span class="math inline">\(k &gt; 0\)</span> and <strong>unknown
+rate</strong> <span class="math inline">\(\beta &gt; 0\)</span>:</p>
+<p><span class="math display">\[
+  Y_i \mid \beta \;\sim\; \mathrm{Gamma}(k,\, \beta), \qquad i =
+1,\dots,n.
+\]</span></p>
+<p>The mean response is <span class="math inline">\(\mu =
+k/\beta\)</span> and the variance is <span class="math inline">\(k/\beta^2\)</span>. The log-likelihood (up to
+constants) is:</p>
+<p><span class="math display">\[
+  \ell(\beta) \;\propto\; n k \log\beta - \beta\,\textstyle\sum_i y_i.
+\]</span></p>
+<p><strong>Why fix the shape?</strong> Conjugacy requires <span class="math inline">\(k\)</span> to be treated as known. In practice you
+either know it from domain knowledge (e.g., exponential responses have
+<span class="math inline">\(k = 1\)</span>) or estimate it by
+method-of-moments: <span class="math inline">\(\hat k = \bar y^2 /
+s^2\)</span>. When both <span class="math inline">\(k\)</span> and <span class="math inline">\(\beta\)</span> are unknown, conjugacy breaks and a
+rejection sampler is needed — that case is handled by
+<code>Gamma(log)</code> with <code>glmbdisp()</code>.</p>
+<p><strong>The special case <span class="math inline">\(k =
+1\)</span></strong> gives the <strong>Exponential distribution</strong>,
+the natural model for inter-event waiting times under a constant-hazard
+assumption.</p>
+</div>
+<div id="prior" class="section level3">
+<h3>1.2 Prior</h3>
+<p>Because <span class="math inline">\(\beta &gt; 0\)</span>, the Gamma
+distribution is again the natural conjugate prior:</p>
+<p><span class="math display">\[
+  \beta \;\sim\; \mathrm{Gamma}(\alpha_0,\, b_0),
+\]</span></p>
+<p>with prior mean <span class="math inline">\(\alpha_0 / b_0\)</span>
+and variance <span class="math inline">\(\alpha_0 / b_0^2\)</span>.</p>
+<p><strong>Relationship to the dispersion.</strong> In GLM terms the
+Gamma dispersion is <span class="math inline">\(\phi = 1/k\)</span>, so
+the shape <span class="math inline">\(k\)</span> is the precision <span class="math inline">\(1/\phi\)</span>. Specifying
+<code>lik_shape = k</code> in
+<code>dGamma(Inv_Dispersion = FALSE)</code> is equivalent to specifying
+a known dispersion.</p>
+<p><strong>The “identity” link.</strong> When you pass
+<code>family = Gamma(link = &quot;identity&quot;)</code> to
+<strong><code>glmb()</code></strong>, the single regression coefficient
+is the rate <span class="math inline">\(\beta\)</span> directly. This
+matches the conjugate parameterization.</p>
+</div>
+<div id="posterior-derivation" class="section level3">
+<h3>1.3 Posterior derivation</h3>
+<p>Multiply the likelihood kernel <span class="math inline">\(\beta^{n
+k}\,e^{-\beta \sum y_i}\)</span> by the prior kernel <span class="math inline">\(\beta^{\alpha_0 - 1}\,e^{-b_0 \beta}\)</span>:</p>
+<p><span class="math display">\[
+  p(\beta \mid y)
+  \;\propto\;
+  \beta^{(\alpha_0 + n k) - 1}\,e^{-(b_0 + \sum_i y_i)\,\beta}.
+\]</span></p>
+<p>This is a Gamma kernel, giving the conjugate posterior:</p>
+<p><span class="math display">\[
+  \boxed{\beta \mid y \;\sim\; \mathrm{Gamma}\!\left(\alpha_0 + n k,\;\;
+b_0 + \textstyle\sum_i y_i\right).}
+\]</span></p>
+<p><strong>Update rule:</strong></p>
+<ul>
+<li>Add <span class="math inline">\(n \times k\)</span> to the shape
+(<span class="math inline">\(n\)</span> itself when <span class="math inline">\(k = 1\)</span>).</li>
+<li>Add the sum of observations <span class="math inline">\(\sum_i
+y_i\)</span> to the rate.</li>
+</ul>
+<p>The posterior mean <strong>rate</strong> is <span class="math inline">\((\alpha_0 + n k)/(b_0 + \sum y_i)\)</span>, and
+the posterior mean <strong>response</strong> is:</p>
+<p><span class="math display">\[
+  \mathbb{E}[\mu \mid y]
+  \;\approx\; \frac{k}{\mathbb{E}[\beta \mid y]}
+  \;=\; \frac{k(b_0 + \sum_i y_i)}{\alpha_0 + n k}.
+\]</span></p>
+<hr />
+</div>
+</div>
+<div id="illustration-with-base-r-plots" class="section level2">
+<h2>2. Illustration with base-R plots</h2>
+<p>The <strong><code>bayesrules</code></strong> package does not
+currently include a <code>plot_gamma_gamma()</code> helper, so we plot
+the prior, the (normalized) likelihood, and the posterior directly with
+<code>curve()</code>.</p>
+<p><strong>Scenario.</strong> You record the waiting time between calls
+to a customer service hotline. Exponential waiting times (<span class="math inline">\(k = 1\)</span>) are a standard model. You place a
+<strong><span class="math inline">\(\Gamma(2, 4)\)</span></strong> prior
+on the call rate <span class="math inline">\(\beta\)</span> (prior mean
+= 0.5 calls/minute). You then observe <span class="math inline">\(n =
+20\)</span> inter-arrival times with sum <span class="math inline">\(\sum y = 35\)</span> minutes.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>alpha0 <span class="ot">&lt;-</span> <span class="dv">2</span>;  b0 <span class="ot">&lt;-</span> <span class="dv">4</span>         <span class="do">## Gamma(2, 4) prior: mean = 0.5</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>k      <span class="ot">&lt;-</span> <span class="dv">1</span>                   <span class="do">## known shape (exponential)</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>n_obs  <span class="ot">&lt;-</span> <span class="dv">20</span><span class="dt">L</span>;  sum_y <span class="ot">&lt;-</span> <span class="dv">35</span>   <span class="do">## data: 20 observations, sum = 35</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>post_shape <span class="ot">&lt;-</span> alpha0 <span class="sc">+</span> n_obs <span class="sc">*</span> k</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>post_rate  <span class="ot">&lt;-</span> b0    <span class="sc">+</span> sum_y</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>ggamma_analytic <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  <span class="at">Example =</span> <span class="st">&quot;Call inter-arrivals (illustration)&quot;</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  <span class="at">n =</span> n_obs,</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  <span class="st">`</span><span class="at">sum(y)</span><span class="st">`</span> <span class="ot">=</span> sum_y,</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>  <span class="at">Posterior =</span> <span class="fu">sprintf</span>(<span class="st">&quot;Gamma(%d, %d)&quot;</span>, post_shape, post_rate),</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>  <span class="st">`</span><span class="at">Mean (rate)</span><span class="st">`</span> <span class="ot">=</span> post_shape <span class="sc">/</span> post_rate,</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>  <span class="st">`</span><span class="at">SD (rate)</span><span class="st">`</span>   <span class="ot">=</span> <span class="fu">sqrt</span>(post_shape) <span class="sc">/</span> post_rate,</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>)</span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(ggamma_analytic, <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Conjugate Gamma--Gamma posterior for rate beta&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Conjugate Gamma–Gamma posterior for rate beta</caption>
+<colgroup>
+<col width="43%" />
+<col width="3%" />
+<col width="8%" />
+<col width="17%" />
+<col width="14%" />
+<col width="12%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Example</th>
+<th align="right">n</th>
+<th align="right">sum(y)</th>
+<th align="left">Posterior</th>
+<th align="right">Mean (rate)</th>
+<th align="right">SD (rate)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Call inter-arrivals (illustration)</td>
+<td align="right">20</td>
+<td align="right">35</td>
+<td align="left">Gamma(22, 39)</td>
+<td align="right">0.5641</td>
+<td align="right">0.1203</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>beta_grid <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.01</span>, <span class="fl">1.5</span>, <span class="at">length.out =</span> <span class="dv">500</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="do">## Normalized likelihood: Gamma(n*k + 1, sum_y) shape, treated as density</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>lik_unnorm <span class="ot">&lt;-</span> <span class="fu">dgamma</span>(beta_grid, <span class="at">shape =</span> n_obs <span class="sc">*</span> k <span class="sc">+</span> <span class="dv">1</span>, <span class="at">rate =</span> sum_y)</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="do">## Scale likelihood to have same peak height as the prior (visual only)</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>prior_vals   <span class="ot">&lt;-</span> <span class="fu">dgamma</span>(beta_grid, alpha0, b0)</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>post_vals    <span class="ot">&lt;-</span> <span class="fu">dgamma</span>(beta_grid, post_shape, post_rate)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>lik_scaled   <span class="ot">&lt;-</span> lik_unnorm <span class="sc">*</span> (<span class="fu">max</span>(prior_vals) <span class="sc">/</span> <span class="fu">max</span>(lik_unnorm))</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="fu">plot</span>(beta_grid, prior_vals, <span class="at">type =</span> <span class="st">&quot;l&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">&quot;steelblue&quot;</span>,</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="fu">expression</span>(beta), <span class="at">ylab =</span> <span class="st">&quot;Density&quot;</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">&quot;Gamma–Gamma update: prior, likelihood, posterior&quot;</span>,</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>     <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(post_vals) <span class="sc">*</span> <span class="fl">1.1</span>))</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="fu">lines</span>(beta_grid, lik_scaled, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">&quot;darkgreen&quot;</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="fu">lines</span>(beta_grid, post_vals,  <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">&quot;tomato&quot;</span>)</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">&quot;topright&quot;</span>,</span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>       <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">&quot;Prior  Gamma(2, 4)&quot;</span>,</span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>                  <span class="st">&quot;Likelihood (scaled)&quot;</span>,</span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>                  <span class="fu">sprintf</span>(<span class="st">&quot;Posterior  Gamma(%d, %d)&quot;</span>, post_shape, post_rate)),</span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>       <span class="at">col  =</span> <span class="fu">c</span>(<span class="st">&quot;steelblue&quot;</span>, <span class="st">&quot;darkgreen&quot;</span>, <span class="st">&quot;tomato&quot;</span>),</span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>       <span class="at">lty  =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">1</span>), <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">bty =</span> <span class="st">&quot;n&quot;</span>)</span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> alpha0 <span class="sc">/</span> b0,          <span class="at">lty =</span> <span class="dv">3</span>, <span class="at">col =</span> <span class="st">&quot;steelblue&quot;</span>)</span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> post_shape <span class="sc">/</span> post_rate, <span class="at">lty =</span> <span class="dv">3</span>, <span class="at">col =</span> <span class="st">&quot;tomato&quot;</span>)</span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
+<p>The posterior is pulled from the prior mean (0.5) toward the
+data-based MLE (<span class="math inline">\(n/\sum y = 20/35 \approx
+0.57\)</span>) and is considerably tighter than either.</p>
+<hr />
+</div>
+<div id="real-data-boston-marathon-finishing-times" class="section level2">
+<h2>3. Real data: Boston Marathon finishing times</h2>
+<p>The <code>bayesrules::cherry_blossom_sample</code> dataset records
+net finishing times (minutes) for runners in a 10-mile cherry blossom
+race <span class="citation">(Johnson et al. 2022)</span>. Finishing
+times are continuous and positive; we model them as Gamma-distributed
+with a method-of-moments estimate of the shape <span class="math inline">\(k\)</span>.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">library</span>(bayesrules)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="do">## Use net finishing times (minutes); drop missing values</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>y_cb <span class="ot">&lt;-</span> cherry_blossom_sample<span class="sc">$</span>net</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>y_cb <span class="ot">&lt;-</span> y_cb[<span class="fu">is.finite</span>(y_cb)]</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>n_cb <span class="ot">&lt;-</span> <span class="fu">length</span>(y_cb)</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>ybar_cb <span class="ot">&lt;-</span> <span class="fu">mean</span>(y_cb)</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>s2_cb   <span class="ot">&lt;-</span> <span class="fu">var</span>(y_cb)</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="do">## Method-of-moments estimate of shape k: k_hat = ybar^2 / s^2</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>k_hat_cb <span class="ot">&lt;-</span> ybar_cb<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> s2_cb</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;n = %d,  mean = %.2f min,  var = %.2f,  k_hat = %.3f</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>            n_cb, ybar_cb, s2_cb, k_hat_cb))</span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; n = 185,  mean = 89.95 min,  var = 195.44,  k_hat = 41.395</span></span></code></pre></div>
+<p>The estimated shape <span class="math inline">\(\hat k
+\approx\)</span> 41.4 is treated as fixed for the conjugate
+analysis.</p>
+<p><strong>Prior.</strong> Based on general knowledge that competitive
+10-mile race times cluster around 85–100 minutes, we set a <strong><span class="math inline">\(\Gamma(5, 0.06)\)</span></strong> prior on the
+rate <span class="math inline">\(\beta\)</span> (prior mean rate <span class="math inline">\(\approx 0.083\)</span>, corresponding to a prior
+mean time <span class="math inline">\(k/\beta \approx 85\)</span>
+minutes for the estimated <span class="math inline">\(k\)</span>).</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="do">## Set prior centered at rate corresponding to ~85 min mean finish time</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="do">## E[mu] = k / beta_prior  =&gt;  beta_prior = k_hat / 85</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>alpha0_cb <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>b0_cb     <span class="ot">&lt;-</span> alpha0_cb <span class="sc">/</span> (k_hat_cb <span class="sc">/</span> ybar_cb)  <span class="do">## prior mean rate = k_hat / ybar</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Prior: Gamma(%.2f, %.4f),  prior mean rate = %.4f,  implied mean time = %.1f min</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>            alpha0_cb, b0_cb,</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>            alpha0_cb <span class="sc">/</span> b0_cb,</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>            k_hat_cb <span class="sc">/</span> (alpha0_cb <span class="sc">/</span> b0_cb)))</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; Prior: Gamma(5.00, 10.8644),  prior mean rate = 0.4602,  implied mean time = 89.9 min</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>post_shape_cb <span class="ot">&lt;-</span> alpha0_cb <span class="sc">+</span> n_cb <span class="sc">*</span> k_hat_cb</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>post_rate_cb  <span class="ot">&lt;-</span> b0_cb     <span class="sc">+</span> <span class="fu">sum</span>(y_cb)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>post_mean_rate_cb <span class="ot">&lt;-</span> post_shape_cb <span class="sc">/</span> post_rate_cb</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>post_sd_rate_cb   <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(post_shape_cb) <span class="sc">/</span> post_rate_cb</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>post_mean_time_cb <span class="ot">&lt;-</span> k_hat_cb <span class="sc">/</span> post_mean_rate_cb</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>cb_analytic <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  <span class="at">Dataset =</span> <span class="st">&quot;Cherry blossom finish times&quot;</span>,</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  <span class="at">n =</span> n_cb,</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>  <span class="st">`</span><span class="at">k (fixed)</span><span class="st">`</span> <span class="ot">=</span> k_hat_cb,</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>  <span class="at">Posterior =</span> <span class="fu">sprintf</span>(<span class="st">&quot;Gamma(%.2f, %.4f)&quot;</span>, post_shape_cb, post_rate_cb),</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>  <span class="st">`</span><span class="at">Mean (rate beta)</span><span class="st">`</span> <span class="ot">=</span> post_mean_rate_cb,</span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>  <span class="st">`</span><span class="at">SD (rate beta)</span><span class="st">`</span>   <span class="ot">=</span> post_sd_rate_cb,</span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>  <span class="st">`</span><span class="at">Mean time (min)</span><span class="st">`</span>  <span class="ot">=</span> post_mean_time_cb,</span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>)</span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(cb_analytic, <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Conjugate Gamma--Gamma posterior for rate beta (shape--rate)&quot;</span>)</span></code></pre></div>
+<table style="width:100%;">
+<caption>Conjugate Gamma–Gamma posterior for rate beta
+(shape–rate)</caption>
+<colgroup>
+<col width="23%" />
+<col width="3%" />
+<col width="8%" />
+<col width="23%" />
+<col width="14%" />
+<col width="12%" />
+<col width="13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Dataset</th>
+<th align="right">n</th>
+<th align="right">k (fixed)</th>
+<th align="left">Posterior</th>
+<th align="right">Mean (rate beta)</th>
+<th align="right">SD (rate beta)</th>
+<th align="right">Mean time (min)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Cherry blossom finish times</td>
+<td align="right">185</td>
+<td align="right">41.3954</td>
+<td align="left">Gamma(7663.15, 16651.0310)</td>
+<td align="right">0.4602</td>
+<td align="right">0.0053</td>
+<td align="right">89.9468</td>
+</tr>
+</tbody>
+</table>
+<div id="fitting-with-glmb" class="section level3">
+<h3>3.1 Fitting with <strong><code>glmb()</code></strong></h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>df_cb <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">y =</span> y_cb)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>cb_beta <span class="ot">&lt;-</span> <span class="fu">matrix</span>(alpha0_cb <span class="sc">/</span> b0_cb, <span class="at">nrow =</span> <span class="dv">1</span>, <span class="at">ncol =</span> <span class="dv">1</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>                  <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="cn">NULL</span>, <span class="st">&quot;(Intercept)&quot;</span>))</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>cb_pf <span class="ot">&lt;-</span> <span class="fu">dGamma</span>(</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">shape          =</span> alpha0_cb,</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">rate           =</span> b0_cb,</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  <span class="at">beta           =</span> cb_beta,</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  <span class="at">Inv_Dispersion =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  <span class="at">lik_shape      =</span> k_hat_cb</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>)</span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2026</span>)</span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>fit_cb <span class="ot">&lt;-</span> <span class="fu">glmb</span>(</span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>  <span class="at">n       =</span> <span class="dv">20000</span>,</span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>  y <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>  <span class="at">data    =</span> df_cb,</span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>  <span class="at">family  =</span> <span class="fu">Gamma</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>),</span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>  <span class="at">pfamily =</span> cb_pf</span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>)</span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a><span class="fu">print</span>(fit_cb)</span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="co">#&gt; Call:  glmb(formula = y ~ 1, family = Gamma(link = &quot;identity&quot;), pfamily = cb_pf, </span></span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="co">#&gt;     n = 20000, data = df_cb)</span></span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="co">#&gt; Posterior Mean Coefficients:</span></span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a><span class="co">#&gt; (Intercept)  </span></span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a><span class="co">#&gt;      0.4603  </span></span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 40.76645 </span></span>
+<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 7790.162 </span></span>
+<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a><span class="co">#&gt; DIC: 62148.07</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>cb_compare <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="at">Dataset =</span> <span class="st">&quot;Cherry blossom finish times&quot;</span>,</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="at">Posterior =</span> cb_analytic<span class="sc">$</span>Posterior,</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="st">`</span><span class="at">Analytic Mean (rate)</span><span class="st">`</span> <span class="ot">=</span> cb_analytic<span class="sc">$</span><span class="st">`</span><span class="at">Mean (rate beta)</span><span class="st">`</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="st">`</span><span class="at">Analytic SD (rate)</span><span class="st">`</span>   <span class="ot">=</span> cb_analytic<span class="sc">$</span><span class="st">`</span><span class="at">SD (rate beta)</span><span class="st">`</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="st">`</span><span class="at">glmb Post.Mean</span><span class="st">`</span> <span class="ot">=</span> fit_cb<span class="sc">$</span>coef.means[<span class="st">&quot;(Intercept)&quot;</span>],</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>  <span class="st">`</span><span class="at">glmb Post.Sd</span><span class="st">`</span>   <span class="ot">=</span> <span class="fu">sd</span>(fit_cb<span class="sc">$</span>coefficients[, <span class="st">&quot;(Intercept)&quot;</span>, <span class="at">drop =</span> <span class="cn">TRUE</span>]),</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>)</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(cb_compare, <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Analytic vs. glmb() posterior mean and SD for rate beta&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Analytic vs. glmb() posterior mean and SD for rate
+beta</caption>
+<colgroup>
+<col width="8%" />
+<col width="20%" />
+<col width="20%" />
+<col width="15%" />
+<col width="14%" />
+<col width="11%" />
+<col width="9%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">Dataset</th>
+<th align="left">Posterior</th>
+<th align="right">Analytic Mean (rate)</th>
+<th align="right">Analytic SD (rate)</th>
+<th align="right">glmb Post.Mean</th>
+<th align="right">glmb Post.Sd</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="left">Cherry blossom finish times</td>
+<td align="left">Gamma(7663.15, 16651.0310)</td>
+<td align="right">0.4602</td>
+<td align="right">0.0053</td>
+<td align="right">0.4603</td>
+<td align="right">0.0052</td>
+</tr>
+</tbody>
+</table>
+<p>The <strong><code>glmb Post.Mean</code></strong> and
+<strong><code>glmb Post.Sd</code></strong> columns refer to the
+<strong>rate</strong> <span class="math inline">\(\beta\)</span>. Mean
+finish time is <span class="math inline">\(\hat k\)</span> divided by
+posterior mean rate (see <strong>Mean time</strong> in the analytic
+table).</p>
+<hr />
+</div>
+</div>
+<div id="connection-to-glmbayes" class="section level2">
+<h2>4. Connection to glmbayes</h2>
+<p>The scalar Gamma–Gamma model is the conjugate prototype for
+<strong>Gamma <code>glmb()</code> with
+<code>family = Gamma(link = &quot;identity&quot;)</code></strong>. In that setting
+the single coefficient is the rate <span class="math inline">\(\beta\)</span>, the prior is
+<code>dGamma(shape, rate, beta, Inv_Dispersion = FALSE, lik_shape = k)</code>,
+and the posterior update is the closed form above.</p>
+<p>When the shape <span class="math inline">\(k\)</span> is
+<strong>unknown</strong>, the Gamma prior on <span class="math inline">\(k\)</span> is no longer conjugate. That case is
+handled by <strong><code>Gamma(link = &quot;log&quot;)</code></strong> with
+<code>dNormal()</code> priors on the regression coefficients plus
+<strong><code>glmbdisp()</code></strong> for the dispersion <span class="math inline">\(\phi = 1/k\)</span> (Chapter 10).</p>
+<hr />
+</div>
+<div id="see-also" class="section level2">
+<h2>See also</h2>
+<ul>
+<li><strong>Chapter-02-S01</strong> — introduction to Bayesian inference
+and conjugacy.</li>
+<li><strong>Chapter-02-S02</strong> — Normal–Normal conjugacy for one
+mean.</li>
+<li><strong>Chapter-02-S03</strong> — Beta–Binomial conjugacy for one
+proportion.</li>
+<li><strong>Chapter-02-S04</strong> — Gamma–Poisson conjugacy for one
+count rate.</li>
+<li><strong>Chapter 10</strong> — non-conjugate Gamma regression with
+<code>Gamma(log)</code>.</li>
+</ul>
+</div>
+<div id="bibliography" class="section level1 unnumbered">
+<h1 class="unnumbered">References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-JohnsonLauEtAl2022" class="csl-entry">
+Johnson, Alicia A., Miles Q. Ott, and Mine Dogucu. 2022. <em>Bayes
+Rules! An Introduction to Applied Bayesian Modeling</em>. CRC Press. <a href="https://www.bayesrulesbook.com">https://www.bayesrulesbook.com</a>.
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

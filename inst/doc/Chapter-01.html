@@ -12,7 +12,7 @@
 
 <meta name="author" content="Kjell Nygren" />
 
-<meta name="date" content="2026-05-18" />
+<meta name="date" content="2026-06-21" />
 
 <title>Chapter 01: Getting started with glmbayes</title>
 
@@ -364,7 +364,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Chapter 01: Getting started with
 glmbayes</h1>
 <h4 class="author">Kjell Nygren</h4>
-<h4 class="date">2026-05-18</h4>
+<h4 class="date">2026-06-21</h4>
 
 
 
@@ -376,10 +376,14 @@ Bayesian analogues to <strong>glm()</strong> and its standard methods
 2002)</span>. This vignette demonstrates how to set up and call
 <strong>glmb()</strong>, compares its syntax and output to
 <strong>glm()</strong>, and highlights the additional arguments required
-for prior specification. A specialized <strong>lmb()</strong> function
-for Bayesian linear regression is bundled in the package and will be
-explored in Chapter 2. For Bayesian regression perspective, see <span class="citation">(Gelman et al. 2013)</span>. Separate vignettes cover
-all complementary methods for both <strong>lmb()</strong> and
+for prior specification. If you want a refresher on
+<strong>conjugate</strong>, <strong>single-parameter</strong> updating
+(Beta–Binomial, Gamma–Poisson, Normal–Normal), see <strong>Chapter
+02-S01</strong> through <strong>Chapter 02-S05</strong> first; a
+specialized <strong>lmb()</strong> function for Bayesian linear
+regression is bundled in the package and is developed starting in
+Chapter 3. For Bayesian regression perspective, see <span class="citation">(Gelman et al. 2013)</span>. Separate vignettes cover
+complementary methods for both <strong>lmb()</strong> and
 <strong>glmb()</strong>.</p>
 </div>
 <div id="preparing-a-dataframe" class="section level1">
@@ -522,11 +526,11 @@ in both classical GLM workflows and their Bayesian analogues.</p>
 <span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; Posterior Mean Coefficients:</span></span>
 <span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt; (Intercept)     outcome2     outcome3   treatment2   treatment3  </span></span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;     3.02636     -0.45710     -0.30691      0.01426      0.01327  </span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;   3.0211106   -0.4455069   -0.2855490    0.0030650    0.0009112  </span></span>
 <span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 4.938048 </span></span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 10.10856 </span></span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; DIC: 56.67878</span></span></code></pre></div>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 4.947972 </span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 10.12498 </span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; DIC: 56.70513</span></span></code></pre></div>
 <div id="posterior-mean-coefficients" class="section level4">
 <h4>4.2.1 Posterior Mean Coefficients</h4>
 <p>The Posterior Mean Coefficients table reports the Bayesian point

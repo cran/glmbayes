@@ -1,86 +1,55 @@
 ## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 6,
+  fig.height = 4
 )
 
-## ----eval=FALSE---------------------------------------------------------------
-# # Cleveland GPU-accelerated example (same pattern as example(Cleveland))
-# # (Not executed in the vignette build.)
-# 
-# library(glmbayes)
-# 
-# # Load the dataset
-# data("Cleveland")
-# 
-# # ------------------------------------------------------------------
-# # OpenCL-accelerated Bayesian logistic regression example
-# # This example only runs if OpenCL is available.
-# # ------------------------------------------------------------------
-# 
-#   # Prior setup for the full model
-#   ps <- Prior_Setup(
-#     hd ~ age + sex + cp + trestbps + chol +
-#       fbs + restecg + thalach + exang + oldpeak + slope + ca + thal,
-#     family = binomial(logit),
-#     data = Cleveland
-#   )
-# 
-# t_non_opencl <- system.time({
-#   fit_non_opencl <- glmb(
-#     hd ~ age + sex + cp + trestbps + chol +
-#       fbs + restecg + thalach + exang + oldpeak + slope + ca + thal,
-#     family       = binomial(link = "logit"),
-#     pfamily      = dNormal(mu = ps$mu, Sigma = ps$Sigma),
-#     data         = Cleveland,
-#     n            = 20000,
-#     Gridtype     = 2,
-#     use_parallel = TRUE,
-#     use_opencl   = FALSE,
-#     verbose      = FALSE
-#   )
-# })
-# 
-# t_non_opencl
+## ----setup--------------------------------------------------------------------
+library(glmbayes)
 
-## ----echo=FALSE, out.width="100%"---------------------------------------------
-knitr::include_graphics(
-  system.file("extdata", "cleveland_non_opencl_output_01.png", package = "glmbayes")
+## ----menarche-fit-------------------------------------------------------------
+data(menarche, package = "MASS")
+
+Age2 <- menarche$Age - 13
+Menarche_Model_Data <- data.frame(
+  Menarche  = menarche$Menarche,
+  Total     = menarche$Total,
+  Age2      = Age2
 )
 
-## ----eval=FALSE---------------------------------------------------------------
-# t_opencl <- system.time({
-#   fit_opencl <- glmb(
-#     hd ~ age + sex + cp + trestbps + chol +
-#       fbs + restecg + thalach + exang + oldpeak + slope + ca + thal,
-#     family       = binomial(link = "logit"),
-#     pfamily      = dNormal(mu = ps$mu, Sigma = ps$Sigma),
-#     data         = Cleveland,
-#     n            = 20000,
-#     Gridtype     = 2,
-#     use_parallel = TRUE,
-#     use_opencl   = TRUE,
-#     verbose      = FALSE
-#   )
-# })
-# 
-# t_opencl
-# 
-
-## ----echo=FALSE, out.width="100%"---------------------------------------------
-knitr::include_graphics(
-  system.file("extdata", "cleveland_opencl_output_01.png", package = "glmbayes")
+ps <- Prior_Setup(
+  cbind(Menarche, Total - Menarche) ~ Age2,
+  family = binomial(link = "logit"),
+  data   = Menarche_Model_Data
 )
 
-## ----eval=FALSE---------------------------------------------------------------
-# 
-# summary(fit_opencl)
+fit_logit <- glmb(
+  cbind(Menarche, Total - Menarche) ~ Age2,
+  family  = binomial(link = "logit"),
+  pfamily = dNormal(mu = ps$mu, Sigma = ps$Sigma),
+  data    = Menarche_Model_Data,
+  n             = 800,
+  use_parallel  = FALSE
+)
+coef_draws <- as.matrix(fit_logit$coefficients)
 
-## ----echo=FALSE, out.width="100%"---------------------------------------------
-knitr::include_graphics(
-  system.file("extdata", "cleveland_summary_output_01.png", package = "glmbayes")
+## ----ppc-setup----------------------------------------------------------------
+## Observed success proportions (aligned with simulate.glmb for binomial)
+y_obs <- Menarche_Model_Data$Menarche / Menarche_Model_Data$Total
+
+pred_resp <- predict(fit_logit, type = "response")
+nd <- max(1L, min(50L, nrow(pred_resp)))
+pred_sub <- pred_resp[seq_len(nd), , drop = FALSE]
+
+y_rep <- stats::simulate(
+  fit_logit,
+  pred = pred_sub,
+  prior.weights = fit_logit$prior.weights
 )
-knitr::include_graphics(
-  system.file("extdata", "cleveland_summary_output_02.png", package = "glmbayes")
-)
+
+stopifnot(nrow(y_rep) == nd, ncol(y_rep) == length(y_obs))
 

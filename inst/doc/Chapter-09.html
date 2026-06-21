@@ -12,7 +12,7 @@
 
 
 
-<title>Chapter 09: Models for the Gamma Family</title>
+<title>Chapter 09: Models for the Binomial family</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -359,565 +359,827 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">Chapter 09: Models for the Gamma
-Family</h1>
+<h1 class="title toc-ignore">Chapter 09: Models for the Binomial
+family</h1>
 
 
 
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(glmbayes)</span></code></pre></div>
 <div id="introductory-discussion" class="section level2">
 <h2>1. Introductory Discussion</h2>
-<p>Gamma regression models are used when the response variable is
-strictly positive and right‑skewed.<br />
-Typical applications include:</p>
+<p>Binomial generalized linear models (GLMs) are used when the response
+represents <strong>binary outcomes</strong> (success/failure) or
+<strong>proportions</strong> (successes out of trials). They are among
+the most widely used GLMs in applied statistics, powering models
+for:</p>
 <ul>
-<li>insurance claim severities<br />
+<li>clinical trial response rates<br />
 </li>
-<li>cost or expenditure data<br />
+<li>yes/no survey outcomes<br />
 </li>
-<li>reaction times and waiting times<br />
+<li>conversion rates in marketing<br />
 </li>
-<li>positive continuous measurements with heteroskedasticity</li>
+<li>event occurrence indicators<br />
+</li>
+<li>grouped binomial data (successes out of <em>n</em>)</li>
 </ul>
-<p>Gamma regression is a standard GLM for positive, right‑skewed
-responses <span class="citation">(Nelder and Wedderburn 1972; McCullagh
-and Nelder 1989; Agresti 2015)</span>.</p>
-<p>In classical statistics, these models are fit using</p>
-<p>glm(…, family = Gamma(link = …)).</p>
-<p>In glmbayes, the Bayesian analogue is</p>
-<p>glmb(…, family = Gamma(link = …), pfamily = dNormal(…))</p>
-<p>or, when dispersion is unknown and modeled,</p>
-<p>glmb(…, family = Gamma(link = …), pfamily = dNormal_Gamma(…))</p>
-<p>or related pfamilies.</p>
-<p>This chapter:</p>
+<p>Binomial regression is a standard generalized linear model <span class="citation">(Nelder and Wedderburn 1972; McCullagh and Nelder 1989;
+Agresti 2015)</span>.</p>
+<p>In classical statistics, these models are fit using:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">glm</span>(..., <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> ...))</span></code></pre></div>
+<p>In <strong>glmbayes</strong>, the Bayesian analogue is:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">glmb</span>(..., <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> ...), <span class="at">pfamily =</span> <span class="fu">dNormal</span>(mu, Sigma))</span></code></pre></div>
+<p>This chapter introduces:</p>
 <ol style="list-style-type: decimal">
-<li>reviews the Gamma GLM structure and link functions<br />
+<li>the structure of binomial GLMs<br />
 </li>
-<li>shows how to fit classical and Bayesian Gamma regression
-models<br />
+<li>the available link functions (logit, probit, cloglog)<br />
 </li>
-<li>uses a realistic insurance example (carinsca)<br />
+<li>how to specify these models in <strong>glmbayes</strong><br />
 </li>
-<li>demonstrates how to estimate dispersion using
-gamma.dispersion()<br />
-</li>
-<li>compares classical and Bayesian summaries, including DIC</li>
+<li>worked examples for each link function</li>
 </ol>
+<p>We build on the foundations from Chapters 07 and 08, especially the
+role of link functions, log‑concavity, and prior specification.</p>
 </div>
-<div id="gamma-likelihood-and-model-structure-log-link-fixed-dispersion" class="section level2">
-<h2>2. Gamma Likelihood and Model Structure (Log Link, Fixed
-Dispersion)</h2>
-<p>Gamma regression models strictly positive, right-skewed
-responses.<br />
-In a Gamma GLM with fixed dispersion, the response satisfies</p>
-<p><span class="math display">\[
-Y_i &gt; 0,
-\qquad
-Y_i \sim \text{Gamma}(\text{mean}=\mu_i,\ \text{dispersion}=\phi),
-\]</span></p>
-<p>where the variance is</p>
-<p><span class="math display">\[
-\mathrm{Var}(Y_i) = \phi\,\mu_i^2.
-\]</span></p>
-<p>The mean is linked to a linear predictor through</p>
-<p><span class="math display">\[
-\eta_i = x_i^\top \beta,
-\qquad
-\mu_i = g^{-1}(\eta_i).
-\]</span></p>
-<p>In this chapter we focus exclusively on the <strong>log
-link</strong>, which is the standard choice for Gamma GLMs and the only
-link supported by <code>glmb()</code> when dispersion is fixed.</p>
-<div id="weighted-gamma-log-likelihood-log-link" class="section level3">
-<h3>2.1 Weighted Gamma Log-Likelihood (Log Link)</h3>
-<p>Let <span class="math inline">\(w_i\)</span> denote observation
-weights (e.g., claim counts or exposures).<br />
-Under the log link,</p>
-<p><span class="math display">\[
-\mu_i = e^{\eta_i},
-\]</span></p>
-<p>and the Gamma log-likelihood (up to constants) is</p>
-<p><span class="math display">\[
-\ell(\beta)
-=
-\sum_{i=1}^n
-w_i\left[
--\frac{1}{\phi}\,\eta_i
--
-\frac{1}{\phi}\,y_i e^{-\eta_i}
-\right].
-\]</span></p>
-<p>Terms not involving <span class="math inline">\(\beta\)</span> have
-been absorbed into the constant.<br />
-This form is used by both <code>glm()</code> and the Bayesian functions
-<code>glmb()</code> and <code>rglmb()</code> when dispersion is
-fixed.</p>
-</div>
-<div id="exponential-family-representation" class="section level3">
-<h3>2.2 Exponential-Family Representation</h3>
-<p>The Gamma distribution belongs to the exponential family <span class="citation">(McCullagh and Nelder 1989; Agresti 2015)</span> with
-canonical parameter</p>
-<p><span class="math display">\[
-\theta_i = -\frac{1}{\mu_i},
-\]</span></p>
-<p>and cumulant function</p>
-<p><span class="math display">\[
-b(\theta_i) = -\log(-\theta_i).
-\]</span></p>
-<p>The variance is</p>
-<p><span class="math display">\[
-\mathrm{Var}(Y_i) = \phi\,\mu_i^2.
-\]</span></p>
-<p>Under the <strong>log link</strong>, the canonical parameter is a
-monotone transformation of the linear predictor, and the resulting
-log-likelihood is <strong>log-concave in <span class="math inline">\(\eta_i\)</span></strong>.<br />
-This property is essential for stable envelope construction and
-accept–reject sampling in <em>glmbayes</em>.</p>
-</div>
-<div id="log-link-and-its-properties" class="section level3">
-<h3>2.3 Log Link and Its Properties</h3>
-<p>The log link is defined by</p>
-<p><span class="math display">\[
-g(\mu_i) = \log(\mu_i),
-\qquad
-\mu_i = e^{\eta_i}.
-\]</span></p>
-<p>It is the preferred link for Gamma GLMs because:</p>
+<div id="binomial-likelihood-and-weighted-formulation" class="section level2">
+<h2>2. Binomial Likelihood and Weighted Formulation</h2>
+<p>Binomial data arise in several equivalent representations:</p>
 <ul>
-<li>it automatically enforces <span class="math inline">\(\mu_i &gt;
-0\)</span>,</li>
-<li>it yields multiplicative interpretations for coefficients,</li>
-<li>it produces a log-concave likelihood in <span class="math inline">\(\eta_i\)</span>,</li>
-<li>it is numerically stable for skewed data,</li>
-<li>it is the only link supported by <code>glmb()</code> when dispersion
-is fixed.</li>
+<li><strong>Binary outcomes:</strong> <span class="math inline">\(y_i
+\in \{0,1\}\)</span></li>
+<li><strong>Proportions:</strong> <span class="math inline">\(y_i =
+\text{successes}_i / n_i\)</span> with weights <span class="math inline">\(w_i = n_i\)</span></li>
+<li><strong>Two‑column matrix:</strong> <span class="math inline">\(\text{cbind(successes, failures)}\)</span></li>
 </ul>
-<p>Other links (inverse, identity) do not preserve log-concavity and are
-therefore not used in this chapter.<br />
-Models with <strong>estimated dispersion</strong> or <strong>non-log
-links</strong> are covered in Chapter 11.</p>
+<p>In all cases, the underlying sampling model is</p>
+<p><span class="math display">\[
+Y_i \sim \text{Binomial}(n_i, \mu_i), \qquad 0 &lt; \mu_i &lt; 1,
+\]</span></p>
+<p>where: - <span class="math inline">\(n_i\)</span> is the number of
+trials, - <span class="math inline">\(\mu_i = \Pr(Y_i = 1)\)</span> is
+the success probability.</p>
+<div id="linear-predictor-and-mean-structure" class="section level3">
+<h3>2.1 Linear predictor and mean structure</h3>
+<p>A binomial GLM links the mean <span class="math inline">\(\mu_i\)</span> to a linear predictor through</p>
+<p><span class="math display">\[
+\eta_i = x_i^\top \beta, \qquad \mu_i = g^{-1}(\eta_i),
+\]</span></p>
+<p>where <span class="math inline">\(g(\cdot)\)</span> is the chosen
+link function (logit, probit, cloglog, etc.).</p>
 </div>
-<div id="likelihood-prior-and-posterior-normal-prior-on-beta" class="section level3">
-<h3>2.4 Likelihood, Prior, and Posterior (Normal Prior on <span class="math inline">\(\beta\)</span>)</h3>
-<p>With the log link, the weighted log-likelihood is</p>
+<div id="weighted-binomial-loglikelihood" class="section level3">
+<h3>2.2 Weighted binomial log‑likelihood</h3>
+<p>Using weights <span class="math inline">\(w_i = n_i\)</span>, the
+log‑likelihood (up to constants) becomes</p>
 <p><span class="math display">\[
 \ell(\beta)
 =
 \sum_{i=1}^n
-w_i\left[
--\frac{1}{\phi}\,\eta_i
--
-\frac{1}{\phi}\,y_i e^{-\eta_i}
-\right].
+w_i\Big[
+y_i \log(\mu_i)
++
+(1-y_i)\log(1-\mu_i)
+\Big].
 \]</span></p>
-<p>A multivariate normal prior is specified as</p>
-<p><span class="math display">\[
-\log p(\beta)
+<p>This form is used by both <code>glm()</code> and the Bayesian
+functions <code>glmb()</code> and <code>rglmb()</code>.</p>
+</div>
+<div id="exponentialfamily-representation" class="section level3">
+<h3>2.3 Exponential‑family representation</h3>
+<p>The binomial likelihood belongs to the exponential family <span class="citation">(McCullagh and Nelder 1989; Agresti 2015)</span>.<br />
+For a model with linear predictor <span class="math display">\[
+\eta_i = x_i^\top \beta,
+\]</span> and mean <span class="math display">\[
+\mu_i = g^{-1}(\eta_i),
+\]</span> the contribution of observation <span class="math inline">\(i\)</span> to the log‑likelihood can be written as
+<span class="math display">\[
+\ell_i(\beta)
 =
--\tfrac{1}{2}(\beta - \mu_0)^\top \Sigma_0^{-1}(\beta - \mu_0)
-+ \text{const}.
+w_i\Big[
+y_i \log(\mu_i)
++
+(1-y_i)\log(1-\mu_i)
+\Big],
+\]</span> where <span class="math inline">\(w_i\)</span> is the number
+of trials (or a user‑supplied weight).</p>
+<p>This representation does <strong>not</strong> require the link to be
+canonical.<br />
+The variance of a binomial observation is always <span class="math display">\[
+\mathrm{Var}(Y_i) = \mu_i(1-\mu_i),
+\]</span> regardless of the link function.</p>
+</div>
+<div id="link-functions" class="section level3">
+<h3>2.4 Link functions</h3>
+<p>The link function determines how the mean response relates to the
+linear predictor: <span class="math display">\[
+g(\mu_i) = \eta_i.
 \]</span></p>
-<p>Combining likelihood and prior yields the log-posterior:</p>
-<p><span class="math display">\[
-\log p(\beta \mid y)
-=
-\sum_{i=1}^n
-w_i\left[
--\frac{1}{\phi}\,\eta_i
--
-\frac{1}{\phi}\,y_i e^{-\eta_i}
-\right]
--
-\tfrac{1}{2}(\beta - \mu_0)^\top \Sigma_0^{-1}(\beta - \mu_0)
-+ \text{const}.
-\]</span></p>
-<p>Because both terms are concave in <span class="math inline">\(\beta\)</span>, the posterior is
-<strong>log-concave</strong>, enabling efficient iid sampling via the
-envelope-based accept–reject sampler implemented in <em>glmbayes</em>.
-## 3. Link Functions for Gamma GLMs</p>
-<p>The link function relates the mean <span class="math inline">\(\mu\)</span> to the linear predictor <span class="math inline">\(\eta = X\beta\)</span>:</p>
-<p><span class="math display">\[
-g(\mu) = \eta.
-\]</span></p>
-<p>The Gamma family in base R supports:</p>
+<p>The <code>binomial()</code> family in R supports several link
+functions:</p>
 <table>
 <colgroup>
-<col width="14%" />
+<col width="48%" />
 <col width="29%" />
-<col width="55%" />
+<col width="22%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Link</th>
+<th>Link Function</th>
 <th>Formula</th>
 <th>Notes</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>inverse</td>
-<td><span class="math inline">\(\eta = 1/\mu\)</span></td>
-<td>canonical link</td>
+<td><strong>logit</strong> (canonical)</td>
+<td><span class="math inline">\(\eta = \log(\mu/(1-\mu))\)</span></td>
+<td>Most common; canonical link; induces log‑concavity in <span class="math inline">\(\eta\)</span></td>
 </tr>
 <tr class="even">
-<td>identity</td>
-<td><span class="math inline">\(\eta = \mu\)</span></td>
-<td>must ensure <span class="math inline">\(\mu &gt; 0\)</span></td>
+<td><strong>probit</strong></td>
+<td><span class="math inline">\(\eta = \Phi^{-1}(\mu)\)</span></td>
+<td>Based on the standard normal CDF; induces log‑concavity in <span class="math inline">\(\eta\)</span></td>
 </tr>
 <tr class="odd">
-<td>log</td>
-<td><span class="math inline">\(\eta = \log(\mu)\)</span></td>
-<td>most common; ensures <span class="math inline">\(\mu &gt;
-0\)</span></td>
+<td><strong>cloglog</strong></td>
+<td><span class="math inline">\(\eta = \log[-\log(1-\mu)]\)</span></td>
+<td>Asymmetric; useful for rare events; induces log‑concavity in <span class="math inline">\(\eta\)</span></td>
+</tr>
+<tr class="even">
+<td><strong>cauchit</strong></td>
+<td><span class="math inline">\(\eta = \tan[\pi(\mu -
+1/2)]\)</span></td>
+<td>Heavy‑tailed; does <strong>not</strong> preserve log‑concavity in
+general</td>
+</tr>
+<tr class="odd">
+<td><strong>identity</strong></td>
+<td><span class="math inline">\(\eta = \mu\)</span></td>
+<td>Must ensure <span class="math inline">\(0 &lt; \mu &lt; 1\)</span>;
+does <strong>not</strong> preserve log‑concavity in general</td>
 </tr>
 </tbody>
 </table>
-<p>In practice, the log link is usually preferred because:</p>
+<p>In this chapter we focus on the three most commonly used links:</p>
 <ul>
-<li>it enforces <span class="math inline">\(\mu &gt; 0\)</span>
-automatically<br />
+<li><strong>logit</strong> (Section 4)<br />
 </li>
-<li>it gives multiplicative interpretations for coefficients<br />
+<li><strong>probit</strong> (Section 5)<br />
 </li>
-<li>it tends to be numerically stable<br />
-</li>
-<li>it preserves log‑concavity of the likelihood</li>
+<li><strong>cloglog</strong> (Section 6)</li>
 </ul>
-<p>At present (due to the need for log-concavity), only the log link is
-implemented in the <strong>glmb</strong> function.</p>
+<p>Each link produces a different transformation <span class="math inline">\(g^{-1}(\eta)\)</span> and therefore a different
+expression for the log‑likelihood and its derivatives. For the logit,
+probit, and cloglog links, the resulting log‑likelihood is known to be
+log‑concave in the linear predictor <span class="math inline">\(\eta\)</span>, which is crucial for stable
+envelope construction and accept–reject sampling in
+<em>glmbayes</em>.</p>
+<p>The explicit formulas for each link are provided at the beginning of
+their respective sections.</p>
 </div>
 </div>
-<div id="gamma-regression-example-insurance-claims" class="section level2">
-<h2>4. Gamma Regression Example: Insurance Claims</h2>
-<p>We now consider a Gamma regression example based on the carinsca
-dataset.<br />
-The goal is to model average claim cost as a function of rating
-variables Merit and Class, using claim counts as weights.</p>
-<div id="data-setup" class="section level3">
-<h3>4.1 Data Setup</h3>
-<p>We begin by preparing the data and setting appropriate factor levels
-and contrasts.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>    <span class="fu">data</span>(carinsca)</span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>    carinsca<span class="sc">$</span>Merit <span class="ot">&lt;-</span> <span class="fu">ordered</span>(carinsca<span class="sc">$</span>Merit)</span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>    carinsca<span class="sc">$</span>Class <span class="ot">&lt;-</span> <span class="fu">factor</span>(carinsca<span class="sc">$</span>Class)</span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>    oldopt <span class="ot">&lt;-</span> <span class="fu">options</span>(<span class="at">contrasts =</span> <span class="fu">c</span>(<span class="st">&quot;contr.treatment&quot;</span>, <span class="st">&quot;contr.treatment&quot;</span>))</span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>    Claims  <span class="ot">&lt;-</span> carinsca<span class="sc">$</span>Claims</span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>    Insured <span class="ot">&lt;-</span> carinsca<span class="sc">$</span>Insured</span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>    Merit   <span class="ot">&lt;-</span> carinsca<span class="sc">$</span>Merit</span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>    Class   <span class="ot">&lt;-</span> carinsca<span class="sc">$</span>Class</span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>    Cost    <span class="ot">&lt;-</span> carinsca<span class="sc">$</span>Cost</span></code></pre></div>
-<p>The response Cost/Claims represents the <strong>average claim
-cost</strong> (severity) per claim.<br />
-The weights Claims reflect the number of claims on which each average is
-based, improving efficiency and aligning with standard GLM practice for
-rate or average models.</p>
-</div>
-<div id="classical-gamma-regression-using-glm" class="section level3">
-<h3>4.2 Classical Gamma Regression Using glm()</h3>
-<p>We fit a classical Gamma GLM with a log link. As <code>glm()</code>
-only crudely estimates the dispersion, we use
-<code>MASS::gamma.dispersion()</code> <span class="citation">(Venables
-and Ripley 2002)</span> and pass the estimate to
-<code>summary()</code>.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>    out <span class="ot">&lt;-</span> <span class="fu">glm</span>(Cost<span class="sc">/</span>Claims <span class="sc">~</span> Merit <span class="sc">+</span> Class,</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>               <span class="at">family  =</span> <span class="fu">Gamma</span>(<span class="at">link =</span> <span class="st">&quot;log&quot;</span>),</span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>               <span class="at">weights =</span> Claims,</span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>               <span class="at">x       =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>    <span class="do">## Estimate the dispersion using MLE</span></span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>    disp <span class="ot">&lt;-</span> <span class="fu">gamma.dispersion</span>(out)</span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>    </span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>    <span class="fu">summary</span>(out,<span class="at">dispersion=</span>disp)</span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; glm(formula = Cost/Claims ~ Merit + Class, family = Gamma(link = &quot;log&quot;), </span></span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt;     weights = Claims, x = TRUE)</span></span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
-<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; (Intercept) -1.17456    0.01195 -98.286  &lt; 2e-16 ***</span></span>
-<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; Merit1      -0.06867    0.02008  -3.420 0.000626 ***</span></span>
-<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; Merit2      -0.07025    0.02238  -3.138 0.001700 ** </span></span>
-<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt; Merit3      -0.05673    0.01254  -4.523 6.08e-06 ***</span></span>
-<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt; Class2       0.08274    0.02031   4.073 4.64e-05 ***</span></span>
-<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; Class3       0.01583    0.01410   1.123 0.261529    </span></span>
-<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt; Class4       0.15981    0.01494  10.698  &lt; 2e-16 ***</span></span>
-<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt; Class5      -0.08142    0.03005  -2.709 0.006744 ** </span></span>
-<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for Gamma family taken to be 7.840919)</span></span>
-<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 1556.0  on 19  degrees of freedom</span></span>
-<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a><span class="co">#&gt; Residual deviance:  156.9  on 12  degrees of freedom</span></span>
-<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a><span class="co">#&gt; AIC: -2999165</span></span>
-<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 4</span></span></code></pre></div>
-<p>The summary shows:</p>
+<div id="specifying-binomial-models-in-glmbayes" class="section level2">
+<h2>3. Specifying Binomial Models in glmbayes</h2>
+<p>The general Bayesian call is:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">glmb</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  formula,</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">family   =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span> <span class="sc">|</span> <span class="st">&quot;probit&quot;</span> <span class="sc">|</span> <span class="st">&quot;cloglog&quot;</span>),</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">pfamily  =</span> <span class="fu">dNormal</span>(<span class="at">mu =</span> mu, <span class="at">Sigma =</span> V),</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">data     =</span> ...</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>)</span></code></pre></div>
+<div id="prior-specification" class="section level3">
+<h3>3.1 Prior Specification</h3>
+<p>As in earlier chapters, the recommended workflow is:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>ps <span class="ot">&lt;-</span> <span class="fu">Prior_Setup</span>(formula, <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>), <span class="at">data =</span> ...)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>mu <span class="ot">&lt;-</span> ps<span class="sc">$</span>mu</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>V  <span class="ot">&lt;-</span> ps<span class="sc">$</span>Sigma</span></code></pre></div>
+<p>This produces:</p>
 <ul>
-<li>regression coefficients on the log mean‑cost scale<br />
+<li>a Zellner‑type g‑prior <span class="citation">(Griffin and Brown
+2010)</span><br />
 </li>
-<li>standard errors and z‑statistics<br />
+<li>prior means aligned with the null model<br />
 </li>
-<li>deviance and AIC<br />
-</li>
-<li>an estimated dispersion parameter (phi)</li>
+<li>prior variances scaled relative to the likelihood curvature</li>
 </ul>
-<p>Under the log link, exp(<span class="math inline">\(\beta_{j}\)</span>) can be interpreted as a
-multiplicative factor on the expected cost ratio for a one‑unit change
-in the corresponding covariate (or a change in factor level).</p>
+<p>You may override these defaults for more informative priors (see
+Chapter 14).</p>
+<hr />
 </div>
 </div>
-<div id="bayesian-gamma-regression-fixed-dispersion-with-glmb" class="section level2">
-<h2>5. Bayesian Gamma Regression (fixed dispersion) with glmb()</h2>
-<p>To fit the Bayesian analogue, we proceed in two steps:</p>
-<ol style="list-style-type: decimal">
-<li>estimate the dispersion parameter <span class="math inline">\(\phi\)</span> from the classical Gamma GLM,<br />
-</li>
-<li>construct a prior for the regression coefficients using ,<br />
-</li>
-<li>call with a prior that incorporates the fixed dispersion <span class="math inline">\(\phi\)</span>.</li>
-</ol>
-<div id="estimating-dispersion-via-gamma.dispersion" class="section level3">
-<h3>5.1 Estimating Dispersion via gamma.dispersion()</h3>
-<p>The gamma.dispersion() helper estimates the dispersion parameter from
-a fitted classical Gamma GLM:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>    <span class="do">## better than the crude estimate from the summary function</span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>    disp <span class="ot">&lt;-</span> <span class="fu">gamma.dispersion</span>(out)</span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>    disp</span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; [1] 7.840919</span></span></code></pre></div>
-<p>This value will be treated as known in our Bayesian model, so that
-the Bayesian and classical fits are directly comparable in terms of how
-they treat phi.</p>
+<div id="logit-link-likelihood-prior-posterior" class="section level2">
+<h2>4. Logit Link: Likelihood, Prior, Posterior</h2>
+<p>For the <strong>logit link</strong>: <span class="math display">\[
+\eta_i = \log\!\left(\frac{\mu_i}{1-\mu_i}\right),
+\qquad
+\mu_i = \frac{1}{1+e^{-\eta_i}}.
+\]</span></p>
+<div id="weighted-log-likelihood" class="section level3">
+<h3>Weighted Log-Likelihood</h3>
+<p><span class="math display">\[
+\ell_{\text{logit}}(\beta)
+=
+\sum_{i=1}^n
+w_i\Big[
+y_i\,\eta_i - \log(1+e^{\eta_i})
+\Big].
+\]</span></p>
 </div>
-<div id="prior-setup-using-prior_setup" class="section level3">
-<h3>5.2 Prior Setup Using Prior_Setup()</h3>
-<p>Next we use <code>Prior_Setup()</code> to construct a Zellner‑type
-g‑prior <span class="citation">(Griffin and Brown 2010)</span> for the
-coefficients, aligned with the Gamma log‑link model and weighting
-structure:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>    ps <span class="ot">&lt;-</span> <span class="fu">Prior_Setup</span>(Cost<span class="sc">/</span>Claims <span class="sc">~</span> Merit <span class="sc">+</span> Class,</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>                      <span class="at">family  =</span> <span class="fu">Gamma</span>(<span class="at">link =</span> <span class="st">&quot;log&quot;</span>),</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>                      <span class="at">weights =</span> Claims)</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; Using default pwt = 0.01 (low-d default).</span></span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a></span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>    mu <span class="ot">&lt;-</span> ps<span class="sc">$</span>mu</span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>    V  <span class="ot">&lt;-</span> ps<span class="sc">$</span>Sigma</span></code></pre></div>
-<p>The output from ps (if printed) will include:</p>
+<div id="normal-prior" class="section level3">
+<h3>Normal Prior</h3>
+<p><span class="math display">\[
+\log p(\beta)
+=
+-\tfrac12(\beta-\mu_0)^\top \Sigma_0^{-1}(\beta-\mu_0)
++ \text{const}.
+\]</span></p>
+</div>
+<div id="log-posterior" class="section level3">
+<h3>Log-Posterior</h3>
+<p><span class="math display">\[
+\log p(\beta \mid y)
+=
+\sum_{i=1}^n
+w_i\Big[
+y_i\,\eta_i - \log(1+e^{\eta_i})
+\Big]
+-
+\tfrac12(\beta-\mu_0)^\top \Sigma_0^{-1}(\beta-\mu_0)
++ \text{const}.
+\]</span></p>
+<p>The <strong>logit</strong> link is the canonical choice for binomial
+GLMs <span class="citation">(McCullagh and Nelder 1989; Agresti
+2015)</span>:</p>
+<p><span class="math display">\[
+\eta = \log\left(\frac{\mu}{1-\mu}\right)
+\]</span></p>
+<p>It is symmetric and interpretable in terms of
+<strong>log‑odds</strong>.</p>
+</div>
+<div id="example-data" class="section level3">
+<h3>4.1 Example Data</h3>
+<p>We use the <strong>Menarche</strong> dataset introduced in Chapter
+08:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">data</span>(menarche,<span class="at">package=</span><span class="st">&quot;MASS&quot;</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>Age2 <span class="ot">&lt;-</span> menarche<span class="sc">$</span>Age <span class="sc">-</span> <span class="dv">13</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>Menarche_Model_Data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">Age =</span> menarche<span class="sc">$</span>Age,</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="at">Total =</span> menarche<span class="sc">$</span>Total,</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  <span class="at">Menarche =</span> menarche<span class="sc">$</span>Menarche,</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  <span class="at">Age2 =</span> Age2</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>)</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>Menarche_Model_Data</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;      Age Total Menarche  Age2</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; 1   9.21   376        0 -3.79</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; 2  10.21   200        0 -2.79</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; 3  10.58    93        0 -2.42</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; 4  10.83   120        2 -2.17</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; 5  11.08    90        2 -1.92</span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt; 6  11.33    88        5 -1.67</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; 7  11.58   105       10 -1.42</span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt; 8  11.83   111       17 -1.17</span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; 9  12.08   100       16 -0.92</span></span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; 10 12.33    93       29 -0.67</span></span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co">#&gt; 11 12.58   100       39 -0.42</span></span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="co">#&gt; 12 12.83   108       51 -0.17</span></span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a><span class="co">#&gt; 13 13.08    99       47  0.08</span></span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a><span class="co">#&gt; 14 13.33   106       67  0.33</span></span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="co">#&gt; 15 13.58   105       81  0.58</span></span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="co">#&gt; 16 13.83   117       88  0.83</span></span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="co">#&gt; 17 14.08    98       79  1.08</span></span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co">#&gt; 18 14.33    97       90  1.33</span></span>
+<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a><span class="co">#&gt; 19 14.58   120      113  1.58</span></span>
+<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a><span class="co">#&gt; 20 14.83   102       95  1.83</span></span>
+<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a><span class="co">#&gt; 21 15.08   122      117  2.08</span></span>
+<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a><span class="co">#&gt; 22 15.33   111      107  2.33</span></span>
+<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a><span class="co">#&gt; 23 15.58    94       92  2.58</span></span>
+<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a><span class="co">#&gt; 24 15.83   114      112  2.83</span></span>
+<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a><span class="co">#&gt; 25 17.58  1049     1049  4.58</span></span></code></pre></div>
+</div>
+<div id="prior-setup" class="section level3">
+<h3>4.2 Prior Setup</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>ps <span class="ot">&lt;-</span> <span class="fu">Prior_Setup</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="fu">cbind</span>(Menarche, Total <span class="sc">-</span> Menarche) <span class="sc">~</span> Age2,</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>),</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">data =</span> Menarche_Model_Data</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>)</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; Using default pwt = 0.01 (low-d default).</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>mu <span class="ot">&lt;-</span> ps<span class="sc">$</span>mu</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>V  <span class="ot">&lt;-</span> ps<span class="sc">$</span>Sigma</span></code></pre></div>
+</div>
+<div id="fit-the-model" class="section level3">
+<h3>4.3 Fit the Model</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>glmb.logit <span class="ot">&lt;-</span> <span class="fu">glmb</span>(</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="fu">cbind</span>(Menarche, Total <span class="sc">-</span> Menarche) <span class="sc">~</span> Age2,</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="at">family  =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>),</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="at">pfamily =</span> <span class="fu">dNormal</span>(<span class="at">mu =</span> mu, <span class="at">Sigma =</span> V),</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">data    =</span> Menarche_Model_Data,</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="at">n       =</span> <span class="dv">1000</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="summary" class="section level3">
+<h3>4.4 Summary</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">summary</span>(glmb.logit)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt; Call</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; glmb(formula = cbind(Menarche, Total - Menarche) ~ Age2, family = binomial(link = &quot;logit&quot;), pfamily = dNormal(mu = mu, Sigma = V), n = 1000, data = Menarche_Model_Data) </span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; Expected Residuals:</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt;        Min         1Q     Median         3Q        Max </span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt; -2.0755848 -1.0387660 -0.4569500  0.7209114  1.3238875 </span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; Prior and Maximum Likelihood Estimates with Standard Deviations</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt;             Null Mode Prior Mean Prior.sd Max Like. Like.sd</span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; (Intercept)   0.36015    0.36015  0.62794  -0.01081   0.063</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt; Age2          0.00000    0.00000  0.58658   1.63197   0.059</span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt; Bayesian Estimates Based on 1000 iid draws</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#&gt;             Post.Mode Post.Mean   Post.Sd  MC Error Pr(Null_tail) SE(tail)</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.007133 -0.007677  0.059553  0.001883      0.000000        0</span></span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a><span class="co">#&gt; Age2         1.615870  1.622010  0.058152  0.001839      0.000000        0</span></span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a><span class="co">#&gt;             Pr(Prior_tail)    </span></span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="co">#&gt; (Intercept)         &lt;2e-16 ***</span></span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a><span class="co">#&gt; Age2                &lt;2e-16 ***</span></span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a><span class="co">#&gt;   Directional Tail Summaries:</span></span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a><span class="co">#&gt;                Metric vs Null vs Prior</span></span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a><span class="co">#&gt;  Mahalanobis Distance 28.5021  28.5021</span></span>
+<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a><span class="co">#&gt;      Tail Probability  0.0000   0.0000</span></span>
+<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a><span class="co">#&gt;   [Tail probabilities are P(delta^T * Z &lt;= 0) in whitened space]</span></span>
+<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a><span class="co">#&gt; Distribution Percentiles</span></span>
+<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-35"><a href="#cb9-35" tabindex="-1"></a><span class="co">#&gt;                  1.0%      2.5%      5.0%    Median     95.0%     97.5% 99.0%</span></span>
+<span id="cb9-36"><a href="#cb9-36" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.138670 -0.124034 -0.107398 -0.007492  0.090212  0.111000 0.131</span></span>
+<span id="cb9-37"><a href="#cb9-37" tabindex="-1"></a><span class="co">#&gt; Age2         1.494805  1.510505  1.524865  1.621645  1.718166  1.731505 1.750</span></span>
+<span id="cb9-38"><a href="#cb9-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-39"><a href="#cb9-39" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 1.882208 </span></span>
+<span id="cb9-40"><a href="#cb9-40" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 28.6164 </span></span>
+<span id="cb9-41"><a href="#cb9-41" tabindex="-1"></a><span class="co">#&gt; DIC: 114.5504 </span></span>
+<span id="cb9-42"><a href="#cb9-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-43"><a href="#cb9-43" tabindex="-1"></a><span class="co">#&gt; Expected Mean dispersion: 1 </span></span>
+<span id="cb9-44"><a href="#cb9-44" tabindex="-1"></a><span class="co">#&gt; Sq.root of Expected Mean dispersion: 1 </span></span>
+<span id="cb9-45"><a href="#cb9-45" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-46"><a href="#cb9-46" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 1.286</span></span></code></pre></div>
+<p>This produces:</p>
 <ul>
-<li>prior means (intercept from a null model, effects centered at zero
-by default)<br />
+<li>posterior means and modes<br />
 </li>
-<li>prior standard deviations (scaled using the pwt argument and the
-Fisher information)<br />
+<li>posterior standard deviations<br />
 </li>
-<li>any additional hyperparameters relevant for dispersion modeling</li>
+<li>tail probabilities<br />
+</li>
+<li>credible intervals<br />
+</li>
+<li>DIC and effective parameter count <span class="citation">(Spiegelhalter et al. 2002)</span></li>
 </ul>
-<p>With the default pwt = 0.01, the prior is weakly informative, and the
-posterior estimates typically remain close to the MLEs.</p>
+<p>The slope parameter typically shows strong evidence of increasing
+probability of menarche with age.</p>
+<hr />
 </div>
-<div id="fitting-the-bayesian-gamma-model" class="section level3">
-<h3>5.3 Fitting the Bayesian Gamma Model</h3>
-<p>We now call glmb(), specifying the same model and likelihood as in
-the classical fit, but adding a dNormal prior family that fixes
-dispersion at the value estimated above:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>    out_glmb <span class="ot">&lt;-</span> <span class="fu">glmb</span>(Cost<span class="sc">/</span>Claims <span class="sc">~</span> Merit <span class="sc">+</span> Class,</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>                 <span class="at">family  =</span> <span class="fu">Gamma</span>(<span class="at">link =</span> <span class="st">&quot;log&quot;</span>),</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>                 <span class="at">pfamily =</span> <span class="fu">dNormal</span>(<span class="at">mu =</span> mu, <span class="at">Sigma =</span> V, <span class="at">dispersion =</span> disp),</span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>                 <span class="at">weights =</span> Claims)</span></code></pre></div>
-<p>The arguments mirror the glm() call, with pfamily providing the
-prior:</p>
+</div>
+<div id="probit-link-likelihood-prior-posterior" class="section level2">
+<h2>5. Probit Link: Likelihood, Prior, Posterior</h2>
+<p>The probit link is a common alternative to the logit when a latent
+normal formulation is convenient <span class="citation">(McCullagh and
+Nelder 1989; Agresti 2015)</span>.</p>
+<p>For the <strong>probit link</strong>: <span class="math display">\[
+\eta_i = \Phi^{-1}(\mu_i),
+\qquad
+\mu_i = \Phi(\eta_i),
+\]</span> where <span class="math inline">\(\Phi\)</span> is the
+standard normal CDF.</p>
+<div id="weighted-log-likelihood-1" class="section level3">
+<h3>Weighted Log-Likelihood</h3>
+<p><span class="math display">\[
+\ell_{\text{probit}}(\beta)
+=
+\sum_{i=1}^n
+w_i\Big[
+y_i \log\Phi(\eta_i)
++
+(1-y_i)\log\big(1-\Phi(\eta_i)\big)
+\Big].
+\]</span></p>
+</div>
+<div id="normal-prior-1" class="section level3">
+<h3>Normal Prior</h3>
+<p><span class="math display">\[
+\log p(\beta)
+=
+-\tfrac12(\beta-\mu_0)^\top \Sigma_0^{-1}(\beta-\mu_0)
++ \text{const}.
+\]</span></p>
+</div>
+<div id="log-posterior-1" class="section level3">
+<h3>Log-Posterior</h3>
+<p><span class="math display">\[
+\log p(\beta \mid y)
+=
+\sum_{i=1}^n
+w_i\Big[
+y_i \log\Phi(\eta_i)
++
+(1-y_i)\log\big(1-\Phi(\eta_i)\big)
+\Big]
+-
+\tfrac12(\beta-\mu_0)^\top \Sigma_0^{-1}(\beta-\mu_0)
++ \text{const}.
+\]</span></p>
+<p>It is similar to the logit link but has slightly thinner tails and a
+more Gaussian interpretation.</p>
+</div>
+<div id="prior-setup-1" class="section level3">
+<h3>5.1 Prior Setup</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>ps2 <span class="ot">&lt;-</span> <span class="fu">Prior_Setup</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="fu">cbind</span>(Menarche, Total <span class="sc">-</span> Menarche) <span class="sc">~</span> Age2,</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;probit&quot;</span>),</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="at">data =</span> Menarche_Model_Data</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>)</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="co">#&gt; Using default pwt = 0.01 (low-d default).</span></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>mu2 <span class="ot">&lt;-</span> ps2<span class="sc">$</span>mu</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>V2  <span class="ot">&lt;-</span> ps2<span class="sc">$</span>Sigma</span></code></pre></div>
+</div>
+<div id="fit-the-model-1" class="section level3">
+<h3>5.2 Fit the Model</h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>glmb.probit <span class="ot">&lt;-</span> <span class="fu">glmb</span>(</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="fu">cbind</span>(Menarche, Total <span class="sc">-</span> Menarche) <span class="sc">~</span> Age2,</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="at">family  =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;probit&quot;</span>),</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="at">pfamily =</span> <span class="fu">dNormal</span>(<span class="at">mu =</span> mu2, <span class="at">Sigma =</span> V2),</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">data    =</span> Menarche_Model_Data,</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  <span class="at">n       =</span> <span class="dv">1000</span></span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="summary-1" class="section level3">
+<h3>5.3 Summary</h3>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">summary</span>(glmb.probit)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="co">#&gt; Call</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co">#&gt; glmb(formula = cbind(Menarche, Total - Menarche) ~ Age2, family = binomial(link = &quot;probit&quot;), pfamily = dNormal(mu = mu2, Sigma = V2), n = 1000, data = Menarche_Model_Data) </span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&gt; Expected Residuals:</span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co">#&gt;        Min         1Q     Median         3Q        Max </span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co">#&gt; -1.6345951 -0.9450241 -0.4905554  0.4574010  1.7831901 </span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="co">#&gt; Prior and Maximum Likelihood Estimates with Standard Deviations</span></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co">#&gt;             Null Mode Prior Mean Prior.sd Max Like. Like.sd</span></span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co">#&gt; (Intercept)   0.22517    0.22517  0.34838  -0.01724   0.035</span></span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt; Age2          0.00000    0.00000  0.29405   0.90782   0.030</span></span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="co">#&gt; Bayesian Estimates Based on 1000 iid draws</span></span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a><span class="co">#&gt;              Post.Mode  Post.Mean    Post.Sd   MC Error Pr(Null_tail) SE(tail)</span></span>
+<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.0146442 -0.0162405  0.0346883  0.0010969     0.0000000        0</span></span>
+<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a><span class="co">#&gt; Age2         0.8988270  0.8995796  0.0298859  0.0009451     0.0000000        0</span></span>
+<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a><span class="co">#&gt;             Pr(Prior_tail)    </span></span>
+<span id="cb12-21"><a href="#cb12-21" tabindex="-1"></a><span class="co">#&gt; (Intercept)         &lt;2e-16 ***</span></span>
+<span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a><span class="co">#&gt; Age2                &lt;2e-16 ***</span></span>
+<span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb12-24"><a href="#cb12-24" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb12-25"><a href="#cb12-25" tabindex="-1"></a><span class="co">#&gt;   Directional Tail Summaries:</span></span>
+<span id="cb12-26"><a href="#cb12-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-27"><a href="#cb12-27" tabindex="-1"></a><span class="co">#&gt;                Metric vs Null vs Prior</span></span>
+<span id="cb12-28"><a href="#cb12-28" tabindex="-1"></a><span class="co">#&gt;  Mahalanobis Distance 32.9300  32.9300</span></span>
+<span id="cb12-29"><a href="#cb12-29" tabindex="-1"></a><span class="co">#&gt;      Tail Probability  0.0000   0.0000</span></span>
+<span id="cb12-30"><a href="#cb12-30" tabindex="-1"></a><span class="co">#&gt;   [Tail probabilities are P(delta^T * Z &lt;= 0) in whitened space]</span></span>
+<span id="cb12-31"><a href="#cb12-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-32"><a href="#cb12-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-33"><a href="#cb12-33" tabindex="-1"></a><span class="co">#&gt; Distribution Percentiles</span></span>
+<span id="cb12-34"><a href="#cb12-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-35"><a href="#cb12-35" tabindex="-1"></a><span class="co">#&gt;                 1.0%     2.5%     5.0%   Median    95.0%    97.5% 99.0%</span></span>
+<span id="cb12-36"><a href="#cb12-36" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.10246 -0.08880 -0.07313 -0.01517  0.03981  0.05282 0.065</span></span>
+<span id="cb12-37"><a href="#cb12-37" tabindex="-1"></a><span class="co">#&gt; Age2         0.83459  0.84459  0.85097  0.89799  0.95012  0.95812 0.969</span></span>
+<span id="cb12-38"><a href="#cb12-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-39"><a href="#cb12-39" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 2.027226 </span></span>
+<span id="cb12-40"><a href="#cb12-40" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 24.99329 </span></span>
+<span id="cb12-41"><a href="#cb12-41" tabindex="-1"></a><span class="co">#&gt; DIC: 111.0723 </span></span>
+<span id="cb12-42"><a href="#cb12-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-43"><a href="#cb12-43" tabindex="-1"></a><span class="co">#&gt; Expected Mean dispersion: 1 </span></span>
+<span id="cb12-44"><a href="#cb12-44" tabindex="-1"></a><span class="co">#&gt; Sq.root of Expected Mean dispersion: 1 </span></span>
+<span id="cb12-45"><a href="#cb12-45" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-46"><a href="#cb12-46" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 1.289</span></span></code></pre></div>
+<p>The probit model typically yields:</p>
 <ul>
-<li>family = Gamma(link = “log”) specifies the likelihood and link<br />
+<li>slightly smaller slope estimates<br />
 </li>
-<li>pfamily = dNormal(…) specifies a multivariate normal prior for beta
-with known dispersion<br />
+<li>slightly smaller posterior standard deviations<br />
 </li>
-<li>weights = Claims carries over the claim counts</li>
+<li>similar fitted probabilities</li>
 </ul>
+<p>The DIC often favors probit slightly for smooth S‑shaped curves (as
+seen in Chapter 05).</p>
+<hr />
 </div>
-<div id="summarizing-the-bayesian-model" class="section level3">
-<h3>5.4 Summarizing the Bayesian Model</h3>
-<p>Bayesian summary:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>    <span class="fu">summary</span>(out_glmb)</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; Call</span></span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; glmb(formula = Cost/Claims ~ Merit + Class, family = Gamma(link = &quot;log&quot;), </span></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt;     pfamily = dNormal(mu = mu, Sigma = V, dispersion = disp), </span></span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt;     weights = Claims)</span></span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt; Expected Residuals:</span></span>
-<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt;        Min         1Q     Median         3Q        Max </span></span>
-<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; -5.9342592 -2.0933932 -0.2620675  2.3433094  6.3876270 </span></span>
-<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="co">#&gt; Prior and Maximum Likelihood Estimates with Standard Deviations</span></span>
-<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="co">#&gt;             Null Mode Prior Mean Prior.sd Max Like. Like.sd</span></span>
-<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="co">#&gt; (Intercept)  -1.18283   -1.20215  0.15462  -1.17456   0.016</span></span>
-<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="co">#&gt; Merit1        0.00000    0.00000  0.25980  -0.06867   0.026</span></span>
-<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="co">#&gt; Merit2        0.00000    0.00000  0.28961  -0.07025   0.029</span></span>
-<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="co">#&gt; Merit3        0.00000    0.00000  0.16226  -0.05673   0.016</span></span>
-<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a><span class="co">#&gt; Class2        0.00000    0.00000  0.26281   0.08274   0.026</span></span>
-<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a><span class="co">#&gt; Class3        0.00000    0.00000  0.18245   0.01583   0.018</span></span>
-<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a><span class="co">#&gt; Class4        0.00000    0.00000  0.19328   0.15981   0.019</span></span>
-<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a><span class="co">#&gt; Class5        0.00000    0.00000  0.38885  -0.08142   0.039</span></span>
-<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="co">#&gt; Bayesian Estimates Based on 1000 iid draws</span></span>
-<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="co">#&gt;              Post.Mode  Post.Mean    Post.Sd   MC Error Pr(Null_tail) SE(tail)</span></span>
-<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="co">#&gt; (Intercept) -1.1747274 -1.1745012  0.0117885  0.0003728     0.2320000    0.004</span></span>
-<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a><span class="co">#&gt; Merit1      -0.0682525 -0.0687332  0.0205004  0.0006483     0.0010000    0.001</span></span>
-<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a><span class="co">#&gt; Merit2      -0.0698241 -0.0705441  0.0225350  0.0007126     0.0020000    0.001</span></span>
-<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a><span class="co">#&gt; Merit3      -0.0563841 -0.0565227  0.0125150  0.0003958     0.0000000    0.000</span></span>
-<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a><span class="co">#&gt; Class2       0.0822404  0.0812795  0.0211666  0.0006693     0.0000000    0.000</span></span>
-<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a><span class="co">#&gt; Class3       0.0157394  0.0150193  0.0142117  0.0004494     0.1420000    0.011</span></span>
-<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a><span class="co">#&gt; Class4       0.1588636  0.1590083  0.0146616  0.0004636     0.0000000    0.000</span></span>
-<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a><span class="co">#&gt; Class5      -0.0809389 -0.0812837  0.0295843  0.0009355     0.0000000    0.000</span></span>
-<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a><span class="co">#&gt;             Pr(Prior_tail)    </span></span>
-<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a><span class="co">#&gt; (Intercept)          0.013 *  </span></span>
-<span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a><span class="co">#&gt; Merit1               0.001 ** </span></span>
-<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a><span class="co">#&gt; Merit2               0.002 ** </span></span>
-<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a><span class="co">#&gt; Merit3              &lt;2e-16 ***</span></span>
-<span id="cb7-40"><a href="#cb7-40" tabindex="-1"></a><span class="co">#&gt; Class2              &lt;2e-16 ***</span></span>
-<span id="cb7-41"><a href="#cb7-41" tabindex="-1"></a><span class="co">#&gt; Class3               0.142    </span></span>
-<span id="cb7-42"><a href="#cb7-42" tabindex="-1"></a><span class="co">#&gt; Class4              &lt;2e-16 ***</span></span>
-<span id="cb7-43"><a href="#cb7-43" tabindex="-1"></a><span class="co">#&gt; Class5              &lt;2e-16 ***</span></span>
-<span id="cb7-44"><a href="#cb7-44" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb7-45"><a href="#cb7-45" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb7-46"><a href="#cb7-46" tabindex="-1"></a><span class="co">#&gt;   Directional Tail Summaries:</span></span>
-<span id="cb7-47"><a href="#cb7-47" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-48"><a href="#cb7-48" tabindex="-1"></a><span class="co">#&gt;                Metric vs Null vs Prior</span></span>
-<span id="cb7-49"><a href="#cb7-49" tabindex="-1"></a><span class="co">#&gt;  Mahalanobis Distance 16.7223  15.8967</span></span>
-<span id="cb7-50"><a href="#cb7-50" tabindex="-1"></a><span class="co">#&gt;      Tail Probability  0.0000   0.0000</span></span>
-<span id="cb7-51"><a href="#cb7-51" tabindex="-1"></a><span class="co">#&gt;   [Tail probabilities are P(delta^T * Z &lt;= 0) in whitened space]</span></span>
-<span id="cb7-52"><a href="#cb7-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-53"><a href="#cb7-53" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-54"><a href="#cb7-54" tabindex="-1"></a><span class="co">#&gt; Distribution Percentiles</span></span>
-<span id="cb7-55"><a href="#cb7-55" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-56"><a href="#cb7-56" tabindex="-1"></a><span class="co">#&gt;                 1.0%     2.5%     5.0%   Median    95.0%    97.5%  99.0%</span></span>
-<span id="cb7-57"><a href="#cb7-57" tabindex="-1"></a><span class="co">#&gt; (Intercept) -1.20345 -1.19844 -1.19475 -1.17463 -1.15611 -1.15268 -1.148</span></span>
-<span id="cb7-58"><a href="#cb7-58" tabindex="-1"></a><span class="co">#&gt; Merit1      -0.11169 -0.10670 -0.10128 -0.06896 -0.03415 -0.02860 -0.017</span></span>
-<span id="cb7-59"><a href="#cb7-59" tabindex="-1"></a><span class="co">#&gt; Merit2      -0.12257 -0.11556 -0.10870 -0.07066 -0.03450 -0.02772 -0.022</span></span>
-<span id="cb7-60"><a href="#cb7-60" tabindex="-1"></a><span class="co">#&gt; Merit3      -0.08475 -0.08089 -0.07754 -0.05686 -0.03611 -0.03224 -0.027</span></span>
-<span id="cb7-61"><a href="#cb7-61" tabindex="-1"></a><span class="co">#&gt; Class2       0.02761  0.04028  0.04683  0.08076  0.11721  0.12215  0.130</span></span>
-<span id="cb7-62"><a href="#cb7-62" tabindex="-1"></a><span class="co">#&gt; Class3      -0.01528 -0.01223 -0.00827  0.01468  0.03864  0.04273  0.050</span></span>
-<span id="cb7-63"><a href="#cb7-63" tabindex="-1"></a><span class="co">#&gt; Class4       0.12730  0.13100  0.13462  0.15925  0.18297  0.18786  0.193</span></span>
-<span id="cb7-64"><a href="#cb7-64" tabindex="-1"></a><span class="co">#&gt; Class5      -0.15486 -0.13939 -0.13154 -0.08089 -0.03393 -0.02780 -0.017</span></span>
-<span id="cb7-65"><a href="#cb7-65" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-66"><a href="#cb7-66" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 8.171947 </span></span>
-<span id="cb7-67"><a href="#cb7-67" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 221.0682 </span></span>
-<span id="cb7-68"><a href="#cb7-68" tabindex="-1"></a><span class="co">#&gt; DIC: -106.8826 </span></span>
-<span id="cb7-69"><a href="#cb7-69" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-70"><a href="#cb7-70" tabindex="-1"></a><span class="co">#&gt; Expected Mean dispersion: 7.840919 </span></span>
-<span id="cb7-71"><a href="#cb7-71" tabindex="-1"></a><span class="co">#&gt; Sq.root of Expected Mean dispersion: 2.800164 </span></span>
-<span id="cb7-72"><a href="#cb7-72" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-73"><a href="#cb7-73" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 2.655</span></span>
-<span id="cb7-74"><a href="#cb7-74" tabindex="-1"></a>    <span class="fu">options</span>(oldopt)</span></code></pre></div>
-<p>The Bayesian summary will report:</p>
+</div>
+<div id="complementary-log-log-cloglog-link-likelihood-prior-posterior" class="section level2">
+<h2>6. Complementary Log-Log (cloglog) Link: Likelihood, Prior,
+Posterior</h2>
+<p>The complementary log–log link is often used for asymmetric response
+curves and hazard‑type interpretations <span class="citation">(McCullagh
+and Nelder 1989; Agresti 2015)</span>.</p>
+<p>For the <strong>cloglog link</strong>: <span class="math display">\[
+\eta_i = \log\!\big[-\log(1-\mu_i)\big],
+\qquad
+\mu_i = 1 - \exp\!\big(-e^{\eta_i}\big).
+\]</span></p>
+<div id="weighted-log-likelihood-2" class="section level3">
+<h3>Weighted Log-Likelihood</h3>
+<p><span class="math display">\[
+\ell_{\text{cloglog}}(\beta)
+=
+\sum_{i=1}^n
+w_i\Big[
+y_i \log\!\big(1 - e^{-e^{\eta_i}}\big)
++
+(1-y_i)\big(-e^{\eta_i}\big)
+\Big].
+\]</span></p>
+</div>
+<div id="normal-prior-2" class="section level3">
+<h3>Normal Prior</h3>
+<p><span class="math display">\[
+\log p(\beta)
+=
+-\tfrac12(\beta-\mu_0)^\top \Sigma_0^{-1}(\beta-\mu_0)
++ \text{const}.
+\]</span></p>
+</div>
+<div id="log-posterior-2" class="section level3">
+<h3>Log-Posterior</h3>
+<p><span class="math display">\[
+\log p(\beta \mid y)
+=
+\sum_{i=1}^n
+w_i\Big[
+y_i \log\!\big(1 - e^{-e^{\eta_i}}\big)
++
+(1-y_i)\big(-e^{\eta_i}\big)
+\Big]
+-
+\tfrac12(\beta-\mu_0)^\top \Sigma_0^{-1}(\beta-\mu_0)
++ \text{const}.
+\]</span></p>
+<p>The <strong>cloglog</strong> link is asymmetric:</p>
+<p>It is useful when:</p>
 <ul>
-<li>posterior modes and posterior means for each coefficient<br />
+<li>the event probability increases rapidly near 0<br />
 </li>
-<li>posterior standard deviations and Monte Carlo errors<br />
+<li>the hazard interpretation is meaningful<br />
 </li>
-<li>tail probabilities relative to the prior mean<br />
-</li>
-<li>posterior percentiles (credible intervals)<br />
-</li>
-<li>effective number of parameters pD<br />
-</li>
-<li>expected residual deviance D<br />
-</li>
-<li>DIC</li>
+<li>the response curve is skewed</li>
 </ul>
-<p>Because dispersion is fixed at the same value in both models,
-differences between out and out_glmb reflect primarily the influence of
-the prior on <span class="math inline">\(\beta\)</span>, not differences
-in <span class="math inline">\(\phi\)</span>.</p>
 </div>
+<div id="prior-setup-2" class="section level3">
+<h3>6.1 Prior Setup</h3>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>ps3 <span class="ot">&lt;-</span> <span class="fu">Prior_Setup</span>(</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="fu">cbind</span>(Menarche, Total <span class="sc">-</span> Menarche) <span class="sc">~</span> Age2,</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;cloglog&quot;</span>),</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="at">data =</span> Menarche_Model_Data</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>)</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="co">#&gt; Using default pwt = 0.01 (low-d default).</span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="co">#&gt; Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</span></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>mu3 <span class="ot">&lt;-</span> ps3<span class="sc">$</span>mu</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>V3  <span class="ot">&lt;-</span> ps3<span class="sc">$</span>Sigma</span></code></pre></div>
 </div>
-<div id="interpretation-and-model-diagnostics" class="section level2">
-<h2>6. Interpretation and Model Diagnostics</h2>
-<div id="coefficients" class="section level3">
-<h3>6.1 Coefficients</h3>
-<p>Under the log link, coefficient interpretations are
-multiplicative:</p>
+<div id="fit-the-model-2" class="section level3">
+<h3>6.2 Fit the Model</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>glmb.cloglog <span class="ot">&lt;-</span> <span class="fu">glmb</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="fu">cbind</span>(Menarche, Total <span class="sc">-</span> Menarche) <span class="sc">~</span> Age2,</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="at">family  =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;cloglog&quot;</span>),</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  <span class="at">pfamily =</span> <span class="fu">dNormal</span>(<span class="at">mu =</span> mu3, <span class="at">Sigma =</span> V3),</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  <span class="at">data    =</span> Menarche_Model_Data,</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>  <span class="at">n       =</span> <span class="dv">1000</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>)</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#&gt; Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt; Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</span></span></code></pre></div>
+</div>
+<div id="summary-2" class="section level3">
+<h3>6.3 Summary</h3>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">summary</span>(glmb.cloglog)</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="co">#&gt; Call</span></span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="co">#&gt; glmb(formula = cbind(Menarche, Total - Menarche) ~ Age2, family = binomial(link = &quot;cloglog&quot;), pfamily = dNormal(mu = mu3, Sigma = V3), n = 1000, data = Menarche_Model_Data) </span></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="co">#&gt; Expected Residuals:</span></span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="co">#&gt;       Min        1Q    Median        3Q       Max </span></span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a><span class="co">#&gt; -3.975469 -2.540734 -1.127176  1.192112  3.397299 </span></span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="co">#&gt; Prior and Maximum Likelihood Estimates with Standard Deviations</span></span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a><span class="co">#&gt;             Null Mode Prior Mean Prior.sd Max Like. Like.sd</span></span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a><span class="co">#&gt; (Intercept)   -0.1173    -0.1173   0.4094   -0.5960   0.041</span></span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a><span class="co">#&gt; Age2           0.0000     0.0000   0.3117    0.9530   0.031</span></span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a><span class="co">#&gt; Bayesian Estimates Based on 1000 iid draws</span></span>
+<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a><span class="co">#&gt;              Post.Mode  Post.Mean    Post.Sd   MC Error Pr(Null_tail) SE(tail)</span></span>
+<span id="cb15-18"><a href="#cb15-18" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.5910908 -0.5929338  0.0424279  0.0013417     0.0000000        0</span></span>
+<span id="cb15-19"><a href="#cb15-19" tabindex="-1"></a><span class="co">#&gt; Age2         0.9451221  0.9466405  0.0286987  0.0009075     0.0000000        0</span></span>
+<span id="cb15-20"><a href="#cb15-20" tabindex="-1"></a><span class="co">#&gt;             Pr(Prior_tail)    </span></span>
+<span id="cb15-21"><a href="#cb15-21" tabindex="-1"></a><span class="co">#&gt; (Intercept)         &lt;2e-16 ***</span></span>
+<span id="cb15-22"><a href="#cb15-22" tabindex="-1"></a><span class="co">#&gt; Age2                &lt;2e-16 ***</span></span>
+<span id="cb15-23"><a href="#cb15-23" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb15-24"><a href="#cb15-24" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb15-25"><a href="#cb15-25" tabindex="-1"></a><span class="co">#&gt;   Directional Tail Summaries:</span></span>
+<span id="cb15-26"><a href="#cb15-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-27"><a href="#cb15-27" tabindex="-1"></a><span class="co">#&gt;                Metric vs Null vs Prior</span></span>
+<span id="cb15-28"><a href="#cb15-28" tabindex="-1"></a><span class="co">#&gt;  Mahalanobis Distance 33.1564  33.1564</span></span>
+<span id="cb15-29"><a href="#cb15-29" tabindex="-1"></a><span class="co">#&gt;      Tail Probability  0.0000   0.0000</span></span>
+<span id="cb15-30"><a href="#cb15-30" tabindex="-1"></a><span class="co">#&gt;   [Tail probabilities are P(delta^T * Z &lt;= 0) in whitened space]</span></span>
+<span id="cb15-31"><a href="#cb15-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-32"><a href="#cb15-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-33"><a href="#cb15-33" tabindex="-1"></a><span class="co">#&gt; Distribution Percentiles</span></span>
+<span id="cb15-34"><a href="#cb15-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-35"><a href="#cb15-35" tabindex="-1"></a><span class="co">#&gt;                1.0%    2.5%    5.0%  Median   95.0%   97.5%  99.0%</span></span>
+<span id="cb15-36"><a href="#cb15-36" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.6992 -0.6784 -0.6620 -0.5936 -0.5233 -0.5099 -0.498</span></span>
+<span id="cb15-37"><a href="#cb15-37" tabindex="-1"></a><span class="co">#&gt; Age2         0.8826  0.8897  0.8982  0.9470  0.9944  1.0029  1.011</span></span>
+<span id="cb15-38"><a href="#cb15-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-39"><a href="#cb15-39" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 2.02536 </span></span>
+<span id="cb15-40"><a href="#cb15-40" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 120.897 </span></span>
+<span id="cb15-41"><a href="#cb15-41" tabindex="-1"></a><span class="co">#&gt; DIC: 206.9741 </span></span>
+<span id="cb15-42"><a href="#cb15-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-43"><a href="#cb15-43" tabindex="-1"></a><span class="co">#&gt; Expected Mean dispersion: 1 </span></span>
+<span id="cb15-44"><a href="#cb15-44" tabindex="-1"></a><span class="co">#&gt; Sq.root of Expected Mean dispersion: 1 </span></span>
+<span id="cb15-45"><a href="#cb15-45" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-46"><a href="#cb15-46" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 1.291</span></span></code></pre></div>
+<p>The cloglog model often fits poorly for symmetric S‑shaped curves (as
+shown in Chapter 05), but it is valuable for:</p>
 <ul>
-<li>exp(<span class="math inline">\(\beta_{j}\)</span>) is the
-multiplicative change in expected cost for a one‑unit change in the
-covariate (or for a change from baseline to a given factor level).</li>
+<li>rare events<br />
+</li>
+<li>survival‑type interpretations<br />
+</li>
+<li>asymmetric growth curves</li>
 </ul>
-<p>With a weak prior, posterior means in out_glmb will be close to the
-MLEs in out, but with slightly more regularization and smaller posterior
-standard deviations.</p>
+<hr />
 </div>
-<div id="dispersion" class="section level3">
-<h3>6.2 Dispersion</h3>
-<p>By fixing dispersion at disp from the classical model, the Bayesian
-and classical fits share the same assumed level of variability.</p>
-<p>This allows:</p>
+</div>
+<div id="comparing-link-functions" class="section level2">
+<h2>7. Comparing Link Functions</h2>
+<p>The Deviance Information Criterion (DIC) provides a Bayesian analogue
+to AIC <span class="citation">(Spiegelhalter et al. 2002)</span>:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>DIC_comp<span class="ot">&lt;-</span><span class="fu">rbind</span>(</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>  <span class="fu">extractAIC</span>(glmb.logit),</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>  <span class="fu">extractAIC</span>(glmb.probit),</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  <span class="fu">extractAIC</span>(glmb.cloglog))</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a><span class="fu">rownames</span>(DIC_comp)<span class="ot">&lt;-</span><span class="fu">c</span>(<span class="st">&quot;logit&quot;</span>,<span class="st">&quot;probit&quot;</span>,<span class="st">&quot;cloglog&quot;</span>)</span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>DIC_comp</span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a><span class="co">#&gt;               pD      DIC</span></span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a><span class="co">#&gt; logit   1.882208 114.5504</span></span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a><span class="co">#&gt; probit  2.027226 111.0723</span></span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a><span class="co">#&gt; cloglog 2.025360 206.9741</span></span></code></pre></div>
+<p>Typical patterns:</p>
 <ul>
-<li>direct comparison of log‑likelihood based quantities,<br />
+<li><strong>logit</strong> and <strong>probit</strong> often perform
+similarly<br />
 </li>
-<li>a clean assessment of how the prior affects coefficient
-estimates.</li>
+<li><strong>probit</strong> may slightly outperform logit for smooth
+curves<br />
+</li>
+<li><strong>cloglog</strong> is best when the response is asymmetric or
+hazard‑like</li>
 </ul>
-<p>If desired, a more advanced model can estimate dispersion by
-switching to a pfamily such as dNormal_Gamma, but that is covered in
-more detail in the dispersion‑focused vignettes.</p>
-</div>
-<div id="dic-and-model-fit" class="section level3">
-<h3>6.3 DIC and Model Fit</h3>
-<p>The Bayesian summary of out_glmb reports:</p>
-<ul>
-<li>the effective number of parameters pD,<br />
-</li>
-<li>the expected residual deviance D,<br />
-</li>
-<li>the DIC value <span class="citation">(Spiegelhalter et al.
-2002)</span>.</li>
-</ul>
-<p>These can be compared to AIC and deviance from the classical model,
-especially when considering alternative specifications (for example,
-reduced models, different covariate sets, or alternative link
-functions).</p>
-</div>
+<p>The effective number of parameters (pD) is part of the same framework
+<span class="citation">(Spiegelhalter et al. 2002)</span> and helps
+diagnose model complexity.</p>
+<hr />
 </div>
 <div id="concluding-discussion" class="section level2">
-<h2>7. Concluding Discussion</h2>
-<p>Gamma regression provides a flexible framework for modeling positive,
-skewed response variables <span class="citation">(McCullagh and Nelder
-1989; Gelman et al. 2013)</span>.<br />
-In this chapter, we have:</p>
+<h2>8. Concluding Discussion</h2>
+<p>Binomial GLMs are a core component of the glmbayes package. Their
+log‑concave likelihoods make them ideal for the envelope‑based
+accept‑reject sampler, and the familiar link functions allow analysts to
+choose models that match the scientific context <span class="citation">(McCullagh and Nelder 1989; Gelman et al.
+2013)</span>.</p>
+<p>This chapter demonstrated:</p>
 <ul>
-<li>introduced the Gamma GLM and its link functions,<br />
+<li>how binomial GLMs are structured<br />
 </li>
-<li>shown how to fit a classical Gamma regression using glm(),<br />
+<li>how link functions differ<br />
 </li>
-<li>demonstrated how to estimate dispersion with
-gamma.dispersion(),<br />
+<li>how to specify priors using Prior_Setup<br />
 </li>
-<li>used Prior_Setup() to construct a default Zellner‑type prior,<br />
+<li>how to fit logit, probit, and cloglog models<br />
 </li>
-<li>fit a Bayesian Gamma regression with glmb() using a dNormal prior
-with fixed dispersion,<br />
-</li>
-<li>and compared classical and Bayesian summaries in a realistic
-insurance setting.</li>
+<li>how to compare models using DIC</li>
 </ul>
-<p>In later vignettes, we extend these ideas to:</p>
-<ul>
-<li>Gamma models with unknown dispersion and hierarchical priors,<br />
-</li>
-<li>Gamma regression combined with other components in larger GLM
-systems,<br />
-</li>
-<li>and specialized accept‑reject schemes for dispersion
-parameters.</li>
-</ul>
+<p>In the next chapter, we extend these ideas to <strong>Poisson
+models</strong>, which share many structural similarities but introduce
+new considerations for count data.</p>
+<hr />
+</div>
+<div id="appendix-a.-bayes-rules-companion-perth-rain-weather_perth" class="section level1">
+<h1>Appendix A. Bayes Rules! companion — Perth rain
+(<code>weather_perth</code>)</h1>
+<p><strong>Book:</strong> <span class="citation">(Johnson et al.
+2022)</span>, Chapter 13 — same model and <strong>informative</strong>
+priors as Chapter 08, Appendix A.<br />
+<strong>Model:</strong> <code>raintomorrow ~ humidity9am</code> (logit
+link)</p>
+<blockquote>
+<p>Requires <strong><code>bayesrules</code></strong>.</p>
+</blockquote>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">library</span>(bayesrules)</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>weather <span class="ot">&lt;-</span> bayesrules<span class="sc">::</span>weather_perth</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>weather<span class="sc">$</span>raintomorrow <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(weather<span class="sc">$</span>raintomorrow <span class="sc">==</span> <span class="st">&quot;Yes&quot;</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>mu_w <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="fl">1.4</span>, <span class="fl">0.07</span>), <span class="at">nrow =</span> <span class="dv">1</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a><span class="fu">colnames</span>(mu_w) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;(Intercept)&quot;</span>, <span class="st">&quot;humidity9am&quot;</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>Sigma_w <span class="ot">&lt;-</span> <span class="fu">diag</span>(<span class="fu">c</span>(<span class="fl">0.7</span><span class="sc">^</span><span class="dv">2</span>, <span class="fl">0.035</span><span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a><span class="fu">dimnames</span>(Sigma_w) <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="fu">colnames</span>(mu_w), <span class="fu">colnames</span>(mu_w))</span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a>book_br09 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a>  <span class="at">parameter =</span> <span class="fu">c</span>(<span class="st">&quot;(Intercept)&quot;</span>, <span class="st">&quot;humidity9am&quot;</span>),</span>
+<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a>  <span class="at">book_lo   =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">5.08785</span>, <span class="fl">0.04147</span>),</span>
+<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a>  <span class="at">book_hi   =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">4.13450</span>, <span class="fl">0.05487</span>),</span>
+<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a>  <span class="at">book_mid  =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">4.611175</span>, <span class="fl">0.04817</span>),</span>
+<span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2026</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>glmb_rain <span class="ot">&lt;-</span> <span class="fu">glmb</span>(</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>  raintomorrow <span class="sc">~</span> humidity9am,</span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>  <span class="at">family  =</span> <span class="fu">binomial</span>(),</span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a>  <span class="at">pfamily =</span> <span class="fu">dNormal</span>(<span class="at">mu =</span> mu_w, <span class="at">Sigma =</span> Sigma_w),</span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>  <span class="at">data    =</span> weather,</span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>  <span class="at">n       =</span> <span class="dv">2000</span></span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a>)</span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a><span class="co">#&gt; [glmb_Standardize_Model][</span><span class="al">NOTE</span><span class="co">] Posterior Hessian is moderately ill-conditioned.</span></span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a><span class="co">#&gt;   kappa(H) = 67316.9</span></span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a><span class="fu">print</span>(glmb_rain)</span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a><span class="co">#&gt; Call:  glmb(formula = raintomorrow ~ humidity9am, family = binomial(), </span></span>
+<span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a><span class="co">#&gt;     pfamily = dNormal(mu = mu_w, Sigma = Sigma_w), n = 2000, </span></span>
+<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a><span class="co">#&gt;     data = weather)</span></span>
+<span id="cb18-16"><a href="#cb18-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb18-17"><a href="#cb18-17" tabindex="-1"></a><span class="co">#&gt; Posterior Mean Coefficients:</span></span>
+<span id="cb18-18"><a href="#cb18-18" tabindex="-1"></a><span class="co">#&gt; (Intercept)  humidity9am  </span></span>
+<span id="cb18-19"><a href="#cb18-19" tabindex="-1"></a><span class="co">#&gt;    -3.94628      0.03891  </span></span>
+<span id="cb18-20"><a href="#cb18-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb18-21"><a href="#cb18-21" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 1.76987 </span></span>
+<span id="cb18-22"><a href="#cb18-22" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 874.5654 </span></span>
+<span id="cb18-23"><a href="#cb18-23" tabindex="-1"></a><span class="co">#&gt; DIC: 876.3353</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>br09_compare <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>  <span class="at">parameter =</span> book_br09<span class="sc">$</span>parameter,</span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>  <span class="st">`</span><span class="at">Book 80% lo</span><span class="st">`</span> <span class="ot">=</span> book_br09<span class="sc">$</span>book_lo,</span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a>  <span class="st">`</span><span class="at">Book 80% hi</span><span class="st">`</span> <span class="ot">=</span> book_br09<span class="sc">$</span>book_hi,</span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a>  <span class="st">`</span><span class="at">Book midpoint</span><span class="st">`</span> <span class="ot">=</span> book_br09<span class="sc">$</span>book_mid,</span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a>  <span class="st">`</span><span class="at">glmb Post.Mean</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">as.numeric</span>(glmb_rain<span class="sc">$</span>coef.means[book_br09<span class="sc">$</span>parameter]),</span>
+<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a>  <span class="st">`</span><span class="at">glmb Post.Sd</span><span class="st">`</span>   <span class="ot">=</span> <span class="fu">sapply</span>(book_br09<span class="sc">$</span>parameter, <span class="cf">function</span>(p)</span>
+<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a>    <span class="fu">sd</span>(glmb_rain<span class="sc">$</span>coefficients[, p, <span class="at">drop =</span> <span class="cn">TRUE</span>])),</span>
+<span id="cb19-9"><a href="#cb19-9" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb19-10"><a href="#cb19-10" tabindex="-1"></a>)</span>
+<span id="cb19-11"><a href="#cb19-11" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(br09_compare, <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb19-12"><a href="#cb19-12" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Bayes Rules! Ch. 13 vs. glmb() (informative priors)&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Bayes Rules! Ch. 13 vs. glmb() (informative priors)</caption>
+<colgroup>
+<col width="13%" />
+<col width="13%" />
+<col width="13%" />
+<col width="13%" />
+<col width="15%" />
+<col width="16%" />
+<col width="14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">parameter</th>
+<th align="right">Book 80% lo</th>
+<th align="right">Book 80% hi</th>
+<th align="right">Book midpoint</th>
+<th align="right">glmb Post.Mean</th>
+<th align="right">glmb Post.Sd</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="left">(Intercept)</td>
+<td align="right">-5.0879</td>
+<td align="right">-4.1345</td>
+<td align="right">-4.6112</td>
+<td align="right">-3.9463</td>
+<td align="right">0.3172</td>
+</tr>
+<tr class="even">
+<td align="left">humidity9am</td>
+<td align="left">humidity9am</td>
+<td align="right">0.0415</td>
+<td align="right">0.0549</td>
+<td align="right">0.0482</td>
+<td align="right">0.0389</td>
+<td align="right">0.0046</td>
+</tr>
+</tbody>
+</table>
+<p>Multivariable extensions (<code>humidity3pm</code>,
+<code>raintoday</code>) use <strong><code>Prior_Setup()</code></strong>
+defaults on extra coefficients unless you add further
+<strong>informative</strong> book priors (Chapter 14).</p>
 </div>
 <div id="bibliography" class="section level1 unnumbered">
 <h1 class="unnumbered">References</h1>
@@ -936,6 +1198,10 @@ Griffin, Jim E., and Philip J. Brown. 2010. <span>“Inference with
 Normal-Gamma Prior Distributions in Regression Problems.”</span>
 <em>Bayesian Analysis</em> 5 (1): 171–88. <a href="https://doi.org/10.1214/10-BA507">https://doi.org/10.1214/10-BA507</a>.
 </div>
+<div id="ref-JohnsonLauEtAl2022" class="csl-entry">
+Johnson, Alicia A., Miles Q. Ott, and Mine Dogucu. 2022. <em>Bayes
+Rules! An Introduction to Applied Bayesian Modeling</em>. CRC Press. <a href="https://www.bayesrulesbook.com">https://www.bayesrulesbook.com</a>.
+</div>
 <div id="ref-McCullagh1989" class="csl-entry">
 McCullagh, P., and J. A. Nelder. 1989. <em><span>Generalized Linear
 Models</span></em>. Chapman; Hall.
@@ -950,10 +1216,6 @@ Spiegelhalter, David J., Nicky G. Best, Bradley P. Carlin, and Angelika
 van der Linde. 2002. <span>“Bayesian Measures of Model Complexity and
 Fit.”</span> <em>Journal of the Royal Statistical Society: Series B
 (Statistical Methodology)</em> 64 (4): 583–639. <a href="https://doi.org/10.1111/1467-9868.00353">https://doi.org/10.1111/1467-9868.00353</a>.
-</div>
-<div id="ref-VenablesRipley2002" class="csl-entry">
-Venables, W. N., and B. D. Ripley. 2002. <em><span class="nocase">Modern
-Applied Statistics with S</span></em>. Springer.
 </div>
 </div>
 </div>

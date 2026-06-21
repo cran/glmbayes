@@ -3,10 +3,20 @@ AMI
 ASTIN
 Agresti
 Amitriptyline
+autoscale
+autoscaling
+BayesRules
+bayesrules
+bayesplot
+bayesplot's
+bayestestR
 Bigg
 Bigl
+binom
 Bigr
+Bechdel
 BikeSharing
+blockwise
 Boundedness
 Btilde
 CBB
@@ -22,6 +32,7 @@ Dataflow
 Dobson
 Dobson's
 Dobson’s
+easystats
 EnvelopeBuild
 EnvelopeDispersionBuild
 EnvelopeOpt
@@ -49,6 +60,7 @@ Ihaka
 InvGamma
 Jupyter
 Khronos
+LearnBayes
 LD
 LLconst
 LM
@@ -60,6 +72,7 @@ Longleftrightarrow
 Longrightarrow
 MGF
 MVN
+Multivariable
 Makevars
 Menarche
 NG
@@ -70,6 +83,7 @@ OPENCL
 OpenCL
 Orchestrator
 PLSD
+PPCs
 Pfamilies
 Pfamily
 PowerShell
@@ -80,6 +94,7 @@ Precomputation
 Precompute
 PriorSetup
 QRS
+RCT
 Quasibinomial
 Quasipoisson
 READM
@@ -229,6 +244,8 @@ frst
 gammafn
 ge
 geq
+ggplot
+ggplot2
 glm
 glmb
 glmbdic
@@ -241,6 +258,7 @@ groupinstall
 hatvalues
 helmert
 heteroskedasticity
+hotline
 homoscedasticity
 http
 hyperplanes
@@ -297,6 +315,7 @@ minimizer
 miscentering
 modelfuns
 modelling
+mrglmb
 monte
 msys
 mtcars
@@ -314,13 +333,16 @@ normall
 num
 nvar
 olddata
+overbrace
 opencl
 openclport
+opencltools
 operatorname
 orchestrator
 ouput
 pD
 pDirectional
+ppc
 pacman
 parallelization
 params
@@ -365,6 +387,7 @@ recv
 reindexing
 reparameterization
 reparameterize
+responders
 rfloor
 rgamma
 rglm
@@ -407,6 +430,7 @@ tangencies
 tangency
 testfunc
 testthat
+textstyle
 texttt
 tfrac
 thetabarconst
@@ -438,4 +462,5 @@ IID
 oneAPI
 doi
 resubmission
+roadmap
 

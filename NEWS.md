@@ -1,3 +1,77 @@
+# glmbayes 0.9.6
+
+## Highlights
+
+* **Multi-response `lmb()`:** **`lmb()`** now handles both univariate and
+  multivariate responses with a single unified interface, mirroring the behaviour
+  of R's **`lm()`**. When the response has a single column the result is an
+  **`lmb`** object (unchanged from prior releases). When the formula specifies
+  multiple response columns (e.g. `cbind(y1, y2) ~ x`), **`lmb()`** fits a
+  separate Bayesian linear model per response column and returns a named list
+  with class **`mlmb`**. For the multi-response case, **`pfamily`** must be a
+  list of **`pfamily`** objects with exactly one entry per response column;
+  passing a single **`pfamily`** object is an error. Summary, print, and
+  coefficient methods for **`mlmb`** objects are included.
+
+* **Conjugate GLM priors (Poisson, binomial, Gamma):** New closed-form IID
+  sampling paths for intercept-only models with identity links. **`dBeta()`**
+  with **`rBeta_reg()`** supports Beta–Binomial(identity) conjugate updates;
+  **`dGamma(Inv_Dispersion = FALSE)`** with **`rGamma_Conjugate_reg()`**
+  supports Gamma–Poisson(identity) and Gamma–Gamma(identity) rate priors.
+  **`Prior_Setup()`** can calibrate conjugate hyperparameters for these
+  families (weighted Poisson rate and binomial probability defaults). See
+  **`?dBeta`**, **`?dGamma`**, and the Chapter 02 / Chapter 07–11 vignettes.
+
+* **Vignette structure:** Reworked **Chapter 00** as a roadmap across five
+  main parts plus technical appendices. **Chapter 02** is now a conceptual
+  introduction to single-parameter conjugacy; worked examples move to
+  **Chapter 02-S01** through **Chapter 02-S05** (Beta–Binomial, Normal–Normal,
+  Gamma–Poisson, exposure-weighted Poisson, and related topics). A **Companion
+  textbooks** section in Chapter 00 indexes optional Bayes Rules! and `LearnBayes`
+  appendices tied to the main GLM chapters.
+
+* **`opencltools` import:** Core host/runtime OpenCL discovery and diagnostics
+  (`detect_*`, PATH helpers, environment checks) now live in the **`opencltools`**
+  package (`Imports`, >= 0.8.0). **glmbayes** keeps package-specific entry
+  points (`has_opencl()`, `diagnose_glmbayes()`) that report compile-time
+  OpenCL status for this build while delegating shared GPU/runtime checks—reducing
+  duplicated maintenance in **glmbayes**.
+
+* **Bayes Rules! companion examples:** Optional vignette appendices reproduce
+  book datasets and published posterior summaries using **`lmb()`**, **`glmb()`**,
+  **`Prior_Setup()`**, and **`dNormal()`** (suggested package **`bayesrules`** for
+  data only). Coverage includes **`bikes`** (Ch. 03), **`weather_perth`** (Ch. 08–09),
+  **`equality_index`** (Ch. 10), Gamma–Poisson conjugacy (Ch. 02-S04), and a
+  scope note for Gamma regression (Ch. 11). Comparison tables use **printed book
+  values**, not live **`rstanarm`** fits. See **Chapter 00** § Companion textbooks.
+
+* **`LearnBayes` examples:** **Chapter 02-S04**, Appendix A, maps the
+  **`hearttransplants`** example from Albert (2009) / `LearnBayes` (exposure-weighted
+  Gamma–Poisson conjugacy) to **`glmb()`** with analytic Albert posteriors for
+  verification (suggested package **`LearnBayes`**).
+
+## Other changes
+
+* **Prior-vs-data guard for `dIndependent_Normal_Gamma` sampling:**
+  **`rindepNormalGamma_reg()`** now rejects calls where the Gamma (precision)
+  part of the prior carries more effective prior observations than the data
+  supply: inverting the `Prior_Setup()` calibration
+  `shape = (n_prior + 1 + p)/2`, sampling requires
+  `n_prior <= n_w = sum(weights)` (equivalently a prior weight
+  `pwt <= 0.5`). Rationale: the dispersion envelope caps its log-tilt at
+  `n_w/2` - the *data* contribution to the posterior Gamma shape (Remark
+  4.1.3 of the ING vignette) - a strengthening of the validity condition
+  `lm_log2 < shape2` that presumes a likelihood-dominated regime.
+  Prior-dominated calls could previously bind that cap on every envelope
+  build (console `UB3A mean slope` warnings) and silently degrade the
+  envelope. Note that `n_prior` here is the effective sample size of the
+  Gamma component specifically; under the `Prior_Setup()` calibration the
+  Gamma and coefficient parts share a common `n_prior`, so the two are not
+  fully independent.
+
+* Expanded **testthat** coverage for **`dBeta()`** / binomial(identity) conjugate
+  paths and related **`glmb()`** integration.
+
 # glmbayes 0.9.5
 
 * **Tests / CRAN:** All **OpenCL**-specific **testthat** blocks now call

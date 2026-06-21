@@ -29,7 +29,23 @@
 #' @param beta the regression coefficients to be assumed when it is not given a prior. 
 #' Needs to be provided when the Gamma prior is used for the dispersion. This
 #' specification is typically only used as part of Gibbs sampling where the beta and 
-#' dispersion parameters are updated separately. 
+#' dispersion parameters are updated separately.
+#' @param Inv_Dispersion Logical (default \code{TRUE}).  Controls which of the two Gamma prior
+#'   roles \code{dGamma()} plays:
+#'   \itemize{
+#'     \item \code{TRUE} (default) — prior on the \emph{inverse dispersion} (precision / shape
+#'       parameter \eqn{k = 1/\phi}).  This is the classical path used for dispersion estimation
+#'       in Gaussian and \code{Gamma(log)} regression (\code{simfun = rGamma_reg}).
+#'     \item \code{FALSE} — conjugate prior on the Gamma or Poisson \emph{rate} \eqn{\beta}
+#'       directly (intercept-only, identity link).  The posterior is a closed-form Gamma draw
+#'       (\code{simfun = rGamma_Conjugate_reg}).
+#'   }
+#' @param lik_shape Known shape parameter \eqn{k > 0} of the Gamma likelihood.  Only used when
+#'   \code{Inv_Dispersion = FALSE} and \code{family = Gamma(link = "identity")}.  The intercept
+#'   coefficient is then the Gamma \emph{rate} \eqn{\beta}, and the conjugate posterior is
+#'   \eqn{\beta \mid y \sim \mathrm{Gamma}(\alpha_0 + n k,\; \beta_0 + \sum y_i)}.
+#'   Defaults to \code{1} (exponential distribution). Ignored for Poisson families and whenever
+#'   \code{Inv_Dispersion = TRUE}.
 #' @param max_disp_perc Specifies the percentile used to truncate the posterior dispersion 
 #' distribution when constructing the envelope for accept-reject sampling. This determines 
 #' the lower and upper bounds for the dispersion (\eqn{\sigma^2}) used in the simulation. A value of 0.99
@@ -42,14 +58,18 @@
 #' @param \ldots additional argument(s) for methods.
 #' @details
 #' \code{pfamily} is a generic with methods for fitted objects such as \code{\link{glmb}} and
-#' \code{\link{lmb}}. Many \code{glmb} models currently only implement the \code{dNormal()}
-#' prior family. The \code{Gamma()} response family works with \code{dGamma()}; the
-#' \code{gaussian()} family works with \code{dGamma()} and \code{dNormal_Gamma()}.
+#' \code{\link{lmb}}. The \code{dNormal()} prior is supported for all response families.
+#' The \code{gaussian()} family additionally supports \code{dNormal_Gamma()},
+#' \code{dIndependent_Normal_Gamma()}, and \code{dGamma()} (precision prior).
+#' Intercept-only models with an identity link support two closed-form conjugate priors:
+#' \code{dBeta()} for \code{binomial(link = "identity")} and
+#' \code{dGamma(Inv_Dispersion = FALSE)} for \code{poisson(link = "identity")} and
+#' \code{Gamma(link = "identity")}.
 #'
-#' A `pfamily` object represents a structured prior specification for use in Bayesian generalized linear modeling. 
-#' Each constructor function (e.g., `dNormal()`, `dGamma()`, `dNormal_Gamma()`) returns an object of class `"pfamily"` 
-#' containing the prior parameters, supported likelihood families, compatible link functions, and a simulation function 
-#' for posterior sampling.
+#' A `pfamily` object represents a structured prior specification for use in Bayesian generalized linear modeling.
+#' Each constructor function (e.g., `dNormal()`, `dGamma()`, `dNormal_Gamma()`, `dBeta()`) returns an object of
+#' class `"pfamily"` containing the prior parameters, supported likelihood families, compatible link functions,
+#' and a simulation function for posterior sampling.
 #'
 #' These priors are designed to integrate seamlessly with modeling functions such as `glmb()` and `rlmb()` in the 
 #' \pkg{glmbayes} package, which consume the `pfamily` object to define the prior distribution over model parameters. 
@@ -92,48 +112,71 @@
 #'   The concept of conjugate priors was first formalized by \insertCite{Raiffa1961}{glmbayes}, and further 
 #'   developed for regression models using g-prior structures by \insertCite{zellner1986gprior}{glmbayes}.
 #'
-#' - **`dGamma()`**: Defines a gamma prior over a scalar precision parameter, often used in hierarchical models 
-#'   or variance components. This prior is particularly relevant for Gamma likelihoods and dispersion modeling 
-#'   in exponential families \insertCite{Gelman2013,Dobson1990,McCullagh1989}{glmbayes}.
-#'   With Gaussian \code{\link{Prior_Setup}} output, prefer \code{rate_gamma} for \code{rate} when updating
-#'   dispersion with fixed \code{beta} (see Details above).
+#' - **`dGamma()`**: A Gamma prior with two distinct roles controlled by \code{Inv_Dispersion}:
+#'   \itemize{
+#'     \item \code{Inv_Dispersion = TRUE} (default): prior on the inverse dispersion (precision
+#'       \eqn{1/\phi} or shape \eqn{k}). Used for dispersion estimation in Gaussian and
+#'       Gamma(log) models, typically in a Gibbs step with \code{beta} held fixed
+#'       \insertCite{Gelman2013,Dobson1990,McCullagh1989}{glmbayes}.
+#'       With Gaussian \code{\link{Prior_Setup}} output, prefer \code{rate_gamma} for \code{rate}
+#'       (see Details above).
+#'     \item \code{Inv_Dispersion = FALSE}: conjugate Gamma prior on the rate parameter
+#'       \eqn{\beta} directly. Supports intercept-only models with an identity link:
+#'       Poisson (Gamma–Poisson conjugacy) and Gamma (Gamma–Gamma conjugacy).
+#'       Posterior draws are closed-form IID samples via \code{\link{rGamma_Conjugate_reg}}.
+#'       The \code{lik_shape} argument specifies the known Gamma likelihood shape (default 1,
+#'       i.e.\ exponential). \code{\link{Prior_Setup}} returns calibrated \code{conj_poisson}
+#'       hyperparameters for this path.
+#'   }
 #'
-#' - **`dNormal_Gamma()`**: Combines a multivariate normal prior on coefficients with a gamma prior on precision, 
+#' - **`dBeta()`**: A Beta prior on the binomial probability \eqn{\theta} for intercept-only
+#'   \code{binomial(link = "identity")} models. The posterior is a closed-form Beta draw
+#'   (Beta–Binomial conjugacy) produced by \code{\link{rBeta_reg}}. Arguments \code{shape1}
+#'   and \code{shape2} are the prior pseudo-success and pseudo-failure counts.
+#'   \code{\link{Prior_Setup}} returns calibrated \code{conj_beta} hyperparameters for this path.
+#'
+#' - **`dNormal_Gamma()`**: Combines a multivariate normal prior on coefficients with a gamma prior on precision,
 #'   forming a conjugate structure for Gaussian models with unknown variance. The second argument is \code{Sigma_0}
 #'   (precision-weighted scale); it is aliased internally to \code{Sigma} in \code{prior_list}.
-#'   This formulation parallels classical Normal-Gamma models and is compatible with hierarchical extensions \insertCite{Gelman2013,Raiffa1961}{glmbayes}.
-#'   
+#'   This formulation parallels classical Normal-Gamma models and is compatible with hierarchical extensions
+#'   \insertCite{Gelman2013,Raiffa1961}{glmbayes}.
 #'
-#' - **`dIndependent_Normal_Gamma()`**: Similar to `dNormal_Gamma()`, but assumes independence between the 
-#'   coefficient and precision priors. This structure is useful for models where prior independence is desired 
-#'   or analytically convenient. With \code{\link{Prior_Setup}} on a Gaussian model, pass \code{shape_ING} as the
-#'   \code{shape} argument (see Details above).
+#' - **`dIndependent_Normal_Gamma()`**: Similar to `dNormal_Gamma()`, but assumes independence between the
+#'   coefficient and precision priors. This structure is useful for models where prior independence is desired
+#'   or analytically convenient. With \code{\link{Prior_Setup}} on a Gaussian model, pass \code{shape_ING} as
+#'   the \code{shape} argument (see Details above).
 #'
 #' Each `pfamily` object includes:
 #' - `pfamily`, `prior_list`, `okfamilies`, `plinks`, and `simfun` (see Value).
 #'
 #' @return An object of class \code{"pfamily"} (with a concise \code{print} method). A list with elements:
 #' \item{pfamily}{Character string: the constructor name (\code{"dNormal"}, \code{"dGamma"},
-#'   \code{"dNormal_Gamma"}, or \code{"dIndependent_Normal_Gamma"}).}
+#'   \code{"dNormal_Gamma"}, \code{"dIndependent_Normal_Gamma"}, or \code{"dBeta"}).}
 #' \item{prior_list}{Named list of prior hyperparameters. It is passed into \code{simfun} when sampling so the
 #'   relevant low-level routine receives the prior in a fixed list form. Contents depend on the constructor:
 #'   \describe{
 #'     \item{\code{dNormal}:}{\code{mu}, \code{Sigma}, \code{dispersion}, and logical \code{ddef}
 #'       (\code{TRUE} if \code{dispersion} was omitted or \code{NULL}, so the default \code{1} was used;
 #'       \code{FALSE} if set explicitly).}
-#'     \item{\code{dGamma}:}{\code{shape}, \code{rate}, \code{beta}, \code{max_disp_perc},
-#'       \code{disp_lower}, \code{disp_upper}.}
+#'     \item{\code{dGamma}:}{\code{shape}, \code{rate}, \code{beta}, \code{Inv_Dispersion},
+#'       \code{max_disp_perc}, \code{disp_lower}, \code{disp_upper}. When \code{Inv_Dispersion = FALSE},
+#'       also includes surrogate \code{mu} and \code{Sigma} (computed from the Gamma prior moments)
+#'       and \code{lik_shape}.}
 #'     \item{\code{dNormal_Gamma}:}{\code{mu}, \code{Sigma} (the \code{Sigma_0} precision-weighted input),
 #'       \code{shape}, \code{rate}.}
 #'     \item{\code{dIndependent_Normal_Gamma}:}{\code{mu}, \code{Sigma} (coefficient-scale covariance),
 #'       \code{shape}, \code{rate}, \code{max_disp_perc}, \code{disp_lower}, \code{disp_upper}.}
+#'     \item{\code{dBeta}:}{\code{shape1}, \code{shape2}, \code{beta}, and surrogate \code{mu} and
+#'       \code{Sigma} computed from the Beta prior moments
+#'       (\code{mu = shape1/(shape1+shape2)},
+#'        \code{Sigma = shape1*shape2/((shape1+shape2)^2*(shape1+shape2+1))}).}
 #'   }
 #' }
 #' \item{okfamilies}{Character vector of implemented \code{\link[stats]{family}} names for which this
 #'   \code{pfamily} may be used.}
 #' \item{plinks}{Function of one \code{family} argument returning allowed link names for that family.}
 #' \item{simfun}{Function used to generate posterior draws (e.g., \code{\link{rNormal_reg}},
-#'   \code{\link{rGamma_reg}}, \code{\link{rNormalGamma_reg}}, \code{\link{rindepNormalGamma_reg}});
+#'   \code{\link{rGamma_reg}}, \code{\link{rGamma_Conjugate_reg}}, \code{\link{rNormalGamma_reg}}, \code{\link{rindepNormalGamma_reg}});
 #'   for standard use these produce i.i.d.\ posterior samples for the implemented settings.}
 #' 
 #' @author The design of the \code{pfamily} set of functions was developed by Kjell Nygren and was 
@@ -144,7 +187,7 @@
 #' @seealso
 #' \code{\link{glmb}}, \code{\link{rlmb}}, \code{\link{lmb}}, \code{\link{rglmb}} for modeling functions that consume \code{pfamily} objects.
 #'
-#' \code{\link{rNormal_reg}}, \code{\link{rNormalGamma_reg}}, \code{\link{rGamma_reg}} for lower-level sampling functions used by \code{pfamily} constructors.
+#' \code{\link{rNormal_reg}}, \code{\link{rNormalGamma_reg}}, \code{\link{rGamma_reg}}, \code{\link{rGamma_Conjugate_reg}}, \code{\link{rindepNormalGamma_reg}} for lower-level sampling functions used by \code{pfamily} constructors.
 #'
 #' \code{\link{Prior_Setup}}, \code{\link{Prior_Check}} for initializing and validating prior specifications.
 #'
@@ -178,7 +221,7 @@ pfamily.default <- function(object, ...){
 #' @export
 #' @method print pfamily
 #' @rdname pfamily
-#' @order 6
+#' @order 7
 
 print.pfamily <- function(x, ...)
 {
@@ -257,46 +300,235 @@ dNormal<-function(mu,Sigma,dispersion=NULL){
 #' @rdname pfamily
 #' @order 3
 
-dGamma<-function(shape,rate,beta,max_disp_perc = 0.99,disp_lower=NULL,disp_upper=NULL){
+dGamma <- function(shape, rate, beta,
+                   Inv_Dispersion = TRUE,
+                   lik_shape      = 1,
+                   max_disp_perc  = 0.99,
+                   disp_lower     = NULL,
+                   disp_upper     = NULL) {
 
-  if(is.numeric(shape)==FALSE||is.numeric(rate)==FALSE||is.numeric(beta)==FALSE) stop("non-numeric argument to numeric function")
-  
-  if(length(shape)>1) stop("shape is not of length 1")
-  if(length(shape)>1) stop("rate is not of length 1")
-  if(shape<=0) stop("shape must be>0")
-  if(rate<=0) stop("rate must be>0")
-  
-  beta=as.matrix(beta,ncol=1)
-  
-  okfamilies <- c("gaussian","Gamma")
-  
-  plinks<-function(family){
-    if(family$family=="gaussian") oklinks<-c("identity")
-    if(family$family=="poisson"||family$family=="quasipoisson") oklinks<-NULL		
-    if(family$family=="binomial"||family$family=="quasibinomial") oklinks<-NULL		
-    if(family$family=="Gamma") oklinks<-c("log")	
-    return(oklinks)
+  if (!is.numeric(shape) || !is.numeric(rate) || !is.numeric(beta))
+    stop("non-numeric argument to numeric function")
+  if (length(shape) > 1) stop("shape is not of length 1")
+  if (length(rate)  > 1) stop("rate is not of length 1")
+  if (shape <= 0) stop("shape must be > 0")
+  if (rate  <= 0) stop("rate must be > 0")
+
+  beta <- as.matrix(beta, ncol = 1L)
+
+  ## -------------------------------------------------------------------------
+  ## Inv_Dispersion = TRUE  →  prior on precision/shape (inverse dispersion).
+  ## Supports Gaussian(identity) and Gamma(log); uses rGamma_reg sampler.
+  ## -------------------------------------------------------------------------
+  if (Inv_Dispersion) {
+
+    okfamilies <- c("gaussian", "Gamma")
+
+    plinks <- function(family) {
+      if (family$family == "gaussian")                          oklinks <- c("identity")
+      if (family$family %in% c("poisson", "quasipoisson"))     oklinks <- NULL
+      if (family$family %in% c("binomial", "quasibinomial"))   oklinks <- NULL
+      if (family$family == "Gamma")                            oklinks <- c("log")
+      return(oklinks)
+    }
+
+    prior_list <- list(
+      shape          = shape,
+      rate           = rate,
+      beta           = beta,
+      Inv_Dispersion = TRUE,
+      max_disp_perc  = max_disp_perc,
+      disp_lower     = disp_lower,
+      disp_upper     = disp_upper
+    )
+    attr(prior_list, "Prior Type") <- "dGamma"
+    outlist <- list(pfamily    = "dGamma",
+                    prior_list = prior_list,
+                    okfamilies = okfamilies,
+                    plinks     = plinks,
+                    simfun     = rGamma_reg)
+    attr(outlist, "Prior Type") <- "dGamma"
+
+  ## -------------------------------------------------------------------------
+  ## Inv_Dispersion = FALSE  →  conjugate prior on the rate β directly.
+  ## Supports Poisson(identity) and Gamma(identity); uses rGamma_Conjugate_reg.
+  ## mu / Sigma: Gamma(shape, rate) moments; mean = shape/rate, var = shape/rate^2.
+  ## -------------------------------------------------------------------------
+  } else {
+
+    if (!is.numeric(lik_shape) || length(lik_shape) != 1L ||
+        !is.finite(lik_shape) || lik_shape <= 0)
+      stop("lik_shape must be a single positive finite number (the known Gamma likelihood shape parameter; default 1 for exponential)")
+
+    sh <- as.numeric(shape)[[1L]]
+    rt <- as.numeric(rate)[[1L]]
+    mu <- beta * 0 + sh / rt
+    p  <- nrow(mu)
+    sigma_sq <- sh / (rt * rt)
+    Sigma <- diag(rep.int(sigma_sq, times = p), nrow = p, ncol = p)
+    coef_nm <- rownames(beta)
+    if (is.null(coef_nm)) coef_nm <- colnames(beta)
+    if (!is.null(coef_nm) && length(coef_nm) == p) {
+      rownames(mu) <- coef_nm
+      if (!is.null(colnames(beta))) colnames(mu) <- colnames(beta)
+      dimnames(Sigma) <- list(coef_nm, coef_nm)
+    }
+
+    okfamilies <- c("poisson", "Gamma")
+
+    plinks <- function(family) {
+      oklinks <- NULL
+      if (family$family %in% c("poisson", "quasipoisson")) oklinks <- c("identity")
+      if (family$family == "Gamma")                        oklinks <- c("identity")
+      oklinks
+    }
+
+    prior_list <- list(
+      shape          = shape,
+      rate           = rate,
+      beta           = beta,
+      lik_shape      = lik_shape,
+      Inv_Dispersion = FALSE,
+      mu             = mu,
+      Sigma          = Sigma,
+      max_disp_perc  = max_disp_perc,
+      disp_lower     = disp_lower,
+      disp_upper     = disp_upper
+    )
+    attr(prior_list, "Prior Type") <- "dGamma"
+    outlist <- list(pfamily    = "dGamma",
+                    prior_list = prior_list,
+                    okfamilies = okfamilies,
+                    plinks     = plinks,
+                    simfun     = rGamma_Conjugate_reg)
+    attr(outlist, "Prior Type") <- "dGamma"
   }
-  
-  prior_list=list(shape=shape,rate=rate,beta=beta,max_disp_perc = max_disp_perc,disp_lower=disp_lower,disp_upper=disp_upper)
-  attr(prior_list,"Prior Type")="dGamma"  
-  outlist=list(pfamily="dGamma",prior_list=prior_list,okfamilies=okfamilies,
-               plinks=plinks,             
-               simfun=rGamma_reg)
-               
-  attr(outlist,"Prior Type")="dGamma"
-  class(outlist)="pfamily"
-  outlist$call<-match.call()
-  
-  return(outlist)
 
+  class(outlist) <- "pfamily"
+  outlist$call   <- match.call()
+  return(outlist)
 }
 
 
+## dGamma_Conjugate() removed 2026-05-27 — functionality merged into dGamma(Inv_Dispersion = FALSE).
+## Commented out rather than deleted to preserve the implementation history.
+#
+# #' @description
+# #' \code{dGamma_Conjugate()} was a deprecated alias for \code{dGamma(..., Inv_Dispersion = FALSE)}.
+# #' Use \code{dGamma(Inv_Dispersion = FALSE)} directly.
+# #'
+# #' @export
+# #' @rdname pfamily
+# #' @order 4
+#
+# dGamma_Conjugate <- function(shape, rate, beta, lik_shape = 1,
+#                               max_disp_perc = 0.99,
+#                               disp_lower    = NULL,
+#                               disp_upper    = NULL) {
+#   .Deprecated(
+#     new = "dGamma",
+#     msg = paste0(
+#       "dGamma_Conjugate() is deprecated.\n",
+#       "Use dGamma(..., Inv_Dispersion = FALSE) instead."
+#     )
+#   )
+#   dGamma(shape = shape, rate = rate, beta = beta,
+#          Inv_Dispersion = FALSE, lik_shape = lik_shape,
+#          max_disp_perc  = max_disp_perc,
+#          disp_lower     = disp_lower,
+#          disp_upper     = disp_upper)
+# }
 
-#' @export 
+
+
+#' Conjugate Beta prior family (\code{dBeta}: closed-form IID updates for intercept-only
+#' Binomial models with an identity link).
+#'
+#' Under a Beta(\code{shape1}, \code{shape2}) prior on the binomial probability \eqn{\theta}
+#' and a Binomial(\eqn{n_i}, \eqn{\theta}) likelihood with identity link (\eqn{\theta = \beta}
+#' directly), the posterior is:
+#' \deqn{\theta \mid y \sim \mathrm{Beta}(\texttt{shape1} + \sum n_i y_i,\;
+#'   \texttt{shape2} + \sum n_i (1 - y_i)).}
+#'
+#' \code{mu} / \code{Sigma}: the surrogate Normal mean is \code{shape1/(shape1+shape2)} and
+#' the surrogate variance is the Beta variance
+#' \code{shape1*shape2/((shape1+shape2)^2*(shape1+shape2+1))}.
+#'
+#' @param shape1 First shape parameter \eqn{\alpha > 0} of the Beta prior (prior successes + 1).
+#' @param shape2 Second shape parameter \eqn{\beta > 0} of the Beta prior (prior failures + 1).
+#' @param beta Initial coefficient matrix (1 \eqn{\times} 1); typically set to the prior mean
+#'   \code{shape1/(shape1+shape2)}.
+#' @export
 #' @rdname pfamily
-#' @order 4
+#' @order 5
+
+dBeta <- function(shape1, shape2, beta) {
+
+  if (!is.numeric(shape1) || !is.numeric(shape2) || !is.numeric(beta))
+    stop("non-numeric argument to numeric function")
+  if (length(shape1) != 1L) stop("shape1 must be a single positive number")
+  if (length(shape2) != 1L) stop("shape2 must be a single positive number")
+  if (!is.finite(shape1) || shape1 <= 0) stop("shape1 must be a finite positive number")
+  if (!is.finite(shape2) || shape2 <= 0) stop("shape2 must be a finite positive number")
+
+  beta <- as.matrix(beta, ncol = 1L)
+
+  ## Normal-style surrogate for glmb() pre-simulation and downstream Prior$mean/Variance.
+  ## Beta(shape1, shape2): mean = shape1/(shape1+shape2),
+  ##   variance = shape1*shape2 / ((shape1+shape2)^2 * (shape1+shape2+1)).
+  s1  <- as.numeric(shape1)[[1L]]
+  s2  <- as.numeric(shape2)[[1L]]
+  s12 <- s1 + s2
+  prior_mean_val <- s1 / s12
+  prior_var_val  <- s1 * s2 / (s12^2 * (s12 + 1))
+
+  p      <- nrow(as.matrix(beta, ncol = 1L))
+  mu     <- beta * 0 + prior_mean_val
+  Sigma  <- diag(rep.int(prior_var_val, times = p), nrow = p, ncol = p)
+
+  coef_nm <- rownames(beta)
+  if (is.null(coef_nm)) coef_nm <- colnames(beta)
+  if (!is.null(coef_nm) && length(coef_nm) == p) {
+    rownames(mu) <- coef_nm
+    if (!is.null(colnames(beta))) colnames(mu) <- colnames(beta)
+    dimnames(Sigma) <- list(coef_nm, coef_nm)
+  }
+
+  okfamilies <- c("binomial", "quasibinomial")
+
+  plinks <- function(family) {
+    oklinks <- NULL
+    if (family$family %in% c("binomial", "quasibinomial")) oklinks <- c("identity")
+    oklinks
+  }
+
+  prior_list <- list(
+    shape1 = shape1,
+    shape2 = shape2,
+    beta   = beta,
+    mu     = mu,
+    Sigma  = Sigma
+  )
+  attr(prior_list, "Prior Type") <- "dBeta"
+
+  outlist <- list(
+    pfamily    = "dBeta",
+    prior_list = prior_list,
+    okfamilies = okfamilies,
+    plinks     = plinks,
+    simfun     = rBeta_reg
+  )
+  attr(outlist, "Prior Type") <- "dBeta"
+  class(outlist) <- "pfamily"
+  outlist$call   <- match.call()
+
+  return(outlist)
+}
+
+
+#' @export
+#' @rdname pfamily
+#' @order 7
 
 dNormal_Gamma <- function(mu, Sigma_0, shape, rate) {
   Sigma <- Sigma_0
@@ -358,7 +590,7 @@ dNormal_Gamma <- function(mu, Sigma_0, shape, rate) {
 
 #' @export 
 #' @rdname pfamily
-#' @order 5
+#' @order 8
 
 dIndependent_Normal_Gamma <- function(mu, Sigma, shape, rate, max_disp_perc = 0.99,disp_lower=NULL,disp_upper=NULL) {
 

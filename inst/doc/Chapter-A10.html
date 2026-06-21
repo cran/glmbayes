@@ -12,7 +12,7 @@
 
 <meta name="author" content="Kjell Nygren" />
 
-<meta name="date" content="2026-05-18" />
+<meta name="date" content="2026-06-21" />
 
 <title>Chapter A10: Accelerated EnvelopeBuild Implementation using OpenCL</title>
 
@@ -342,7 +342,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Chapter A10: Accelerated EnvelopeBuild
 Implementation using OpenCL</h1>
 <h4 class="author">Kjell Nygren</h4>
-<h4 class="date">2026-05-18</h4>
+<h4 class="date">2026-06-21</h4>
 
 
 
@@ -373,7 +373,7 @@ correctly in either case.</p>
 design (kernel wrapper and kernel runner), how the OpenCL program is
 assembled from ported nmath/rmath functions, and how the pilot and
 safeguards integrate with the envelope build. For installation and
-availability checks, see Chapter 12.</p>
+availability checks, see Chapter 16.</p>
 </div>
 <div id="architecture-overview" class="section level2">
 <h2>2. Architecture Overview</h2>
@@ -760,7 +760,7 @@ the CPU path is always used.</p>
 <p>To enable OpenCL:</p>
 <ul>
 <li>Install OpenCL headers and development libraries (see Chapter
-12).</li>
+16).</li>
 <li>Build the package from source with OpenCL enabled (configure script
 detects OpenCL).</li>
 <li>Ensure an OpenCL runtime (ICD loader, vendor driver) is available at
@@ -768,7 +768,7 @@ runtime.</li>
 </ul>
 <p>Use <code>has_opencl()</code> to check availability and
 <code>diagnose_glmbayes()</code> for a full diagnostic report. See
-Chapter 12 for platform-specific installation instructions (Windows,
+Chapter 16 for platform-specific installation instructions (Windows,
 Linux, macOS) and AMD ROCm notes.</p>
 </div>
 <div id="cross-references" class="section level2">
@@ -779,7 +779,7 @@ standardization, envelope build, sampling)</li>
 <li><strong>Chapter A08</strong> – Envelope-related functions</li>
 <li><strong>Chapter A09</strong> – Parallel sampling (pilot pattern,
 5-minute safeguard)</li>
-<li><strong>Chapter 12</strong> – GPU acceleration: installation,
+<li><strong>Chapter 16</strong> – GPU acceleration: installation,
 <code>has_opencl</code>, <code>diagnose_glmbayes</code></li>
 <li><strong><code>?EnvelopeBuild</code></strong>,
 <strong><code>?EnvelopeEval</code></strong> – use_opencl argument</li>

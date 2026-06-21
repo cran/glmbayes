@@ -6,156 +6,116 @@ knitr::opts_chunk$set(
 
 ## ----setup--------------------------------------------------------------------
 library(glmbayes)
-library(coda)
 
-## ----bikesharing-setup--------------------------------------------------------
-data("BikeSharing")
-
-# Center continuous predictors
-cont_vars <- c("temp", "atemp", "hum", "windspeed", "hr_sin", "hr_cos", "mon_sin", "mon_cos")
-BikeSharing_c <- BikeSharing
-BikeSharing_c[cont_vars] <- scale(BikeSharing[cont_vars], center = TRUE, scale = FALSE)
+## ----menarche data------------------------------------------------------------
+## Load menarche data
+data(menarche,package="MASS")
+head(menarche, 5)
 
 
-# Formula (all variable model)
-form <- cnt ~ part_of_day + quarter + holiday + workingday + weathersit +
-  hr_sin + hr_cos + mon_sin + mon_cos + temp + atemp + hum + windspeed
+## ----Analysis Setup-----------------------------------------------------------
+## Number of variables in model
+Age=menarche$Age
+nvars=2
+set.seed(333)
 
-# Formula (Limited variable model)
-form2 <- cnt ~ part_of_day + quarter + holiday + workingday + weathersit +
-  hr_sin + hr_cos + mon_sin + mon_cos
+## Reference Ages for setting of priors and Age_Difference
+ref_age1=13  # user can modify this
+ref_age2=15  ## user can modify this
 
-# Train/test split: indices bundled with precomputed Gibbs output (matches demo, set.seed(42))
-pct_train <- 0.01
-n <- nrow(BikeSharing_c)
-ch14_path <- system.file("extdata", "BikeSharing_ch14_gibbs.rds", package = "glmbayes")
-stopifnot(nzchar(ch14_path), file.exists(ch14_path))
-ch14_saved <- readRDS(ch14_path)
-stopifnot(length(ch14_saved$idx_train) == round(pct_train * n))
-idx_train <- ch14_saved$idx_train
-idx_test  <- setdiff(seq_len(n), idx_train)
+## Define variables used later in analysis
+Age2=Age-ref_age1
+Age_Diff=ref_age2-ref_age1
 
-Bike_train <- BikeSharing_c[idx_train, ]
-Bike_test  <- BikeSharing_c[idx_test, ]
 
-X_train <- model.matrix(form2, data = Bike_train)
-X_test  <- model.matrix(form2, data = Bike_test)
-y_train <- Bike_train$cnt
-y_test  <- Bike_test$cnt
-n_train <- length(y_train)
-n_test  <- length(y_test)
-p       <- ncol(X_train)
+## ----Prior Info---------------------------------------------------------------
 
-# Initial theta and prior for population block
-theta <- log(y_train + 0.5)
-data_pop <- data.frame(theta = theta, Bike_train)
-form_pop <- theta ~ part_of_day + quarter + holiday + workingday + weathersit +
-  hr_sin + hr_cos + mon_sin + mon_cos
-ps_pop <- Prior_Setup(form_pop, family = gaussian(), data = data_pop)
+## Point estimates at reference ages
+m1=0.5  
+m2=0.9
 
-## ----bikesharing-gibbs, eval = FALSE------------------------------------------
-# n_burn <- 200
-# n_sim  <- 1000
-# 
-# beta_out   <- matrix(0, nrow = n_sim, ncol = p)
-# sigma_out  <- numeric(n_sim)
-# theta_out  <- matrix(0, nrow = n_sim, ncol = n_train)
-# 
-# set.seed(123)
-# 
-# # Burn-in
-# burn_time <- system.time({
-#   for (k in seq_len(n_burn)) {
-#     out_pop <- rglmb(1, theta, X_train, family = gaussian(),
-#       pfamily = dNormal_Gamma(ps_pop$mu, Sigma_0 = ps_pop$Sigma_0,
-#         ps_pop$shape, ps_pop$rate))
-#     beta   <- as.vector(out_pop$coefficients[1, ])
-#     sigma_theta_sq <- out_pop$dispersion[1]
-#     mu_all <- as.vector(X_train %*% beta)
-#     for (i in seq_len(n_train)) {
-#       theta[i] <- rglmb(1, y_train[i], matrix(1, 1, 1), family = poisson(),
-#         pfamily = dNormal(mu = mu_all[i], Sigma = sigma_theta_sq))$coefficients[1, 1]
-#     }
-#   }
-# })
-# 
-# burn_time
-# 
-# # Main simulation
-# sim_time <- system.time({
-#   for (k in seq_len(n_sim)) {
-#     out_pop <- rglmb(1, theta, X_train, family = gaussian(),
-#       pfamily = dNormal_Gamma(ps_pop$mu, Sigma_0 = ps_pop$Sigma_0,
-#         ps_pop$shape, ps_pop$rate))
-#     beta   <- as.vector(out_pop$coefficients[1, ])
-#     sigma_theta_sq <- out_pop$dispersion[1]
-#     mu_all <- as.vector(X_train %*% beta)
-#     for (i in seq_len(n_train)) {
-#       theta[i] <- rglmb(1, y_train[i], matrix(1, 1, 1), family = poisson(),
-#         pfamily = dNormal(mu = mu_all[i], Sigma = sigma_theta_sq))$coefficients[1, 1]
-#     }
-#     beta_out[k, ]  <- beta
-#     sigma_out[k]   <- sqrt(sigma_theta_sq)
-#     theta_out[k, ] <- theta
-#   }
-# })
-# 
-# 
-# sim_time
+## Lower bound of prior credible intervals for point estimates
+m1_lower=0.3
+m2_lower=0.7
 
-## ----bikesharing-gibbs-loaded-------------------------------------------------
-beta_out  <- ch14_saved$beta_out
-sigma_out <- ch14_saved$sigma_out
-n_burn    <- ch14_saved$n_burn
-n_sim     <- ch14_saved$n_sim
-mcmc_main <- ch14_saved$mcmc_main
-stopifnot(nrow(beta_out) == n_sim, length(sigma_out) == n_sim, ncol(beta_out) == p)
+## Assumed correlation between the two (on link scale)
+m_corr=0.4
 
-## ----bikesharing-coda---------------------------------------------------------
-summary(mcmc_main)
+## ----Logit: set up link function info and initialize prior matrices-----------
 
-es <- coda::effectiveSize(mcmc_main)
-knitr::kable(
-  data.frame(parameter = names(es), effective_size = as.numeric(es)),
-  row.names = FALSE,
-  digits = 4,
-  caption = "Effective sample size (coda::effectiveSize)"
-)
+## Set up link function and initialize prior mean and Variance-Covariance matrices
+bi_logit <- binomial(link="logit")
+mu1<-matrix(0,nrow=nvars,ncol=1)
+rownames(mu1)=c("Intercept","Age2")
+colnames(mu1)=c("Prior Mean")
+V1<-1*diag(nvars)
+rownames(V1)=c("Intercept","Age2")
+colnames(V1)=c("Intercept","Age2")
 
-ac1 <- coda::autocorr(mcmc_main, lag = 1)
-ac1_mat <- drop(ac1)
-own_ac1 <- diag(ac1_mat)
-names(own_ac1) <- colnames(mcmc_main)
-knitr::kable(
-  data.frame(parameter = names(own_ac1), lag_1_autocorr = as.numeric(own_ac1)),
-  row.names = FALSE,
-  digits = 4,
-  caption = "Lag-1 autocorrelation (diagonal of coda::autocorr, lag = 1)"
-)
+## ----Logit:set prior means----------------------------------------------------
+## Prior mean for intercept is set to point estimate 
+## at reference age1 (on logit scale)
+mu1[1,1]=bi_logit$linkfun(m1)
 
-## ----bikesharing-pred---------------------------------------------------------
-beta_mean <- colMeans(beta_out)
-sigma_mean <- mean(sigma_out)
+## Prior mean for slope is set to difference in point estimates
+## on logit scale divided by Age_Diff
 
-# Option A: conditional mean
-y_pred_cond <- exp(X_test %*% beta_mean)
-mae_cond  <- mean(abs(y_test - y_pred_cond))
-rmse_cond <- sqrt(mean((y_test - y_pred_cond)^2))
+mu1[2,1]=(bi_logit$linkfun(m2) -bi_logit$linkfun(m1))/Age_Diff 
+print(mu1)
 
-# Option B: posterior predictive mean
-n_pred <- 500
-y_pred_samples <- matrix(0, nrow = n_pred, ncol = n_test)
-for (s in seq_len(n_pred)) {
-  idx_s <- sample(n_sim, 1)
-  beta_s  <- beta_out[idx_s, ]
-  sigma_s <- sigma_out[idx_s]
-  theta_test <- rnorm(n_test, mean = X_test %*% beta_s, sd = sigma_s)
-  y_pred_samples[s, ] <- rpois(n_test, lambda = exp(theta_test))
-}
-y_pred_mean <- colMeans(y_pred_samples)
-mae_pp  <- mean(abs(y_test - y_pred_mean))
-rmse_pp <- sqrt(mean((y_test - y_pred_mean)^2))
 
-cat("Option A (conditional): MAE =", round(mae_cond, 2), " RMSE =", round(rmse_cond, 2), "\n")
-cat("Option B (post. pred.): MAE =", round(mae_pp, 2), " RMSE =", round(rmse_pp, 2), "\n")
+
+## ----Logit:set prior Variance Covariance matrix-------------------------------
+## Implied standard deviations for point estimates on logit scale
+
+sd_m1= (bi_logit$linkfun(m1) -bi_logit$linkfun(m1_lower))/1.96
+sd_m2= (bi_logit$linkfun(m2) -bi_logit$linkfun(m2_lower))/1.96
+
+## Also compute implied estimate for upper bound of confidence intervals
+
+m1_upper=bi_logit$linkinv(bi_logit$linkfun(m1)+sd_m1*1.96)
+m2_upper=bi_logit$linkinv(bi_logit$linkfun(m2)+sd_m2*1.96)
+print("m1_upper is:")
+m1_upper
+print("m2_upper is:")
+m2_upper
+
+
+## Implied Standard deviation for slope (using variance formula for difference between two variables)
+a=(1/Age_Diff)
+sd_slope=sqrt((a*sd_m1)^2+(a*sd_m2)^2-2*a*a*(sd_m1*sd_m2*m_corr))
+
+#Cov(m1,slope)=cov(m1, a*(m2-m1)) =a*E[(m1-E[m1])((m2-m1)-E[m2-m1])]
+#   =a*E[(m1-E[m1])(m2-E[m2])]- a* E[(m1-E[m1])(m1-E[m1])]
+##   =a*Cov[m1,m2] - a*Var[m1]
+##  =a*sd_m1*sd_m2*m_corr-a* sd_m1*sd_m1
+cov_V1=a*sd_m1*sd_m2*m_corr-a* sd_m1*sd_m1
+
+# Set covariance matrix
+V1[1,1]=sd_m1^2
+V1[2,2]=sd_slope^2
+V1[1,2]=cov_V1
+V1[2,1]=V1[1,2]
+print("V1 is:")
+print(V1)
+
+## ----Run Logit,results = "hide"-----------------------------------------------
+Menarche_Model_Data=data.frame(Age=menarche$Age,Total=as.integer(menarche$Total),
+Menarche=as.integer(menarche$Menarche),Age2)
+
+glmb.out1<-glmb(n=1000,cbind(Menarche, as.integer(Total-Menarche)) ~Age2,family=binomial(logit),
+pfamily=dNormal(mu=mu1,Sigma=V1),data=Menarche_Model_Data)
+
+
+## ----Print Logit--------------------------------------------------------------
+
+# Print model output
+print(glmb.out1)
+
+# Print prior mean as comparison
+print(t(mu1))
+
+
+## ----Summary Logit------------------------------------------------------------
+summary(glmb.out1)
 

@@ -225,7 +225,8 @@ summary(out_rlmb_dGamma)
 \seealso{
 The classical modeling functions \code{\link[stats]{lm}} and \code{\link[stats]{glm}}.
 
-\code{\link{lmb}}, \code{\link{glmb}}, \code{\link{rglmb}} for related interfaces;
+\code{\link{lmb}}, \code{\link{glmb}}, \code{\link{rglmb}}
+for related interfaces;
 \code{\link{EnvelopeBuild}}, \code{\link{EnvelopeOrchestrator}} for envelope stages
 used in non-conjugate Gaussian sampling.
 

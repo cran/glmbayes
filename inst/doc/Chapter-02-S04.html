@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Kjell Nygren" />
+
+<meta name="date" content="2026-06-21" />
+
+<title>Chapter 02-S04: Gamma–Poisson Conjugacy for One Count Rate</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+}
+.hanging div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Chapter 02-S04: Gamma–Poisson Conjugacy for
+One Count Rate</h1>
+<h4 class="author">Kjell Nygren</h4>
+<h4 class="date">2026-06-21</h4>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(glmbayes)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">requireNamespace</span>(<span class="st">&quot;bayesrules&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) <span class="fu">library</span>(bayesrules)</span></code></pre></div>
+<hr />
+<div id="the-model" class="section level2">
+<h2>1. The model</h2>
+<div id="likelihood" class="section level3">
+<h3>1.1 Likelihood</h3>
+<p>Suppose we observe <span class="math inline">\(n\)</span> independent
+counts <span class="math inline">\(y_1, \dots, y_n\)</span> drawn from a
+Poisson distribution with unknown rate <span class="math inline">\(\lambda &gt; 0\)</span>:</p>
+<p><span class="math display">\[
+  Y_i \mid \lambda \;\sim\; \mathrm{Poisson}(\lambda), \qquad i =
+1,\dots,n.
+\]</span></p>
+<p>The joint likelihood is</p>
+<p><span class="math display">\[
+  p(y_1,\dots,y_n \mid \lambda)
+  \;\propto\; e^{-n\lambda}\,\lambda^{\sum_i y_i}.
+\]</span></p>
+<p>Everything relevant for updating beliefs about <span class="math inline">\(\lambda\)</span> is captured by two sufficient
+statistics: <span class="math inline">\(n\)</span> (number of
+observations) and <span class="math inline">\(\sum_i y_i\)</span> (total
+observed count).</p>
+<p><strong>With exposure.</strong> In many applications the counts are
+observed over different exposure periods <span class="math inline">\(e_i\)</span> (time, area, number of
+opportunities). The model becomes <span class="math inline">\(Y_i \mid
+\lambda \sim \mathrm{Poisson}(e_i \lambda)\)</span>, and the sufficient
+statistics become <span class="math inline">\(\sum_i e_i\)</span> and
+<span class="math inline">\(\sum_i y_i\)</span>. An exposure-weighted
+example appears in <strong>Appendix A</strong> (<span class="citation">(Albert 2009)</span>).</p>
+</div>
+<div id="prior" class="section level3">
+<h3>1.2 Prior</h3>
+<p>The rate <span class="math inline">\(\lambda &gt; 0\)</span> calls
+for a positive prior. The <strong>Gamma distribution</strong> in
+shape–rate form is the natural conjugate choice:</p>
+<p><span class="math display">\[
+  p(\lambda) \;=\;
+\frac{\beta^\alpha}{\Gamma(\alpha)}\,\lambda^{\alpha-1}\,e^{-\beta\lambda},
+  \qquad \lambda &gt; 0,
+\]</span></p>
+<p>with shape <span class="math inline">\(\alpha &gt; 0\)</span> and
+rate <span class="math inline">\(\beta &gt; 0\)</span>. Its mean is
+<span class="math inline">\(\alpha/\beta\)</span> and its variance is
+<span class="math inline">\(\alpha/\beta^2\)</span>.</p>
+<p><strong>Interpreting the parameters.</strong> Think of <span class="math inline">\(\alpha - 1\)</span> as a “prior total count” and
+<span class="math inline">\(\beta\)</span> as a “prior number of
+observations”. The prior mean <span class="math inline">\(\alpha/\beta\)</span> is your pre-data estimate of
+the rate, and larger <span class="math inline">\(\beta\)</span> encodes
+a stronger commitment to that estimate.</p>
+<p>Note: many textbooks use <strong>shape–scale</strong> form (<span class="math inline">\(\theta = 1/\beta\)</span>);
+<strong>glmbayes</strong> uses the <strong>shape–rate</strong>
+convention throughout.</p>
+</div>
+<div id="posterior-derivation" class="section level3">
+<h3>1.3 Posterior derivation</h3>
+<p>Multiply the likelihood kernel <span class="math inline">\(e^{-n\lambda}\lambda^{\sum y_i}\)</span> by the
+prior kernel <span class="math inline">\(\lambda^{\alpha-1}e^{-\beta\lambda}\)</span>:</p>
+<p><span class="math display">\[
+  p(\lambda \mid y)
+  \;\propto\;
+  \lambda^{(\alpha + \sum y_i) - 1}\,e^{-(\beta + n)\lambda}.
+\]</span></p>
+<p>This is a Gamma kernel, so the conjugate posterior is:</p>
+<p><span class="math display">\[
+  \boxed{\lambda \mid y \;\sim\; \mathrm{Gamma}\!\left(\alpha +
+\textstyle\sum_i y_i,\;\; \beta + n\right).}
+\]</span></p>
+<p><strong>Update rule:</strong> add the total count to the shape, add
+the sample size (or total exposure) to the rate.</p>
+<p>The posterior mean is</p>
+<p><span class="math display">\[
+  \mathbb{E}[\lambda \mid y]
+  \;=\; \frac{\alpha + \sum y_i}{\beta + n}
+  \;=\;
+  \frac{\beta}{\beta + n}\cdot\frac{\alpha}{\beta}
+  \;+\;
+  \frac{n}{\beta + n}\cdot\bar{y},
+\]</span></p>
+<p>again a weighted average of the prior mean and the data mean.</p>
+<hr />
+</div>
+</div>
+<div id="bayesrules-illustration" class="section level2">
+<h2>2. <code>bayesrules</code> illustration</h2>
+<p>The <strong><code>bayesrules</code></strong> package <span class="citation">(Johnson et al. 2022)</span> provides
+<code>plot_gamma_poisson()</code> and
+<code>summarize_gamma_poisson()</code> for visualizing the Gamma–Poisson
+update. The same scenario appears in the Bayes Rules! conjugate vignette
+and in Chapter 12 of the book.</p>
+<p><strong>Scenario.</strong> You observe daily bicycle rental counts
+<span class="math inline">\(y_1, \dots, y_9\)</span> from the first nine
+days of a year. The data are <span class="math inline">\(y = (1, 1, 1,
+0, 0, 0, 0, 0, 0)\)</span>, giving <span class="math inline">\(\sum y =
+3\)</span> across <span class="math inline">\(n = 9\)</span> days. Your
+prior belief is a <strong><span class="math inline">\(\Gamma(3,
+4)\)</span></strong> distribution on the daily rate <span class="math inline">\(\lambda\)</span> (prior mean = 0.75
+rentals/day).</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>br_y_df  <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">6</span>)))  <span class="do">## n = 9, sum(y) = 3</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>br_n     <span class="ot">&lt;-</span> <span class="fu">nrow</span>(br_y_df)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>br_shape <span class="ot">&lt;-</span> <span class="dv">3</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>br_rate  <span class="ot">&lt;-</span> <span class="dv">4</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="do">## Analytic posterior</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>post_shape_br <span class="ot">&lt;-</span> br_shape <span class="sc">+</span> <span class="fu">sum</span>(br_y_df<span class="sc">$</span>y)   <span class="do">## 3 + 3 = 6</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>post_rate_br  <span class="ot">&lt;-</span> br_rate  <span class="sc">+</span> br_n              <span class="do">## 4 + 9 = 13</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(bayesrules)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">plot_gamma_poisson</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">shape      =</span> br_shape,</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">rate       =</span> br_rate,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">sum_y      =</span> <span class="fu">sum</span>(br_y_df<span class="sc">$</span>y),</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">n          =</span> br_n,</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">prior      =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="at">likelihood =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>  <span class="at">posterior  =</span> <span class="cn">TRUE</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>)</span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">summarize_gamma_poisson</span>(<span class="at">shape =</span> br_shape, <span class="at">rate =</span> br_rate,</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>                        <span class="at">sum_y =</span> <span class="fu">sum</span>(br_y_df<span class="sc">$</span>y), <span class="at">n =</span> br_n)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt;       model shape rate      mean      mode        var        sd</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; 1     prior     3    4 0.7500000 0.5000000 0.18750000 0.4330127</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; 2 posterior     6   13 0.4615385 0.3846154 0.03550296 0.1884223</span></span></code></pre></div>
+<p><strong>Reading the output.</strong> The posterior is <span class="math inline">\(\Gamma(6, 13)\)</span> with mean <span class="math inline">\(6/13 \approx 0.46\)</span>. The data (mean <span class="math inline">\(\bar y = 0.33\)</span>) have pulled the posterior
+mean down from the prior mean (0.75), and the posterior is noticeably
+tighter.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>gp_analytic <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="at">Example =</span> <span class="st">&quot;Bayes Rules! daily counts&quot;</span>,</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">n =</span> br_n,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="st">`</span><span class="at">sum(y)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sum</span>(br_y_df<span class="sc">$</span>y),</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="at">Posterior =</span> <span class="fu">sprintf</span>(<span class="st">&quot;Gamma(%d, %d)&quot;</span>, post_shape_br, post_rate_br),</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="at">Mean =</span> post_shape_br <span class="sc">/</span> post_rate_br,</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="at">SD =</span> <span class="fu">sqrt</span>(post_shape_br) <span class="sc">/</span> post_rate_br,</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>)</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(gp_analytic, <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Conjugate Gamma--Poisson posterior (Bayes Rules! scenario)&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Conjugate Gamma–Poisson posterior (Bayes Rules!
+scenario)</caption>
+<thead>
+<tr class="header">
+<th align="left">Example</th>
+<th align="right">n</th>
+<th align="right">sum(y)</th>
+<th align="left">Posterior</th>
+<th align="right">Mean</th>
+<th align="right">SD</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Bayes Rules! daily counts</td>
+<td align="right">9</td>
+<td align="right">3</td>
+<td align="left">Gamma(6, 13)</td>
+<td align="right">0.4615</td>
+<td align="right">0.1884</td>
+</tr>
+</tbody>
+</table>
+<hr />
+</div>
+<div id="fitting-with-glmb" class="section level2">
+<h2>3. Fitting with <strong><code>glmb()</code></strong></h2>
+<p>The scalar Gamma–Poisson model maps to
+<strong><code>glmb()</code></strong> with
+<code>family = poisson(link = &quot;identity&quot;)</code> and
+<code>dGamma(shape, rate, beta, Inv_Dispersion = FALSE)</code>. The
+single coefficient is the rate <span class="math inline">\(\lambda\)</span>.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>gp_beta <span class="ot">&lt;-</span> <span class="fu">matrix</span>(br_shape <span class="sc">/</span> br_rate, <span class="dv">1</span><span class="dt">L</span>, <span class="dv">1</span><span class="dt">L</span>, <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="cn">NULL</span>, <span class="st">&quot;(Intercept)&quot;</span>))</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>gp_pf   <span class="ot">&lt;-</span> <span class="fu">dGamma</span>(<span class="at">shape =</span> br_shape, <span class="at">rate =</span> br_rate,</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>                  <span class="at">beta =</span> gp_beta, <span class="at">Inv_Dispersion =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2026</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>fit_gp <span class="ot">&lt;-</span> <span class="fu">glmb</span>(</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  <span class="at">n       =</span> <span class="dv">20000</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  y <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  <span class="at">data    =</span> br_y_df,</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  <span class="at">weights =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="dt">L</span>, br_n),</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>  <span class="at">family  =</span> <span class="fu">poisson</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>),</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>  <span class="at">pfamily =</span> gp_pf</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>)</span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="fu">print</span>(fit_gp)</span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt; Call:  glmb(formula = y ~ 1, family = poisson(link = &quot;identity&quot;), pfamily = gp_pf, </span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt;     n = 20000, data = br_y_df, weights = rep(1L, br_n))</span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; Posterior Mean Coefficients:</span></span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; (Intercept)  </span></span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co">#&gt;      0.4641  </span></span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 0.5025621 </span></span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 7.462233 </span></span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="co">#&gt; DIC: 13.96479</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>gp_compare <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="at">Example =</span> <span class="st">&quot;Bayes Rules! daily counts&quot;</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">Posterior =</span> gp_analytic<span class="sc">$</span>Posterior,</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="st">`</span><span class="at">Analytic Mean</span><span class="st">`</span> <span class="ot">=</span> gp_analytic<span class="sc">$</span>Mean,</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="st">`</span><span class="at">Analytic SD</span><span class="st">`</span>   <span class="ot">=</span> gp_analytic<span class="sc">$</span>SD,</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="st">`</span><span class="at">glmb Post.Mean</span><span class="st">`</span> <span class="ot">=</span> fit_gp<span class="sc">$</span>coef.means[<span class="st">&quot;(Intercept)&quot;</span>],</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="st">`</span><span class="at">glmb Post.Sd</span><span class="st">`</span>   <span class="ot">=</span> <span class="fu">sd</span>(fit_gp<span class="sc">$</span>coefficients[, <span class="st">&quot;(Intercept)&quot;</span>, <span class="at">drop =</span> <span class="cn">TRUE</span>]),</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>)</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(gp_compare, <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Analytic vs. glmb() posterior mean and SD&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Analytic vs. glmb() posterior mean and SD</caption>
+<colgroup>
+<col width="11%" />
+<col width="24%" />
+<col width="12%" />
+<col width="13%" />
+<col width="11%" />
+<col width="14%" />
+<col width="12%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">Example</th>
+<th align="left">Posterior</th>
+<th align="right">Analytic Mean</th>
+<th align="right">Analytic SD</th>
+<th align="right">glmb Post.Mean</th>
+<th align="right">glmb Post.Sd</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="left">Bayes Rules! daily counts</td>
+<td align="left">Gamma(6, 13)</td>
+<td align="right">0.4615</td>
+<td align="right">0.1884</td>
+<td align="right">0.4641</td>
+<td align="right">0.1875</td>
+</tr>
+</tbody>
+</table>
+<p>The <strong><code>glmb Post.Mean</code></strong> and
+<strong><code>glmb Post.Sd</code></strong> columns should match the
+analytic <strong>Mean</strong> and <strong>SD</strong> to Monte Carlo
+error because <code>dGamma(Inv_Dispersion = FALSE)</code> implements the
+exact conjugate update.</p>
+<hr />
+</div>
+<div id="connection-to-glmbayes" class="section level2">
+<h2>4. Connection to glmbayes</h2>
+<p>The scalar Gamma–Poisson model is the conjugate prototype for
+<strong>Poisson <code>glmb()</code> with
+<code>family = poisson(link = &quot;identity&quot;)</code></strong>. In that
+setting the single coefficient is the rate <span class="math inline">\(\lambda\)</span>, the prior is
+<code>dGamma(shape, rate, beta, Inv_Dispersion = FALSE)</code>, and the
+posterior update is the closed form above.</p>
+<p>For general Poisson <strong>regression</strong> with covariates (log
+link), conjugacy is lost and <code>glmb()</code> uses envelope-based
+accept–reject sampling with a <code>dNormal()</code> prior on the
+regression coefficients (Chapter 10). The Bayes Rules!
+<strong>equality_index</strong> Poisson regression example is worked in
+<strong>Chapter 10, Appendix A</strong>.</p>
+<hr />
+</div>
+<div id="appendix-a.-heart-transplant-mortality-albert2009" class="section level1">
+<h1>Appendix A. Heart transplant mortality (<span class="citation">Albert (2009)</span>)</h1>
+<p>The <strong><code>hearttransplants</code></strong> dataset <span class="citation">(Albert 2020; Christiansen and Morris 1995)</span>
+records, for each of 94 U.S. hospitals, the <strong>exposure</strong>
+<code>e</code> (expected deaths under the national baseline rate) and
+<strong>observed deaths</strong> <code>y</code> within 30 days of
+surgery. The model is <span class="math inline">\(y_i \mid \lambda_i
+\sim \mathrm{Poisson}(e_i \lambda_i)\)</span> where <span class="math inline">\(\lambda_i\)</span> is the hospital’s standardized
+mortality ratio.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">library</span>(LearnBayes)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;hearttransplants&quot;</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;%d hospitals  |  sum(y) = %d  |  sum(e) = %.0f</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>            <span class="fu">nrow</span>(hearttransplants), <span class="fu">sum</span>(hearttransplants<span class="sc">$</span>y), <span class="fu">sum</span>(hearttransplants<span class="sc">$</span>e)))</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; 94 hospitals  |  sum(y) = 277  |  sum(e) = 294681</span></span></code></pre></div>
+<p><strong>Albert’s prior.</strong> Albert (Ch. 3.2) uses a <span class="math inline">\(\Gamma(16, 15174)\)</span> prior on <span class="math inline">\(\lambda\)</span>, derived from historical national
+data (prior mean <span class="math inline">\(\approx 0.00105\)</span>).
+He focuses on two specific hospitals:</p>
+<table>
+<colgroup>
+<col width="11%" />
+<col width="19%" />
+<col width="14%" />
+<col width="21%" />
+<col width="17%" />
+<col width="15%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Hospital</th>
+<th>Exposure <span class="math inline">\(e\)</span></th>
+<th>Deaths <span class="math inline">\(y\)</span></th>
+<th>Analytic posterior</th>
+<th>Posterior mean</th>
+<th>Posterior SD</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A</td>
+<td>66</td>
+<td>1</td>
+<td><span class="math inline">\(\Gamma(17,\; 15240)\)</span></td>
+<td><span class="math inline">\(17/15240 \approx 0.001115\)</span></td>
+<td><span class="math inline">\(\sqrt{17}/15240 \approx
+0.000271\)</span></td>
+</tr>
+<tr class="even">
+<td>B</td>
+<td>1767</td>
+<td>4</td>
+<td><span class="math inline">\(\Gamma(20,\; 16941)\)</span></td>
+<td><span class="math inline">\(20/16941 \approx 0.001181\)</span></td>
+<td><span class="math inline">\(\sqrt{20}/16941 \approx
+0.000264\)</span></td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>alpha0_ht <span class="ot">&lt;-</span> <span class="dv">16</span><span class="dt">L</span>;  beta0_ht <span class="ot">&lt;-</span> <span class="dv">15174</span><span class="dt">L</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>ex_A <span class="ot">&lt;-</span> <span class="dv">66</span><span class="dt">L</span>;   yobs_A <span class="ot">&lt;-</span> <span class="dv">1</span><span class="dt">L</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>ex_B <span class="ot">&lt;-</span> <span class="dv">1767</span><span class="dt">L</span>; yobs_B <span class="ot">&lt;-</span> <span class="dv">4</span><span class="dt">L</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>ht_albert <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="at">Hospital =</span> <span class="fu">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>),</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="at">e =</span> <span class="fu">c</span>(ex_A, ex_B),</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(yobs_A, yobs_B),</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  <span class="at">Posterior =</span> <span class="fu">c</span>(<span class="st">&quot;Gamma(17, 15240)&quot;</span>, <span class="st">&quot;Gamma(20, 16941)&quot;</span>),</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  <span class="at">Mean =</span> <span class="fu">c</span>(</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>    (alpha0_ht <span class="sc">+</span> yobs_A) <span class="sc">/</span> (beta0_ht <span class="sc">+</span> ex_A),</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>    (alpha0_ht <span class="sc">+</span> yobs_B) <span class="sc">/</span> (beta0_ht <span class="sc">+</span> ex_B)</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>  ),</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>  <span class="at">SD =</span> <span class="fu">c</span>(</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>    <span class="fu">sqrt</span>(alpha0_ht <span class="sc">+</span> yobs_A) <span class="sc">/</span> (beta0_ht <span class="sc">+</span> ex_A),</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>    <span class="fu">sqrt</span>(alpha0_ht <span class="sc">+</span> yobs_B) <span class="sc">/</span> (beta0_ht <span class="sc">+</span> ex_B)</span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>  ),</span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a>)</span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(ht_albert, <span class="at">digits =</span> <span class="dv">6</span>,</span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Albert Ch. 3.2: analytic posterior mean and SD (shape--rate Gamma)&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Albert Ch. 3.2: analytic posterior mean and SD (shape–rate
+Gamma)</caption>
+<thead>
+<tr class="header">
+<th align="left">Hospital</th>
+<th align="right">e</th>
+<th align="right">y</th>
+<th align="left">Posterior</th>
+<th align="right">Mean</th>
+<th align="right">SD</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">A</td>
+<td align="right">66</td>
+<td align="right">1</td>
+<td align="left">Gamma(17, 15240)</td>
+<td align="right">0.001115</td>
+<td align="right">0.000271</td>
+</tr>
+<tr class="even">
+<td align="left">B</td>
+<td align="right">1767</td>
+<td align="right">4</td>
+<td align="left">Gamma(20, 16941)</td>
+<td align="right">0.001181</td>
+<td align="right">0.000264</td>
+</tr>
+</tbody>
+</table>
+<div id="a.1-fitting-with-glmb" class="section level3">
+<h3>A.1 Fitting with <strong><code>glmb()</code></strong></h3>
+<p>The exposure enters as <code>weights</code>. The conjugate sampler
+updates <span class="math inline">\(\Gamma(\alpha_0 + y,\; \beta_0 +
+e)\)</span> exactly.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>ht_beta <span class="ot">&lt;-</span> <span class="fu">matrix</span>(alpha0_ht <span class="sc">/</span> beta0_ht, <span class="dv">1</span><span class="dt">L</span>, <span class="dv">1</span><span class="dt">L</span>, <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="cn">NULL</span>, <span class="st">&quot;(Intercept)&quot;</span>))</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>ht_pf   <span class="ot">&lt;-</span> <span class="fu">dGamma</span>(<span class="at">shape =</span> alpha0_ht, <span class="at">rate =</span> beta0_ht,</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>                  <span class="at">beta =</span> ht_beta, <span class="at">Inv_Dispersion =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2026</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>fit_A <span class="ot">&lt;-</span> <span class="fu">glmb</span>(<span class="at">n =</span> <span class="dv">20000</span>, y <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> <span class="fu">data.frame</span>(<span class="at">y =</span> yobs_A),</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>              <span class="at">weights =</span> ex_A, <span class="at">family =</span> <span class="fu">poisson</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>), <span class="at">pfamily =</span> ht_pf)</span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a><span class="fu">print</span>(fit_A)</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co">#&gt; Call:  glmb(formula = y ~ 1, family = poisson(link = &quot;identity&quot;), pfamily = ht_pf, </span></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt;     n = 20000, data = data.frame(y = yobs_A), weights = ex_A)</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt; Posterior Mean Coefficients:</span></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt; (Intercept)  </span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt;    0.001121  </span></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 3.864282 </span></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 768.8068 </span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt; DIC: 904.6711</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2026</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>fit_B <span class="ot">&lt;-</span> <span class="fu">glmb</span>(<span class="at">n =</span> <span class="dv">20000</span>, y <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> <span class="fu">data.frame</span>(<span class="at">y =</span> yobs_B),</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>              <span class="at">weights =</span> ex_B, <span class="at">family =</span> <span class="fu">poisson</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>), <span class="at">pfamily =</span> ht_pf)</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="fu">print</span>(fit_B)</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co">#&gt; Call:  glmb(formula = y ~ 1, family = poisson(link = &quot;identity&quot;), pfamily = ht_pf, </span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co">#&gt;     n = 20000, data = data.frame(y = yobs_B), weights = ex_B)</span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="co">#&gt; Posterior Mean Coefficients:</span></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co">#&gt; (Intercept)  </span></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co">#&gt;    0.001185  </span></span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 351.3413 </span></span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 101062.1 </span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="co">#&gt; DIC: 107184</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>ht_compare <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="at">Hospital =</span> <span class="fu">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>),</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="at">e =</span> <span class="fu">c</span>(ex_A, ex_B),</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(yobs_A, yobs_B),</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="at">Posterior =</span> <span class="fu">c</span>(<span class="st">&quot;Gamma(17, 15240)&quot;</span>, <span class="st">&quot;Gamma(20, 16941)&quot;</span>),</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  <span class="st">`</span><span class="at">Albert Mean</span><span class="st">`</span> <span class="ot">=</span> ht_albert<span class="sc">$</span>Mean,</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  <span class="st">`</span><span class="at">Albert SD</span><span class="st">`</span>   <span class="ot">=</span> ht_albert<span class="sc">$</span>SD,</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  <span class="st">`</span><span class="at">glmb Post.Mean</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(fit_A<span class="sc">$</span>coef.means[<span class="st">&quot;(Intercept)&quot;</span>],</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>                       fit_B<span class="sc">$</span>coef.means[<span class="st">&quot;(Intercept)&quot;</span>]),</span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>  <span class="st">`</span><span class="at">glmb Post.Sd</span><span class="st">`</span>   <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">sd</span>(fit_A<span class="sc">$</span>coefficients[, <span class="st">&quot;(Intercept)&quot;</span>, <span class="at">drop =</span> <span class="cn">TRUE</span>]),</span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>                       <span class="fu">sd</span>(fit_B<span class="sc">$</span>coefficients[, <span class="st">&quot;(Intercept)&quot;</span>, <span class="at">drop =</span> <span class="cn">TRUE</span>])),</span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>)</span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(ht_compare, <span class="at">digits =</span> <span class="dv">6</span>,</span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Albert analytic vs. glmb() posterior mean and SD&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Albert analytic vs. glmb() posterior mean and SD</caption>
+<colgroup>
+<col width="10%" />
+<col width="5%" />
+<col width="3%" />
+<col width="20%" />
+<col width="14%" />
+<col width="11%" />
+<col width="17%" />
+<col width="15%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Hospital</th>
+<th align="right">e</th>
+<th align="right">y</th>
+<th align="left">Posterior</th>
+<th align="right">Albert Mean</th>
+<th align="right">Albert SD</th>
+<th align="right">glmb Post.Mean</th>
+<th align="right">glmb Post.Sd</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">A</td>
+<td align="right">66</td>
+<td align="right">1</td>
+<td align="left">Gamma(17, 15240)</td>
+<td align="right">0.001115</td>
+<td align="right">0.000271</td>
+<td align="right">0.001121</td>
+<td align="right">0.000270</td>
+</tr>
+<tr class="even">
+<td align="left">B</td>
+<td align="right">1767</td>
+<td align="right">4</td>
+<td align="left">Gamma(20, 16941)</td>
+<td align="right">0.001181</td>
+<td align="right">0.000264</td>
+<td align="right">0.001185</td>
+<td align="right">0.000263</td>
+</tr>
+</tbody>
+</table>
+<p>Each fit is for <strong>one hospital</strong>:
+<code>(Intercept)</code> is the posterior draw for that hospital’s rate
+<span class="math inline">\(\lambda\)</span>. The
+<strong><code>glmb Post.Mean</code></strong> and
+<strong><code>glmb Post.Sd</code></strong> columns should match Albert’s
+<strong>Mean</strong> and <strong>SD</strong> to Monte Carlo error.</p>
+<hr />
+</div>
+<div id="see-also" class="section level2">
+<h2>See also</h2>
+<ul>
+<li><strong>Chapter-02-S01</strong> — introduction to Bayesian inference
+and conjugacy.</li>
+<li><strong>Chapter-02-S02</strong> — Normal–Normal conjugacy for one
+mean.</li>
+<li><strong>Chapter-02-S03</strong> — Beta–Binomial conjugacy for one
+proportion.</li>
+<li><strong>Chapter-02-S05</strong> — Gamma–Gamma conjugacy for a Gamma
+response rate.</li>
+<li><strong>Chapter 10, Appendix A</strong> — Bayes Rules! Poisson
+regression (<code>equality_index</code>).</li>
+<li><strong>Chapter 18</strong> — hierarchical Poisson mixed model
+(BikeSharing; block Gibbs with <code>rglmb</code>).</li>
+</ul>
+</div>
+</div>
+<div id="bibliography" class="section level1 unnumbered">
+<h1 class="unnumbered">References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-Albert2009" class="csl-entry">
+Albert, Jim. 2009. <em>Bayesian Computation with <span>R</span></em>.
+2nd ed. Use r! Springer.
+</div>
+<div id="ref-Albert2020LearnBayes" class="csl-entry">
+Albert, Jim. 2020. <em><span>LearnBayes</span>: Functions for Learning
+Bayesian Inference</em>. <a href="https://CRAN.R-project.org/package=LearnBayes">https://CRAN.R-project.org/package=LearnBayes</a>.
+</div>
+<div id="ref-ChristiansenMorris1995" class="csl-entry">
+Christiansen, Cindy L., and Carl N. Morris. 1995. <em>Fitting and
+Checking a Two-Level <span>P</span>oisson Model: Modeling Patient
+Mortality Rates in Heart Transplant Patients</em>. (New York).
+</div>
+<div id="ref-JohnsonLauEtAl2022" class="csl-entry">
+Johnson, Alicia A., Miles Q. Ott, and Mine Dogucu. 2022. <em>Bayes
+Rules! An Introduction to Applied Bayesian Modeling</em>. CRC Press. <a href="https://www.bayesrulesbook.com">https://www.bayesrulesbook.com</a>.
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

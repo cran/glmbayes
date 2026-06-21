@@ -17,7 +17,7 @@ The package includes a rich set of supporting tools for prior specification, mod
 that mirror those for lm() and glm(). Most functions are extensively documented, and a comprehensive set of vignettes
 are available to guide users through the package's capabilities.
 
-The current **CRAN release is version 0.9.5**
+This repository is **0.9.6** in development. The current **CRAN release is version 0.9.5**
 ([CRAN](https://CRAN.R-project.org/package=glmbayes)).
 The [GitHub](https://github.com/knygren/glmbayes) repository holds the source; [R-Universe](https://knygren.r-universe.dev/glmbayes) builds binaries from it.
 See [NEWS.md](https://github.com/knygren/glmbayes/blob/main/NEWS.md) for changes.
@@ -42,8 +42,8 @@ Prebuilt binaries from CRAN (0.9.5) and R-Universe are built **without OpenCL GP
 support**. For the CRAN release, OpenCL requires installing **from source** on a
 system with OpenCL development files available. To set up GPU acceleration, follow
 
-**Chapter 12 - Large Models: GPU Acceleration using OpenCL**
-https://knygren.r-universe.dev/articles/glmbayes/Chapter-12.html
+**Chapter 16 — Large models: GPU acceleration using OpenCL**
+https://knygren.r-universe.dev/articles/glmbayes/Chapter-16.html
 
 ## Minimal Working Example
 
@@ -77,14 +77,38 @@ https://knygren.r-universe.dev/articles/glmbayes/Chapter-12.html
 As with `glm()`, models are defined by a formula for the linear predictor and a `family()` describing the likelihood and 
 link. In addition, `glmb()` requires a **pfamily** object specifying the prior.
 
-The supported likelihood families, link functions, and compatible pfamilies are:
+### Priors on regression coefficients
 
-| Likelihood family           | Link functions                    | Compatible pfamilies                                      |
-|-----------------------------|------------------------------------|------------------------------------------------------------|
-| Gaussian                    | identity                           | dNormal, dGamma, dNormal_Gamma, dIndependent_Normal_Gamma |
-| Poisson / Quasi-Poisson     | log                                | dNormal                                                    |
-| Binomial / Quasi-Binomial   | logit, probit, cloglog             | dNormal                                                    |
-| Gamma                       | log                                | dNormal, dGamma                                            |
+The primary table below covers priors on the regression coefficients **β**. The standard prior for
+all families is `dNormal`. The conjugate priors `dBeta` and `dGamma(Inv_Dispersion = FALSE)` provide
+closed-form IID posterior draws for intercept-only models with an identity link.
+
+| Likelihood family           | Link functions                         | Compatible pfamilies (coefficient priors)                            |
+|-----------------------------|----------------------------------------|----------------------------------------------------------------------|
+| Gaussian                    | identity                               | dNormal, dNormal_Gamma, dIndependent_Normal_Gamma                    |
+| Poisson / Quasi-Poisson     | log                                    | dNormal                                                              |
+| Poisson                     | identity *(intercept-only)*            | dGamma(Inv_Dispersion = FALSE) — conjugate Gamma–Poisson rate prior  |
+| Binomial / Quasi-Binomial   | logit, probit, cloglog                 | dNormal                                                              |
+| Binomial                    | identity *(intercept-only)*            | dBeta — conjugate Beta–Binomial probability prior                    |
+| Gamma                       | log                                    | dNormal                                                              |
+| Gamma                       | identity *(intercept-only)*            | dGamma(Inv_Dispersion = FALSE) — conjugate Gamma–Gamma rate prior    |
+
+`dNormal_Gamma` and `dIndependent_Normal_Gamma` also model precision jointly with the coefficients;
+see the precision/dispersion table below.
+
+### Priors on precision / dispersion
+
+`dGamma(Inv_Dispersion = TRUE)` (the default when `Inv_Dispersion` is omitted) places a Gamma prior
+on the inverse dispersion **1/φ** with the regression coefficients **β** held fixed. This is the
+precision prior used in Gibbs sampling steps for dispersion estimation.
+
+| Likelihood family | Link     | Compatible pfamilies (precision prior)      |
+|-------------------|----------|---------------------------------------------|
+| Gaussian          | identity | dGamma — prior on 1/σ² (precision)          |
+| Gamma             | log      | dGamma — prior on 1/φ (shape / dispersion)  |
+
+`dNormal_Gamma` and `dIndependent_Normal_Gamma` model **β** and precision jointly in a single
+conjugate step, avoiding the need for a separate Gibbs precision update.
 
 ### Prior_Setup
 
@@ -96,17 +120,26 @@ The returned list includes default settings for the following:
   - `dispersion` for use with the `dNormal()` prior (gaussian and Gamma families)
   - `Sigma_0`, `shape` and `rate` for use with the `dNormal_Gamma()` prior  
   - `shape_ING` and `rate` for use with `dIndependent_Normal_Gamma()` prior 
-  - `shape`, `rate_gamma` and `coefficients` for use with the `dGamma()` prior  
+  - `shape`, `rate_gamma` and `coefficients` for use with the `dGamma()` precision prior  
+- **Conjugate prior calibration components** (intercept-only models):  
+  - `conj_beta` (`shape1`, `shape2`, `beta`) for use with `dBeta()` (Binomial/identity)  
+  - `conj_poisson` (`shape`, `rate`, `beta`) for use with `dGamma(Inv_Dispersion = FALSE)` (Poisson/identity)  
 
-Optional arguments adjust prior weight, centering, and related settings (see the function help and vignette Chapter 03).
+Optional arguments adjust prior weight, centering, and related settings (see the function help and vignette Chapter 04).
 
 ### Typical Prior_Setup wiring
 
 Assuming `ps <- Prior_Setup(...)`:
 
-- **All non‑Gaussian families:**  
+- **Non‑Gaussian families (log/logit/probit/cloglog links):**  
   Use `dNormal(mu = ps$mu, Sigma = ps$Sigma)`.  
   (For Gamma GLMs, also supply `dispersion` from the fitted GLM or from `ps`; see `example("glmb")`.)
+
+- **Binomial — conjugate Beta prior (identity link, intercept-only):**  
+  Use `dBeta(shape1 = ps$conj_beta$shape1, shape2 = ps$conj_beta$shape2, beta = ps$conj_beta$beta)`.
+
+- **Poisson — conjugate Gamma rate prior (identity link, intercept-only):**  
+  Use `dGamma(shape = ps$conj_poisson$shape, rate = ps$conj_poisson$rate, beta = ps$conj_poisson$beta, Inv_Dispersion = FALSE)`.
 
 - **Gaussian — normal prior with known dispersion:**  
   Use `dNormal(mu = ps$mu, Sigma = ps$Sigma, dispersion = ps$dispersion)`.
@@ -117,7 +150,7 @@ Assuming `ps <- Prior_Setup(...)`:
 - **Gaussian — independent Normal–Gamma:**  
   Use `dIndependent_Normal_Gamma(mu = ps$mu, Sigma = ps$Sigma, shape = ps$shape_ING, rate = ps$rate)`.
 
-- **Gaussian — dispersion via dGamma (coefficients fixed):**  
+- **Gaussian / Gamma — precision prior (coefficients fixed, for Gibbs):**  
   With `rate_dg <- if (!is.null(ps$rate_gamma)) ps$rate_gamma else ps$rate`, use  
   `dGamma(shape = ps$shape, rate = rate_dg, beta = ps$coefficients)`.
 
@@ -137,6 +170,15 @@ Use `example()` and `demo()` to explore built-in examples and demos for supporte
 
     ## Bayesian generalized linear models
     example("glmb")
+
+    ## Beta-Binomial conjugacy: dBeta() prior; Bechdel test (requires bayesrules)
+    ## See also: vignette("Chapter-02-S03", package = "glmbayes")
+    demo("Ex_12_BetaBinomial")
+
+    ## Gamma-Poisson conjugacy: dGamma(Inv_Dispersion=FALSE); bike counts + heart
+    ## transplant mortality (requires bayesrules; Appendix A requires LearnBayes)
+    ## See also: vignette("Chapter-02-S04", package = "glmbayes")
+    demo("Ex_13_GammaPoisson")
 
     ## Predictions for fitted glmb objects (newdata, type, etc.)
     example("predict.glmb")
@@ -199,9 +241,8 @@ These vignettes guide users from introductory material through applied modeling,
 and the underlying simulation methods that support the package.
 
 ### Part 1: An Introduction
-Overview of the package, its design philosophy, and the basic workflow for
-fitting Bayesian linear and generalized linear models. It introduces the core functions, model
-objects, and the structure of the modeling interface.
+
+Overview of the package, its design philosophy, single-parameter conjugate models, and the basic workflow for fitting Bayesian linear and generalized linear models.
 
 - **Chapter 00 - Introduction**  
 https://knygren.r-universe.dev/articles/glmbayes/Chapter-00.html
@@ -209,61 +250,72 @@ https://knygren.r-universe.dev/articles/glmbayes/Chapter-00.html
 - **Chapter 01 - Getting Started with glmbayes**  
 https://knygren.r-universe.dev/articles/glmbayes/Chapter-01.html
 
-### Part 2: Estimating Bayesian Linear Models
-These chapters focus on Bayesian linear regression using the Gaussian family. Topics include
-model fitting, prior construction, posterior summaries, predictions, and deviance residuals.
-This part establishes the foundation for understanding the Bayesian GLM framework used throughout
-the package.
+- **Chapter 02 — Conjugate inference for single parameters** (S01–S05)  
+  Start with [Chapter 02-S01](https://knygren.r-universe.dev/articles/glmbayes/Chapter-02-S01.html); then S02 (Normal–Normal), S03 (Beta–Binomial), S04 (Gamma–Poisson), S05 (Gamma–Gamma).
 
-- **Chapter 02 - Estimating Bayesian Linear Models**  
-https://knygren.r-universe.dev/articles/glmbayes/Chapter-02.html
+### Part 2: Bayesian regression models
 
-- **Chapter 03 - Tailoring Priors - Leveraging the Prior_Setup Function**  
+These chapters focus on Bayesian **linear** regression (Gaussian family). Topics include **`lmb()`** fitting, **`Prior_Setup()`**, posterior predictive checks (**bayesplot**), deviance residuals and model summaries, **bayestestR**-style summaries, and the bridge to Bayesian GLMs in Part 3.
+
+- **Chapter 03 — Estimating Bayesian linear models**  
 https://knygren.r-universe.dev/articles/glmbayes/Chapter-03.html
 
-- **Chapter 04 - Reviewing Model Predictions, Deviance Residuals and Model Statistics**  
+- **Chapter 04 — Tailoring priors — leveraging the Prior_Setup function**  
 https://knygren.r-universe.dev/articles/glmbayes/Chapter-04.html
+
+- **Chapter 05 — Model predictions and posterior predictive checks (+ bayesplot `ppc_*`)**  
+https://knygren.r-universe.dev/articles/glmbayes/Chapter-05.html
+
+- **Chapter 06 — Deviance residuals, model statistics and posterior inference (+ bayestestR)**  
+https://knygren.r-universe.dev/articles/glmbayes/Chapter-06.html
 
 ### Part 3: Generalized Linear Models
 This part presents Bayesian GLMs across the major likelihood families, including binomial,
 quasi-binomial, Poisson, quasi-Poisson, and Gamma models. It covers model specification,
-link functions, log-concavity, diagnostics, and interpretation of posterior results.
+link functions, log-concavity, diagnostics, interpretation of posterior results, and tooling
+(**bayesplot**, **bayestestR**) for visualization and summaries.
 
-- **Chapter 05 - Foundations of GLMs - Families, Links, and Log-Concave Likelihoods**  
-https://knygren.r-universe.dev/articles/glmbayes/Chapter-05.html
-
-- **Chapter 06 - Estimating Bayesian Generalized Linear Models**  
-https://knygren.r-universe.dev/articles/glmbayes/Chapter-06.html
-
-- **Chapter 07 - Models for the Binomial Family**  
+- **Chapter 07 — Foundations of GLMs — families, links, and log-concave likelihoods**  
 https://knygren.r-universe.dev/articles/glmbayes/Chapter-07.html
 
-- **Chapter 08 - Models for the Poisson Family**  
+- **Chapter 08 — Estimating Bayesian generalized linear models**  
 https://knygren.r-universe.dev/articles/glmbayes/Chapter-08.html
 
-- **Chapter 09 - Models for the Gamma Family**  
+- **Chapter 09 — Models for the Binomial family**  
 https://knygren.r-universe.dev/articles/glmbayes/Chapter-09.html
+
+- **Chapter 10 — Models for the Poisson family**  
+https://knygren.r-universe.dev/articles/glmbayes/Chapter-10.html
+
+- **Chapter 11 — Models for the Gamma family**  
+https://knygren.r-universe.dev/articles/glmbayes/Chapter-11.html
+
+- **Chapter 12 — Visualizing posteriors with bayesplot**  
+https://knygren.r-universe.dev/articles/glmbayes/Chapter-12.html
+
+- **Chapter 13 — Bayesian inference and decision making with bayestestR**  
+https://knygren.r-universe.dev/articles/glmbayes/Chapter-13.html
 
 ### Part 4: Advanced Topics
 These chapters explore more complex modeling scenarios and computational strategies, such as
-informative priors, two-block Gibbs sampling, hierarchical linear and generalized linear models,
+informative priors, two-block Gibbs sampling, linear and generalized linear mixed-effects models,
 models with unknown dispersion parameters, and large-scale model fitting using GPU acceleration
 using OpenCL.
 
-- **Chapter 10 - Informative Priors: Centering and priors with differential prior weights**  
-https://knygren.r-universe.dev/articles/glmbayes/Chapter-10.html
-
-- **Chapter 11 - Estimating Models with unknown dispersion parameters**  
-https://knygren.r-universe.dev/articles/glmbayes/Chapter-11.html
-
-- **Chapter 12 - Large Models: GPU Acceleration using OpenCL**  
-https://knygren.r-universe.dev/articles/glmbayes/Chapter-12.html
-
-- **Chapter 13 - Hierarchical Linear Models**  
-https://knygren.r-universe.dev/articles/glmbayes/Chapter-13.html
-
-- **Chapter 14 - Hierarchical Generalized Linear Models**  
+- **Chapter 14 — Informative priors — centering and differential prior weights**  
 https://knygren.r-universe.dev/articles/glmbayes/Chapter-14.html
+
+- **Chapter 15 — Estimating models with unknown dispersion parameters**  
+https://knygren.r-universe.dev/articles/glmbayes/Chapter-15.html
+
+- **Chapter 16 — Large models: GPU acceleration using OpenCL**  
+https://knygren.r-universe.dev/articles/glmbayes/Chapter-16.html
+
+- **Chapter 17 — Linear mixed-effects models**  
+https://knygren.r-universe.dev/articles/glmbayes/Chapter-17.html
+
+- **Chapter 18 — Generalized linear mixed-effects models**  
+https://knygren.r-universe.dev/articles/glmbayes/Chapter-18.html
 
 ### Part 5: Simulation Methods and Technical Implementation
 This part documents the mathematical and algorithmic foundations of the package. Topics include
@@ -315,6 +367,7 @@ details behind the samplers.
 ## Feature Highlights
 
 - S3 interface mirroring the structure of base glm()
+- Posterior predictive checks via `pp_check()` from the 'bayesplot' package for fitted `glmb` objects
 - Accept-reject sampling for log-concave likelihoods
 - Samplers for both fixed and variable dispersion
 - Extensive vignettes to guide users through the package's capabilities
@@ -325,6 +378,27 @@ details behind the samplers.
 - Non-log-concave likelihoods are not currently supported
 
 ## Future Plans
+
+- **R Mathlib (`nmath`) usage from C:** Today the package vendors local copies of
+  selected R Mathlib routines and headers in `*.c` sources. The plan is to switch
+  to calling the **same `nmath` functions that ship with R**, via the supported
+  linking/API path, so maintenance tracks base R instead of duplicating sources.
+- **OpenCL / GPU code upstream:** Routines currently living under the
+  **openclport** and **nmathopencl** namespaces are slated to move into dedicated
+  upstream packages. **nmathopencl** is already available on
+  [R-Universe](https://knygren.r-universe.dev/nmathopencl); a **CRAN** release is targeted,
+  after which glmbayes can depend on that package for a substantial share of
+  OpenCL- and GPU-related functionality rather than carrying those implementations
+  here.
+- **Conjugate priors for intercept-only GLMs:** Add **pfamily** specifications
+  that supply conjugate priors for **intercept-only** `glm()`-style models (a
+  single mean structure / scalar linear predictor), complementing the existing
+  prior families for general designs.
+- **bayestestR integration:** Add methods or small wrappers so **bayestestR**
+  summaries and diagnostics can be used with **`glmb` / `lmb`** fits in the same
+  way as with other Bayesian modeling workflows.
+
+Further performance and algorithm work:
 
 - Poisson speed (OpenCL and simulation): Precompute the log-factorial term `log(y!)`
   once per observation and reuse it in both OpenCL envelope construction and

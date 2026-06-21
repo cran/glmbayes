@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Kjell Nygren" />
+
+<meta name="date" content="2026-06-21" />
+
+<title>Chapter 02-S03: Beta–Binomial Conjugacy for One Proportion</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+}
+.hanging div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Chapter 02-S03: Beta–Binomial Conjugacy for
+One Proportion</h1>
+<h4 class="author">Kjell Nygren</h4>
+<h4 class="date">2026-06-21</h4>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(glmbayes)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">requireNamespace</span>(<span class="st">&quot;bayesrules&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) <span class="fu">library</span>(bayesrules)</span></code></pre></div>
+<hr />
+<div id="the-model" class="section level2">
+<h2>1. The model</h2>
+<div id="likelihood" class="section level3">
+<h3>1.1 Likelihood</h3>
+<p>Suppose we observe <span class="math inline">\(n\)</span> independent
+binary trials — each a success (1) or failure (0) — with a common
+success probability <span class="math inline">\(\theta \in
+(0,1)\)</span>. The total number of successes <span class="math inline">\(y = \sum_i y_i\)</span> follows:</p>
+<p><span class="math display">\[
+  y \mid \theta \;\sim\; \mathrm{Binomial}(n,\, \theta).
+\]</span></p>
+<p>The likelihood is</p>
+<p><span class="math display">\[
+  p(y \mid \theta) \;=\; \binom{n}{y}\,\theta^y\,(1-\theta)^{n-y},
+\]</span></p>
+<p>and everything relevant for updating our beliefs about <span class="math inline">\(\theta\)</span> is captured by the two sufficient
+statistics <span class="math inline">\(y\)</span> (successes) and <span class="math inline">\(n - y\)</span> (failures).</p>
+</div>
+<div id="prior" class="section level3">
+<h3>1.2 Prior</h3>
+<p>The parameter <span class="math inline">\(\theta\)</span> is a
+probability, so its support is <span class="math inline">\([0,1]\)</span>. The <strong>Beta
+distribution</strong> is the natural conjugate prior:</p>
+<p><span class="math display">\[
+  p(\theta) \;=\; \frac{\theta^{a-1}(1-\theta)^{b-1}}{B(a,b)}, \qquad
+\theta \in [0,1],
+\]</span></p>
+<p>with shape parameters <span class="math inline">\(a &gt; 0\)</span>
+and <span class="math inline">\(b &gt; 0\)</span>. Its mean is <span class="math inline">\(a/(a+b)\)</span> and its variance is <span class="math inline">\(ab/[(a+b)^2(a+b+1)]\)</span>.</p>
+<p><strong>Interpreting the parameters.</strong> Think of <span class="math inline">\(a - 1\)</span> as a “prior number of successes”
+and <span class="math inline">\(b - 1\)</span> as a “prior number of
+failures” accumulated before the current study. The total “prior sample
+size” is <span class="math inline">\(a + b - 2\)</span> and the prior
+mean is <span class="math inline">\(a/(a+b)\)</span>.</p>
+<table>
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Prior belief</th>
+<th>Parameter choice</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>No information — completely flat</td>
+<td><span class="math inline">\(a = b = 1\)</span> (uniform on <span class="math inline">\([0,1]\)</span>)</td>
+</tr>
+<tr class="even">
+<td>Mild belief near 0.5</td>
+<td><span class="math inline">\(a = b = 3\)</span></td>
+</tr>
+<tr class="odd">
+<td>Moderate belief near 0.4</td>
+<td><span class="math inline">\(a = 4, b = 6\)</span> (mean = 0.4)</td>
+</tr>
+<tr class="even">
+<td>Strong belief near 0.2</td>
+<td><span class="math inline">\(a = 4, b = 16\)</span> (mean = 0.2)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="posterior-derivation" class="section level3">
+<h3>1.3 Posterior derivation</h3>
+<p>Multiply the likelihood kernel <span class="math inline">\(\theta^y(1-\theta)^{n-y}\)</span> by the prior
+kernel <span class="math inline">\(\theta^{a-1}(1-\theta)^{b-1}\)</span>:</p>
+<p><span class="math display">\[
+  p(\theta \mid y)
+  \;\propto\; \theta^{(a+y)-1}(1-\theta)^{(b+n-y)-1}.
+\]</span></p>
+<p>This is the kernel of a Beta distribution, so the conjugate posterior
+is:</p>
+<p><span class="math display">\[
+  \boxed{\theta \mid y \;\sim\; \mathrm{Beta}(a + y,\; b + n - y).}
+\]</span></p>
+<p>The update rule is simple:</p>
+<ul>
+<li>Add the <strong>number of successes</strong> <span class="math inline">\(y\)</span> to the first shape parameter.</li>
+<li>Add the <strong>number of failures</strong> <span class="math inline">\(n - y\)</span> to the second shape parameter.</li>
+</ul>
+</div>
+<div id="the-posterior-mean-as-a-compromise" class="section level3">
+<h3>1.4 The posterior mean as a compromise</h3>
+<p><span class="math display">\[
+  \mathbb{E}[\theta \mid y]
+  \;=\; \frac{a + y}{a + b + n}
+  \;=\; \frac{a+b}{a+b+n}\cdot\frac{a}{a+b}
+  \;+\;
+  \frac{n}{a+b+n}\cdot\frac{y}{n}.
+\]</span></p>
+<p>This is a weighted average of the prior mean <span class="math inline">\(a/(a+b)\)</span> and the data frequency <span class="math inline">\(y/n\)</span>, with weights proportional to the
+“prior sample size” <span class="math inline">\(a+b\)</span> and the
+actual sample size <span class="math inline">\(n\)</span>. When <span class="math inline">\(n\)</span> is much larger than <span class="math inline">\(a + b\)</span> the data dominate; when <span class="math inline">\(n\)</span> is small the prior pulls the estimate
+toward its own mean.</p>
+<hr />
+</div>
+</div>
+<div id="bayesrules-illustration" class="section level2">
+<h2>2. <code>bayesrules</code> illustration</h2>
+<p>The <strong><code>bayesrules</code></strong> package provides
+<code>plot_beta_binomial()</code> and
+<code>summarize_beta_binomial()</code> for quick visualization and
+tabular summaries of the Beta–Binomial update <span class="citation">(Johnson et al. 2022)</span>.</p>
+<p><strong>Scenario.</strong> A clinical researcher believes, based on
+earlier trials, that about 40% of patients respond to a new analgesic.
+They encode this as a <strong>Beta(4, 6)</strong> prior (mean = 0.4,
+effective prior sample size = 10). In a new pilot study they observe
+<span class="math inline">\(y = 14\)</span> responders out of <span class="math inline">\(n = 30\)</span> patients.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>a0 <span class="ot">&lt;-</span> <span class="dv">4</span>;  b0 <span class="ot">&lt;-</span> <span class="dv">6</span>          <span class="do">## Beta(4, 6) prior: mean = 0.4</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>y  <span class="ot">&lt;-</span> <span class="dv">14</span>; n  <span class="ot">&lt;-</span> <span class="dv">30</span>          <span class="do">## data: 14/30 successes</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="do">## Analytic posterior</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>post_a <span class="ot">&lt;-</span> a0 <span class="sc">+</span> y            <span class="do">## 4 + 14 = 18</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>post_b <span class="ot">&lt;-</span> b0 <span class="sc">+</span> (n <span class="sc">-</span> y)      <span class="do">## 6 + 16 = 22</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(bayesrules)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="do">## Overlay prior, likelihood (scaled), and posterior densities</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="fu">plot_beta_binomial</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">alpha      =</span> a0,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">beta       =</span> b0,</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">y          =</span> y,</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">n          =</span> n,</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="at">prior      =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>  <span class="at">likelihood =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>  <span class="at">posterior  =</span> <span class="cn">TRUE</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>)</span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="do">## Tabular summary of prior, likelihood, and posterior</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">summarize_beta_binomial</span>(<span class="at">alpha =</span> a0, <span class="at">beta =</span> b0, <span class="at">y =</span> y, <span class="at">n =</span> n)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt;       model alpha beta mean      mode         var         sd</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; 1     prior     4    6 0.40 0.3750000 0.021818182 0.14770979</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; 2 posterior    18   22 0.45 0.4473684 0.006036585 0.07769547</span></span></code></pre></div>
+<p><strong>Reading the output.</strong> The posterior parameters are
+Beta(18, 22), giving a posterior mean of <span class="math inline">\(18/40 = 0.45\)</span> — pulled from the prior mean
+(0.40) toward the data frequency (<span class="math inline">\(14/30
+\approx 0.47\)</span>) in proportion to their relative weights. The
+posterior is noticeably narrower than the prior, reflecting the
+information gained from 30 observations.</p>
+<p><strong>Analytic posterior.</strong></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>bb_analytic <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="at">Example =</span> <span class="st">&quot;Analgesic trial (BayesRules)&quot;</span>,</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">n =</span> n,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">y =</span> y,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="at">Posterior =</span> <span class="fu">sprintf</span>(<span class="st">&quot;Beta(%d, %d)&quot;</span>, post_a, post_b),</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="at">Mean =</span> post_a <span class="sc">/</span> (post_a <span class="sc">+</span> post_b),</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="at">SD =</span> <span class="fu">sqrt</span>(post_a <span class="sc">*</span> post_b <span class="sc">/</span> ((post_a <span class="sc">+</span> post_b)<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> (post_a <span class="sc">+</span> post_b <span class="sc">+</span> <span class="dv">1</span>))),</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>)</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(bb_analytic, <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Conjugate Beta--Binomial posterior&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Conjugate Beta–Binomial posterior</caption>
+<thead>
+<tr class="header">
+<th align="left">Example</th>
+<th align="right">n</th>
+<th align="right">y</th>
+<th align="left">Posterior</th>
+<th align="right">Mean</th>
+<th align="right">SD</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Analgesic trial (BayesRules)</td>
+<td align="right">30</td>
+<td align="right">14</td>
+<td align="left">Beta(18, 22)</td>
+<td align="right">0.45</td>
+<td align="right">0.0777</td>
+</tr>
+</tbody>
+</table>
+<hr />
+</div>
+<div id="real-data-the-bechdel-test" class="section level2">
+<h2>3. Real data: the Bechdel test</h2>
+<p>The <strong>Bechdel test</strong> asks whether a film features at
+least two women who talk to each other about something other than a man.
+The <code>bayesrules::bechdel</code> dataset records the test result for
+1794 films <span class="citation">(Johnson et al. 2022)</span>.</p>
+<p><strong>Research question.</strong> What fraction of films pass the
+Bechdel test?</p>
+<p><strong>Prior.</strong> Based on earlier analyses suggesting roughly
+45% of films pass, we specify a <strong>Beta(9, 11)</strong> prior (mean
+= 0.45, effective sample size = 20 — moderately informative).</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">library</span>(bayesrules)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="do">## Binary outcome: 1 = PASS, 0 = FAIL</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>pass   <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(bechdel[[<span class="st">&quot;binary&quot;</span>]] <span class="sc">==</span> <span class="st">&quot;PASS&quot;</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>n_bech <span class="ot">&lt;-</span> <span class="fu">length</span>(pass)</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>y_bech <span class="ot">&lt;-</span> <span class="fu">sum</span>(pass)</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;n = %d,  y (PASS) = %d,  proportion = %.3f</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>            n_bech, y_bech, y_bech <span class="sc">/</span> n_bech))</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt; n = 1794,  y (PASS) = 803,  proportion = 0.448</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>a0_b <span class="ot">&lt;-</span> <span class="dv">9</span>;  b0_b <span class="ot">&lt;-</span> <span class="dv">11</span>    <span class="do">## Beta(9, 11) prior: mean = 0.45</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>post_a_b <span class="ot">&lt;-</span> a0_b <span class="sc">+</span> y_bech</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>post_b_b <span class="ot">&lt;-</span> b0_b <span class="sc">+</span> (n_bech <span class="sc">-</span> y_bech)</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="fu">c</span>(<span class="at">prior_mean  =</span> a0_b <span class="sc">/</span> (a0_b <span class="sc">+</span> b0_b),</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">data_freq   =</span> <span class="fu">round</span>(y_bech <span class="sc">/</span> n_bech, <span class="dv">4</span>),</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">post_mean   =</span> <span class="fu">round</span>(post_a_b <span class="sc">/</span> (post_a_b <span class="sc">+</span> post_b_b), <span class="dv">4</span>))</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt; prior_mean  data_freq  post_mean </span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt;     0.4500     0.4476     0.4476</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="do">## 95% credible interval</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">qbeta</span>(<span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>), post_a_b, post_b_b), <span class="dv">4</span>)</span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="co">#&gt; [1] 0.4248 0.4706</span></span></code></pre></div>
+<p>With over 1700 films the data dominate the prior; the posterior mean
+is nearly identical to the observed proportion.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>analytic_mean_b <span class="ot">&lt;-</span> post_a_b <span class="sc">/</span> (post_a_b <span class="sc">+</span> post_b_b)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>analytic_sd_b   <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(post_a_b <span class="sc">*</span> post_b_b <span class="sc">/</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>                        ((post_a_b <span class="sc">+</span> post_b_b)<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> (post_a_b <span class="sc">+</span> post_b_b <span class="sc">+</span> <span class="dv">1</span>)))</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>bech_analytic <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="at">Dataset =</span> <span class="st">&quot;Bechdel test&quot;</span>,</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>  <span class="at">n =</span> n_bech,</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>  <span class="at">y =</span> y_bech,</span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>  <span class="at">Posterior =</span> <span class="fu">sprintf</span>(<span class="st">&quot;Beta(%d, %d)&quot;</span>, post_a_b, post_b_b),</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>  <span class="at">Mean =</span> analytic_mean_b,</span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>  <span class="at">SD =</span> analytic_sd_b,</span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>)</span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(bech_analytic, <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Conjugate Beta--Binomial posterior&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Conjugate Beta–Binomial posterior</caption>
+<thead>
+<tr class="header">
+<th align="left">Dataset</th>
+<th align="right">n</th>
+<th align="right">y</th>
+<th align="left">Posterior</th>
+<th align="right">Mean</th>
+<th align="right">SD</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Bechdel test</td>
+<td align="right">1794</td>
+<td align="right">803</td>
+<td align="left">Beta(812, 1002)</td>
+<td align="right">0.4476</td>
+<td align="right">0.0117</td>
+</tr>
+</tbody>
+</table>
+<div id="fitting-with-glmb-using-dbeta" class="section level3">
+<h3>3.1 Fitting with <strong><code>glmb()</code></strong> using
+<strong><code>dBeta()</code></strong></h3>
+<p>The scalar Beta–Binomial model generalizes to
+<strong><code>glmb()</code></strong> with
+<code>family = binomial(link = &quot;identity&quot;)</code> and the
+<code>dBeta()</code> prior. In this intercept-only setting the single
+regression coefficient <strong>is</strong> <span class="math inline">\(\theta\)</span> directly on the probability
+scale.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>df_bech <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">y =</span> pass)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>bech_beta <span class="ot">&lt;-</span> <span class="fu">matrix</span>(a0_b <span class="sc">/</span> (a0_b <span class="sc">+</span> b0_b), <span class="at">nrow =</span> <span class="dv">1</span>, <span class="at">ncol =</span> <span class="dv">1</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>                    <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="cn">NULL</span>, <span class="st">&quot;(Intercept)&quot;</span>))</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>bech_pf <span class="ot">&lt;-</span> <span class="fu">dBeta</span>(<span class="at">shape1 =</span> a0_b, <span class="at">shape2 =</span> b0_b, <span class="at">beta =</span> bech_beta)</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2026</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>fit_bech <span class="ot">&lt;-</span> <span class="fu">glmb</span>(</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>  <span class="at">n       =</span> <span class="dv">20000</span>,</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>  y <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>  <span class="at">data    =</span> df_bech,</span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>  <span class="at">weights =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="dt">L</span>, n_bech),</span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a>  <span class="at">family  =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>),</span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>  <span class="at">pfamily =</span> bech_pf</span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>)</span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="fu">print</span>(fit_bech)</span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a><span class="co">#&gt; Call:  glmb(formula = y ~ 1, family = binomial(link = &quot;identity&quot;), pfamily = bech_pf, </span></span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a><span class="co">#&gt;     n = 20000, data = df_bech, weights = rep(1L, n_bech))</span></span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a><span class="co">#&gt; Posterior Mean Coefficients:</span></span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a><span class="co">#&gt; (Intercept)  </span></span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a><span class="co">#&gt;      0.4477  </span></span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 0.9969965 </span></span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 2468.272 </span></span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a><span class="co">#&gt; DIC: 2469.269</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>bech_compare <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="at">Dataset =</span> <span class="st">&quot;Bechdel test&quot;</span>,</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="at">Posterior =</span> bech_analytic<span class="sc">$</span>Posterior,</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="st">`</span><span class="at">Analytic Mean</span><span class="st">`</span> <span class="ot">=</span> bech_analytic<span class="sc">$</span>Mean,</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  <span class="st">`</span><span class="at">Analytic SD</span><span class="st">`</span>   <span class="ot">=</span> bech_analytic<span class="sc">$</span>SD,</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  <span class="st">`</span><span class="at">glmb Post.Mean</span><span class="st">`</span> <span class="ot">=</span> fit_bech<span class="sc">$</span>coef.means[<span class="st">&quot;(Intercept)&quot;</span>],</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>  <span class="st">`</span><span class="at">glmb Post.Sd</span><span class="st">`</span>   <span class="ot">=</span> <span class="fu">sd</span>(fit_bech<span class="sc">$</span>coefficients[, <span class="st">&quot;(Intercept)&quot;</span>, <span class="at">drop =</span> <span class="cn">TRUE</span>]),</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>)</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(bech_compare, <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Analytic vs. glmb() posterior mean and SD&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Analytic vs. glmb() posterior mean and SD</caption>
+<colgroup>
+<col width="12%" />
+<col width="13%" />
+<col width="16%" />
+<col width="14%" />
+<col width="12%" />
+<col width="15%" />
+<col width="13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">Dataset</th>
+<th align="left">Posterior</th>
+<th align="right">Analytic Mean</th>
+<th align="right">Analytic SD</th>
+<th align="right">glmb Post.Mean</th>
+<th align="right">glmb Post.Sd</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="left">Bechdel test</td>
+<td align="left">Beta(812, 1002)</td>
+<td align="right">0.4476</td>
+<td align="right">0.0117</td>
+<td align="right">0.4477</td>
+<td align="right">0.0117</td>
+</tr>
+</tbody>
+</table>
+<p>The <strong><code>glmb Post.Mean</code></strong> and
+<strong><code>glmb Post.Sd</code></strong> columns should match the
+analytic <strong>Mean</strong> and <strong>SD</strong> to Monte Carlo
+error because <code>dBeta()</code> implements the exact conjugate
+update.</p>
+<hr />
+</div>
+</div>
+<div id="connection-to-glmbayes" class="section level2">
+<h2>4. Connection to glmbayes</h2>
+<p>This scalar prototype is the intuition behind <strong>Binomial
+<code>glmb()</code></strong> (Chapters 7–9), where instead of a single
+<span class="math inline">\(\theta\)</span> you model <span class="math inline">\(\mathrm{logit}(\theta_i) = x_i^\top \beta\)</span>
+and place a multivariate Normal prior on the coefficient vector <span class="math inline">\(\beta\)</span>. The conjugate <code>dBeta()</code>
+path is specific to intercept-only models with the identity link; once
+covariates enter, the conjugacy is lost and the general envelope sampler
+takes over.</p>
+<hr />
+</div>
+<div id="see-also" class="section level2">
+<h2>See also</h2>
+<ul>
+<li><strong>Chapter-02-S01</strong> — introduction to Bayesian inference
+and conjugacy.</li>
+<li><strong>Chapter-02-S02</strong> — Normal–Normal conjugacy for one
+mean.</li>
+<li><strong>Chapter-02-S04</strong> — Gamma–Poisson conjugacy for one
+count rate.</li>
+<li><strong>Chapter-02-S05</strong> — Gamma–Gamma conjugacy for a Gamma
+response rate.</li>
+<li><strong>Chapters 07–09</strong> — Binomial regression with
+<strong><code>glmb()</code></strong>.</li>
+</ul>
+</div>
+<div id="bibliography" class="section level1 unnumbered">
+<h1 class="unnumbered">References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-JohnsonLauEtAl2022" class="csl-entry">
+Johnson, Alicia A., Miles Q. Ott, and Mine Dogucu. 2022. <em>Bayes
+Rules! An Introduction to Applied Bayesian Modeling</em>. CRC Press. <a href="https://www.bayesrulesbook.com">https://www.bayesrulesbook.com</a>.
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

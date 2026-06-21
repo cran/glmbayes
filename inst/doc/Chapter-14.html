@@ -12,9 +12,9 @@
 
 <meta name="author" content="Kjell Nygren" />
 
-<meta name="date" content="2026-05-18" />
+<meta name="date" content="2026-06-21" />
 
-<title>Chapter 14: Hierarchical Generalized Linear Models</title>
+<title>Chapter 14: Informative priors — centering and differential prior weights</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -361,502 +361,453 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">Chapter 14: Hierarchical Generalized Linear
-Models</h1>
+<h1 class="title toc-ignore">Chapter 14: Informative priors — centering
+and differential prior weights</h1>
 <h4 class="author">Kjell Nygren</h4>
-<h4 class="date">2026-05-18</h4>
+<h4 class="date">2026-06-21</h4>
 
 
 
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(glmbayes)</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(coda)</span></code></pre></div>
-<div id="chapter-14-hierarchical-generalized-linear-models" class="section level1">
-<h1>Chapter 14: Hierarchical Generalized Linear Models</h1>
-<p>Chapter 13 focused on <strong>hierarchical linear models</strong>:
-the Eight Schools example with normally distributed group-level effects
-and known sampling variances. This chapter extends to
-<strong>hierarchical generalized linear models</strong> <span class="citation">(Gelman and Hill 2007; Gelman et al. 2013)</span>,
-specifically Poisson regression with observation-level random
-effects.</p>
-<p>We use the <strong>BikeSharing</strong> dataset and
-<strong><code>rglmb</code></strong> to implement a two-block Gibbs
-sampler. The Poisson likelihood is non-conjugate with the normal prior
-on the linear predictor, so each observation-level update requires an
-accept–reject step <span class="citation">(Robert and Casella
-2004)</span> via <strong><code>rglmb</code></strong>. For a full demo,
-see <strong><code>demo(&quot;Ex_09_BikeSharingPoisson&quot;)</code></strong>.</p>
-<div id="model-structure" class="section level2">
-<h2>1. Model Structure</h2>
-<p>Let <span class="math inline">\(y_i\)</span> denote the count (hourly
-bike rentals) for observation <span class="math inline">\(i\)</span>,
-and <span class="math inline">\(x_i\)</span> the covariate vector. The
-hierarchical model is:</p>
-<ol style="list-style-type: decimal">
-<li><strong>Observation level:</strong> <span class="math inline">\(y_i
-\sim \text{Poisson}(\exp(\theta_i))\)</span>, with <span class="math inline">\(\theta_i\)</span> a latent log-rate.</li>
-<li><strong>Population level:</strong> <span class="math inline">\(\theta_i \sim N(x_i^\top \beta,
-\sigma_\theta^2)\)</span>, so covariates predict the random
-effects.</li>
-</ol>
-<p>The two-block Gibbs sampler alternates:</p>
-<ol style="list-style-type: decimal">
-<li><strong>Block 1 (population):</strong> Draw <span class="math inline">\((\beta, \sigma_\theta^2) \mid \theta\)</span> —
-conjugate Normal-Gamma given <span class="math inline">\(\theta\)</span>, implemented with
-<strong><code>rglmb</code></strong> (family
-<code>gaussian()</code>).</li>
-<li><strong>Block 2 (observations):</strong> For each <span class="math inline">\(i\)</span>, draw <span class="math inline">\(\theta_i \mid \beta, \sigma_\theta^2, y_i\)</span>
-— Poisson likelihood with normal prior, implemented with
-<strong><code>rglmb</code></strong> (family
-<code>poisson()</code>).</li>
-</ol>
-<p>With <span class="math inline">\(n\)</span> observations, Block 2
-requires <span class="math inline">\(n\)</span> calls to
-<strong><code>rglmb</code></strong> per iteration. To keep run time
-manageable for the vignette, we use a 1% random subset of the data for
-training and reserve the rest for out-of-sample prediction. The chain
-used in Sections 4–5 is <strong>precomputed</strong> with the same
-settings as
-<strong><code>demo(&quot;Ex_09_BikeSharingPoisson&quot;)</code></strong>
-(<code>n_burn = 200</code>, <code>n_sim = 1000</code>) and stored as
-<strong><code>inst/extdata/BikeSharing_ch14_gibbs.rds</code></strong>.
-Section 3 still shows the full Gibbs code for reference; it is not
-re-run when this vignette is built.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(glmbayes)</span></code></pre></div>
+<div id="general-discussion" class="section level1">
+<h1>General Discussion</h1>
+<p>As we saw in the previous chapter, using the Bayesian version
+<em>glmb</em> of the classical function <em>glm</em> requires the
+specification of an additional prior distribution (a pfamily).
+Envelope-based sampling builds on <span class="citation">(Nygren and
+Nygren 2006)</span>. For Poisson and Binomial families, the most
+appropriate of the currently implemented priors would be the dNormal
+pfamily which requires specifying a prior mean and a prior
+variance-covariance matrix for the regression coefficients. Some models
+(covered more in a later Vignette) also requires providing either a
+constant or a prior for the dispersion (variance) parameter associated
+with the model. Here we focus on the case where only the regression
+coefficients require a prior and walk through an example where we
+specify a multivariate prior for a model with two coeffcients related to
+the Age of menarche (i.e., the age at which girls experience their first
+period). As part of the setup, we discuss the approach taken and give
+some general advice in regards to setting of prior distributions.</p>
 </div>
-<div id="data-and-setup" class="section level2">
-<h2>2. Data and Setup</h2>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;BikeSharing&quot;</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co"># Center continuous predictors</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>cont_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;temp&quot;</span>, <span class="st">&quot;atemp&quot;</span>, <span class="st">&quot;hum&quot;</span>, <span class="st">&quot;windspeed&quot;</span>, <span class="st">&quot;hr_sin&quot;</span>, <span class="st">&quot;hr_cos&quot;</span>, <span class="st">&quot;mon_sin&quot;</span>, <span class="st">&quot;mon_cos&quot;</span>)</span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>BikeSharing_c <span class="ot">&lt;-</span> BikeSharing</span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>BikeSharing_c[cont_vars] <span class="ot">&lt;-</span> <span class="fu">scale</span>(BikeSharing[cont_vars], <span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co"># Formula (all variable model)</span></span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>form <span class="ot">&lt;-</span> cnt <span class="sc">~</span> part_of_day <span class="sc">+</span> quarter <span class="sc">+</span> holiday <span class="sc">+</span> workingday <span class="sc">+</span> weathersit <span class="sc">+</span></span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  hr_sin <span class="sc">+</span> hr_cos <span class="sc">+</span> mon_sin <span class="sc">+</span> mon_cos <span class="sc">+</span> temp <span class="sc">+</span> atemp <span class="sc">+</span> hum <span class="sc">+</span> windspeed</span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a></span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co"># Formula (Limited variable model)</span></span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>form2 <span class="ot">&lt;-</span> cnt <span class="sc">~</span> part_of_day <span class="sc">+</span> quarter <span class="sc">+</span> holiday <span class="sc">+</span> workingday <span class="sc">+</span> weathersit <span class="sc">+</span></span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>  hr_sin <span class="sc">+</span> hr_cos <span class="sc">+</span> mon_sin <span class="sc">+</span> mon_cos</span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a></span>
-<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co"># Train/test split: indices bundled with precomputed Gibbs output (matches demo, set.seed(42))</span></span>
-<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>pct_train <span class="ot">&lt;-</span> <span class="fl">0.01</span></span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(BikeSharing_c)</span>
-<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>ch14_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;BikeSharing_ch14_gibbs.rds&quot;</span>, <span class="at">package =</span> <span class="st">&quot;glmbayes&quot;</span>)</span>
-<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">nzchar</span>(ch14_path), <span class="fu">file.exists</span>(ch14_path))</span>
-<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>ch14_saved <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(ch14_path)</span>
-<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">length</span>(ch14_saved<span class="sc">$</span>idx_train) <span class="sc">==</span> <span class="fu">round</span>(pct_train <span class="sc">*</span> n))</span>
-<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a>idx_train <span class="ot">&lt;-</span> ch14_saved<span class="sc">$</span>idx_train</span>
-<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a>idx_test  <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="fu">seq_len</span>(n), idx_train)</span>
-<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a></span>
-<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a>Bike_train <span class="ot">&lt;-</span> BikeSharing_c[idx_train, ]</span>
-<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a>Bike_test  <span class="ot">&lt;-</span> BikeSharing_c[idx_test, ]</span>
-<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a></span>
-<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a>X_train <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(form2, <span class="at">data =</span> Bike_train)</span>
-<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a>X_test  <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(form2, <span class="at">data =</span> Bike_test)</span>
-<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a>y_train <span class="ot">&lt;-</span> Bike_train<span class="sc">$</span>cnt</span>
-<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a>y_test  <span class="ot">&lt;-</span> Bike_test<span class="sc">$</span>cnt</span>
-<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a>n_train <span class="ot">&lt;-</span> <span class="fu">length</span>(y_train)</span>
-<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a>n_test  <span class="ot">&lt;-</span> <span class="fu">length</span>(y_test)</span>
-<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a>p       <span class="ot">&lt;-</span> <span class="fu">ncol</span>(X_train)</span>
-<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a></span>
-<span id="cb2-38"><a href="#cb2-38" tabindex="-1"></a><span class="co"># Initial theta and prior for population block</span></span>
-<span id="cb2-39"><a href="#cb2-39" tabindex="-1"></a>theta <span class="ot">&lt;-</span> <span class="fu">log</span>(y_train <span class="sc">+</span> <span class="fl">0.5</span>)</span>
-<span id="cb2-40"><a href="#cb2-40" tabindex="-1"></a>data_pop <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">theta =</span> theta, Bike_train)</span>
-<span id="cb2-41"><a href="#cb2-41" tabindex="-1"></a>form_pop <span class="ot">&lt;-</span> theta <span class="sc">~</span> part_of_day <span class="sc">+</span> quarter <span class="sc">+</span> holiday <span class="sc">+</span> workingday <span class="sc">+</span> weathersit <span class="sc">+</span></span>
-<span id="cb2-42"><a href="#cb2-42" tabindex="-1"></a>  hr_sin <span class="sc">+</span> hr_cos <span class="sc">+</span> mon_sin <span class="sc">+</span> mon_cos</span>
-<span id="cb2-43"><a href="#cb2-43" tabindex="-1"></a>ps_pop <span class="ot">&lt;-</span> <span class="fu">Prior_Setup</span>(form_pop, <span class="at">family =</span> <span class="fu">gaussian</span>(), <span class="at">data =</span> data_pop)</span>
-<span id="cb2-44"><a href="#cb2-44" tabindex="-1"></a><span class="co">#&gt; Using default pwt = 0.05 (high-d default).</span></span></code></pre></div>
+<div id="the-age-of-menarche-data" class="section level1">
+<h1>The Age of Menarche Data</h1>
+<p>The data we will be using here is the <em>menarche</em> data covering
+the <em>Age of Menarche</em> for girls in Warsaw. This data appears in
+<span class="citation">(Venables and Ripley 2002)</span> and in their
+supporting <em>MASS</em> package. It is provided (and renamed) here so
+as to allow examples to run during build without loading of the
+<em>MASS</em> package.</p>
+<p>In the data, there are observations related to 25 cohorts of girls at
+ages ranging from an average age of 9.21 to an average age of 17.58. The
+average age for each cohort is captured in a column named <em>Age</em>.
+For each of the cohorts, there is also a column (<em>Total</em>) giving
+the total number of girls in the cohort and a column <em>Menarche</em>
+giving the number of girls out of the cohort who had experienced
+Menarche at that age.</p>
+<p>The first 5 observations are printed below. It is important to note
+that in Bayesian analyses (at least those that seek to incorporate
+prior/external information), the priors should ideally be based on
+information outside of the data being studied, so we will hold off on a
+more complete view of the data until we have mapped out our prior. The
+analysis we will be exploring here is a model of the relationship
+between age and the percentage of girls who have had their first period
+using various formulations of binomial regression.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="do">## Load menarche data</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">data</span>(menarche,<span class="at">package=</span><span class="st">&quot;MASS&quot;</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">head</span>(menarche, <span class="dv">5</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#&gt;     Age Total Menarche</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co">#&gt; 1  9.21   376        0</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co">#&gt; 2 10.21   200        0</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co">#&gt; 3 10.58    93        0</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&gt; 4 10.83   120        2</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt; 5 11.08    90        2</span></span></code></pre></div>
 </div>
-<div id="two-block-gibbs-sampler" class="section level2">
-<h2>3. Two-Block Gibbs Sampler</h2>
-<p>The following chunk is <strong>not evaluated</strong> when the
-vignette is built (<code>eval = FALSE</code>). For a live run, execute
-it in your session or use
-<strong><code>demo(&quot;Ex_09_BikeSharingPoisson&quot;)</code></strong> (expect a
-long runtime).</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>n_burn <span class="ot">&lt;-</span> <span class="dv">200</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>n_sim  <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>beta_out   <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> n_sim, <span class="at">ncol =</span> p)</span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>sigma_out  <span class="ot">&lt;-</span> <span class="fu">numeric</span>(n_sim)</span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>theta_out  <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> n_sim, <span class="at">ncol =</span> n_train)</span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<div id="variable-transformation-and-preliminary-setup" class="section level1">
+<h1>Variable Transformation and Preliminary Setup</h1>
+<p>Because of the need for a prior distribution, it is important that
+coefficients in Bayesian models can be interpreted so that analysts can
+set reasonable priors. This is true regardless of whether analysts are
+looking to give a model a <em>weak</em> prior (that will limit any move
+of the estimates away from those driven purely by the data for that
+specific model) or if the analyst is looking to give the model a
+<em>strong</em> prior that incorporates meaningful external information
+and/or prior knowledge. If the analysts can’t interpret the
+coefficients, then is is difficult to know whether a prior distribution
+is <em>weak</em> or <em>strong</em> and whether it is likely to move
+estimates meaningfully away from classical estimates.</p>
+<p>A useful approach to making coefficients more interpretable involves
+centering variables closer to the center (or at least within the support
+of) the data. To facilitate the interpretation of the coefficients in
+our model, we will therefore pick a reference age <em>ref_age1</em>
+within the support of the data (we pick 13 but you can feel free to pick
+a different reference age or to use the mean across the observations)
+and define a new variable <em>Age2=Age-ref_age1</em>. This will allow
+our prior for the intercept to represent a point estimate (on the chosen
+link function scale) for the percentage of girls who have had their
+first period by age 13. It also happens to be an age close to the
+average age of menarche in other sources <span class="citation">(Hamilton-Fairley 2004, 29)</span> which reported the
+UK average age of menarche in the UK as 12.9.</p>
+<p>In addition to the intercept, our model will contain a slope
+coefficient for the modified age variable that will capture the change
+in the percentage of girls who have had their first period (on the
+relevant link scale). To be able to formulate a prior for this, we will
+set up a second reference age <em>ref_age2</em> (our choice will be 15)
+at which we also will formulate a point estimate for the percentage who
+have had their first period. A point estimate for the slope on the link
+scale will then be derived as the difference between the two estimates
+(on the link scale) divided by the Age gap between the two reference
+ages. Below is code doing the variable transformation and a preliminary
+setup to prepare for the prior specification.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="do">## Number of variables in model</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>Age<span class="ot">=</span>menarche<span class="sc">$</span>Age</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>nvars<span class="ot">=</span><span class="dv">2</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">333</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="do">## Reference Ages for setting of priors and Age_Difference</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>ref_age1<span class="ot">=</span><span class="dv">13</span>  <span class="co"># user can modify this</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>ref_age2<span class="ot">=</span><span class="dv">15</span>  <span class="do">## user can modify this</span></span>
 <span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co"># Burn-in</span></span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>burn_time <span class="ot">&lt;-</span> <span class="fu">system.time</span>({</span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>  <span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(n_burn)) {</span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>    out_pop <span class="ot">&lt;-</span> <span class="fu">rglmb</span>(<span class="dv">1</span>, theta, X_train, <span class="at">family =</span> <span class="fu">gaussian</span>(),</span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>      <span class="at">pfamily =</span> <span class="fu">dNormal_Gamma</span>(ps_pop<span class="sc">$</span>mu, <span class="at">Sigma_0 =</span> ps_pop<span class="sc">$</span>Sigma_0,</span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>        ps_pop<span class="sc">$</span>shape, ps_pop<span class="sc">$</span>rate))</span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>    beta   <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(out_pop<span class="sc">$</span>coefficients[<span class="dv">1</span>, ])</span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>    sigma_theta_sq <span class="ot">&lt;-</span> out_pop<span class="sc">$</span>dispersion[<span class="dv">1</span>]</span>
-<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>    mu_all <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(X_train <span class="sc">%*%</span> beta)</span>
-<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(n_train)) {</span>
-<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>      theta[i] <span class="ot">&lt;-</span> <span class="fu">rglmb</span>(<span class="dv">1</span>, y_train[i], <span class="fu">matrix</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>), <span class="at">family =</span> <span class="fu">poisson</span>(),</span>
-<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>        <span class="at">pfamily =</span> <span class="fu">dNormal</span>(<span class="at">mu =</span> mu_all[i], <span class="at">Sigma =</span> sigma_theta_sq))<span class="sc">$</span>coefficients[<span class="dv">1</span>, <span class="dv">1</span>]</span>
-<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>    }</span>
-<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>  }</span>
-<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a>})</span>
-<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a></span>
-<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a>burn_time</span>
-<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a></span>
-<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="co"># Main simulation</span></span>
-<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a>sim_time <span class="ot">&lt;-</span> <span class="fu">system.time</span>({</span>
-<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a>  <span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(n_sim)) {</span>
-<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a>    out_pop <span class="ot">&lt;-</span> <span class="fu">rglmb</span>(<span class="dv">1</span>, theta, X_train, <span class="at">family =</span> <span class="fu">gaussian</span>(),</span>
-<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a>      <span class="at">pfamily =</span> <span class="fu">dNormal_Gamma</span>(ps_pop<span class="sc">$</span>mu, <span class="at">Sigma_0 =</span> ps_pop<span class="sc">$</span>Sigma_0,</span>
-<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a>        ps_pop<span class="sc">$</span>shape, ps_pop<span class="sc">$</span>rate))</span>
-<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a>    beta   <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(out_pop<span class="sc">$</span>coefficients[<span class="dv">1</span>, ])</span>
-<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a>    sigma_theta_sq <span class="ot">&lt;-</span> out_pop<span class="sc">$</span>dispersion[<span class="dv">1</span>]</span>
-<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a>    mu_all <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(X_train <span class="sc">%*%</span> beta)</span>
-<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(n_train)) {</span>
-<span id="cb3-38"><a href="#cb3-38" tabindex="-1"></a>      theta[i] <span class="ot">&lt;-</span> <span class="fu">rglmb</span>(<span class="dv">1</span>, y_train[i], <span class="fu">matrix</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>), <span class="at">family =</span> <span class="fu">poisson</span>(),</span>
-<span id="cb3-39"><a href="#cb3-39" tabindex="-1"></a>        <span class="at">pfamily =</span> <span class="fu">dNormal</span>(<span class="at">mu =</span> mu_all[i], <span class="at">Sigma =</span> sigma_theta_sq))<span class="sc">$</span>coefficients[<span class="dv">1</span>, <span class="dv">1</span>]</span>
-<span id="cb3-40"><a href="#cb3-40" tabindex="-1"></a>    }</span>
-<span id="cb3-41"><a href="#cb3-41" tabindex="-1"></a>    beta_out[k, ]  <span class="ot">&lt;-</span> beta</span>
-<span id="cb3-42"><a href="#cb3-42" tabindex="-1"></a>    sigma_out[k]   <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(sigma_theta_sq)</span>
-<span id="cb3-43"><a href="#cb3-43" tabindex="-1"></a>    theta_out[k, ] <span class="ot">&lt;-</span> theta</span>
-<span id="cb3-44"><a href="#cb3-44" tabindex="-1"></a>  }</span>
-<span id="cb3-45"><a href="#cb3-45" tabindex="-1"></a>})</span>
-<span id="cb3-46"><a href="#cb3-46" tabindex="-1"></a></span>
-<span id="cb3-47"><a href="#cb3-47" tabindex="-1"></a></span>
-<span id="cb3-48"><a href="#cb3-48" tabindex="-1"></a>sim_time</span></code></pre></div>
-<p>Load the precomputed draws (regenerate with
-<strong><code>demo(&quot;Ex_09_BikeSharingPoisson&quot;)</code></strong> and save
-with <code>saveRDS</code> to
-<code>inst/extdata/BikeSharing_ch14_gibbs.rds</code>).</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>beta_out  <span class="ot">&lt;-</span> ch14_saved<span class="sc">$</span>beta_out</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>sigma_out <span class="ot">&lt;-</span> ch14_saved<span class="sc">$</span>sigma_out</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>n_burn    <span class="ot">&lt;-</span> ch14_saved<span class="sc">$</span>n_burn</span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>n_sim     <span class="ot">&lt;-</span> ch14_saved<span class="sc">$</span>n_sim</span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>mcmc_main <span class="ot">&lt;-</span> ch14_saved<span class="sc">$</span>mcmc_main</span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">nrow</span>(beta_out) <span class="sc">==</span> n_sim, <span class="fu">length</span>(sigma_out) <span class="sc">==</span> n_sim, <span class="fu">ncol</span>(beta_out) <span class="sc">==</span> p)</span></code></pre></div>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="do">## Define variables used later in analysis</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>Age2<span class="ot">=</span>Age<span class="sc">-</span>ref_age1</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>Age_Diff<span class="ot">=</span>ref_age2<span class="sc">-</span>ref_age1</span></code></pre></div>
 </div>
-<div id="coda-diagnostics" class="section level2">
-<h2>4. CODA Diagnostics</h2>
-<p>We summarize the main parameters (<span class="math inline">\(\beta\)</span> and <span class="math inline">\(\sigma_\theta\)</span>) using the
-<strong>coda</strong> package <span class="citation">(Plummer et al.
-2006)</span>. Random effects <span class="math inline">\(\theta\)</span>
-are excluded from the summary. Object <code>mcmc_main</code> comes from
-the saved chain (coefficient columns match <code>X_train</code>, plus
-<code>sigma_theta</code>).</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">summary</span>(mcmc_main)</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; Iterations = 1:1000</span></span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; Thinning interval = 1 </span></span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt; Number of chains = 1 </span></span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; Sample size per chain = 1000 </span></span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; 1. Empirical mean and standard deviation for each variable,</span></span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt;    plus standard error of the mean:</span></span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt;                          Mean      SD Naive SE Time-series SE</span></span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt; (Intercept)           3.51912 0.26805 0.008477       0.008445</span></span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; part_of_dayMorning    2.32069 0.27789 0.008788       0.009502</span></span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; part_of_dayAfternoon  1.79354 0.36705 0.011607       0.012202</span></span>
-<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt; part_of_dayEvening    1.38643 0.28336 0.008961       0.009674</span></span>
-<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; quarterQ2            -0.10774 0.30643 0.009690       0.010874</span></span>
-<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; quarterQ3            -0.07867 0.36867 0.011658       0.012734</span></span>
-<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; quarterQ4             0.45117 0.26950 0.008522       0.009739</span></span>
-<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; holiday              -0.05947 0.40337 0.012756       0.012170</span></span>
-<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt; workingday           -0.10572 0.11632 0.003678       0.003678</span></span>
-<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt; weathersit           -0.16806 0.08173 0.002584       0.002923</span></span>
-<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt; hr_sin               -0.71063 0.18303 0.005788       0.006263</span></span>
-<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt; hr_cos               -0.06914 0.18005 0.005694       0.005848</span></span>
-<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt; mon_sin              -0.18727 0.18224 0.005763       0.006030</span></span>
-<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="co">#&gt; mon_cos              -0.51362 0.19698 0.006229       0.006721</span></span>
-<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="co">#&gt; sigma_theta           0.67173 0.03751 0.001186       0.001338</span></span>
-<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a><span class="co">#&gt; 2. Quantiles for each variable:</span></span>
-<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a><span class="co">#&gt;                          2.5%     25%      50%      75%     97.5%</span></span>
-<span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a><span class="co">#&gt; (Intercept)           2.98100  3.3490  3.51721  3.69824  4.048539</span></span>
-<span id="cb5-32"><a href="#cb5-32" tabindex="-1"></a><span class="co">#&gt; part_of_dayMorning    1.79388  2.1413  2.31747  2.50564  2.864538</span></span>
-<span id="cb5-33"><a href="#cb5-33" tabindex="-1"></a><span class="co">#&gt; part_of_dayAfternoon  1.09263  1.5512  1.79171  2.03654  2.535714</span></span>
-<span id="cb5-34"><a href="#cb5-34" tabindex="-1"></a><span class="co">#&gt; part_of_dayEvening    0.83131  1.1894  1.38755  1.57537  1.920033</span></span>
-<span id="cb5-35"><a href="#cb5-35" tabindex="-1"></a><span class="co">#&gt; quarterQ2            -0.68878 -0.3203 -0.10473  0.11176  0.474540</span></span>
-<span id="cb5-36"><a href="#cb5-36" tabindex="-1"></a><span class="co">#&gt; quarterQ3            -0.86117 -0.3138 -0.07295  0.15504  0.646679</span></span>
-<span id="cb5-37"><a href="#cb5-37" tabindex="-1"></a><span class="co">#&gt; quarterQ4            -0.06511  0.2687  0.45146  0.62428  0.979505</span></span>
-<span id="cb5-38"><a href="#cb5-38" tabindex="-1"></a><span class="co">#&gt; holiday              -0.87759 -0.3393 -0.07459  0.22403  0.729777</span></span>
-<span id="cb5-39"><a href="#cb5-39" tabindex="-1"></a><span class="co">#&gt; workingday           -0.34146 -0.1813 -0.10715 -0.02728  0.120492</span></span>
-<span id="cb5-40"><a href="#cb5-40" tabindex="-1"></a><span class="co">#&gt; weathersit           -0.31819 -0.2261 -0.16709 -0.11521 -0.005618</span></span>
-<span id="cb5-41"><a href="#cb5-41" tabindex="-1"></a><span class="co">#&gt; hr_sin               -1.06890 -0.8303 -0.71183 -0.58576 -0.364450</span></span>
-<span id="cb5-42"><a href="#cb5-42" tabindex="-1"></a><span class="co">#&gt; hr_cos               -0.43660 -0.1952 -0.06709  0.05361  0.274436</span></span>
-<span id="cb5-43"><a href="#cb5-43" tabindex="-1"></a><span class="co">#&gt; mon_sin              -0.55833 -0.3092 -0.17928 -0.06931  0.167212</span></span>
-<span id="cb5-44"><a href="#cb5-44" tabindex="-1"></a><span class="co">#&gt; mon_cos              -0.88295 -0.6536 -0.51927 -0.38338 -0.126460</span></span>
-<span id="cb5-45"><a href="#cb5-45" tabindex="-1"></a><span class="co">#&gt; sigma_theta           0.60361  0.6465  0.66966  0.69657  0.748600</span></span>
-<span id="cb5-46"><a href="#cb5-46" tabindex="-1"></a></span>
-<span id="cb5-47"><a href="#cb5-47" tabindex="-1"></a>es <span class="ot">&lt;-</span> coda<span class="sc">::</span><span class="fu">effectiveSize</span>(mcmc_main)</span>
-<span id="cb5-48"><a href="#cb5-48" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
-<span id="cb5-49"><a href="#cb5-49" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">parameter =</span> <span class="fu">names</span>(es), <span class="at">effective_size =</span> <span class="fu">as.numeric</span>(es)),</span>
-<span id="cb5-50"><a href="#cb5-50" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb5-51"><a href="#cb5-51" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">4</span>,</span>
-<span id="cb5-52"><a href="#cb5-52" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Effective sample size (coda::effectiveSize)&quot;</span></span>
-<span id="cb5-53"><a href="#cb5-53" tabindex="-1"></a>)</span></code></pre></div>
-<table>
-<caption>Effective sample size (coda::effectiveSize)</caption>
-<thead>
-<tr class="header">
-<th align="left">parameter</th>
-<th align="right">effective_size</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">(Intercept)</td>
-<td align="right">1007.6068</td>
-</tr>
-<tr class="even">
-<td align="left">part_of_dayMorning</td>
-<td align="right">855.2566</td>
-</tr>
-<tr class="odd">
-<td align="left">part_of_dayAfternoon</td>
-<td align="right">904.8935</td>
-</tr>
-<tr class="even">
-<td align="left">part_of_dayEvening</td>
-<td align="right">857.9380</td>
-</tr>
-<tr class="odd">
-<td align="left">quarterQ2</td>
-<td align="right">794.0825</td>
-</tr>
-<tr class="even">
-<td align="left">quarterQ3</td>
-<td align="right">838.1824</td>
-</tr>
-<tr class="odd">
-<td align="left">quarterQ4</td>
-<td align="right">765.8225</td>
-</tr>
-<tr class="even">
-<td align="left">holiday</td>
-<td align="right">1098.5595</td>
-</tr>
-<tr class="odd">
-<td align="left">workingday</td>
-<td align="right">1000.0000</td>
-</tr>
-<tr class="even">
-<td align="left">weathersit</td>
-<td align="right">781.9330</td>
-</tr>
-<tr class="odd">
-<td align="left">hr_sin</td>
-<td align="right">854.0864</td>
-</tr>
-<tr class="even">
-<td align="left">hr_cos</td>
-<td align="right">947.7249</td>
-</tr>
-<tr class="odd">
-<td align="left">mon_sin</td>
-<td align="right">913.3215</td>
-</tr>
-<tr class="even">
-<td align="left">mon_cos</td>
-<td align="right">859.0090</td>
-</tr>
-<tr class="odd">
-<td align="left">sigma_theta</td>
-<td align="right">785.7880</td>
-</tr>
-</tbody>
-</table>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>ac1 <span class="ot">&lt;-</span> coda<span class="sc">::</span><span class="fu">autocorr</span>(mcmc_main, <span class="at">lag =</span> <span class="dv">1</span>)</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>ac1_mat <span class="ot">&lt;-</span> <span class="fu">drop</span>(ac1)</span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>own_ac1 <span class="ot">&lt;-</span> <span class="fu">diag</span>(ac1_mat)</span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="fu">names</span>(own_ac1) <span class="ot">&lt;-</span> <span class="fu">colnames</span>(mcmc_main)</span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">parameter =</span> <span class="fu">names</span>(own_ac1), <span class="at">lag_1_autocorr =</span> <span class="fu">as.numeric</span>(own_ac1)),</span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">4</span>,</span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Lag-1 autocorrelation (diagonal of coda::autocorr, lag = 1)&quot;</span></span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>)</span></code></pre></div>
-<table>
-<caption>Lag-1 autocorrelation (diagonal of coda::autocorr, lag =
-1)</caption>
-<thead>
-<tr class="header">
-<th align="left">parameter</th>
-<th align="right">lag_1_autocorr</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">(Intercept)</td>
-<td align="right">0.0697</td>
-</tr>
-<tr class="even">
-<td align="left">part_of_dayMorning</td>
-<td align="right">0.0775</td>
-</tr>
-<tr class="odd">
-<td align="left">part_of_dayAfternoon</td>
-<td align="right">0.0494</td>
-</tr>
-<tr class="even">
-<td align="left">part_of_dayEvening</td>
-<td align="right">0.0760</td>
-</tr>
-<tr class="odd">
-<td align="left">quarterQ2</td>
-<td align="right">0.1143</td>
-</tr>
-<tr class="even">
-<td align="left">quarterQ3</td>
-<td align="right">0.0875</td>
-</tr>
-<tr class="odd">
-<td align="left">quarterQ4</td>
-<td align="right">0.0491</td>
-</tr>
-<tr class="even">
-<td align="left">holiday</td>
-<td align="right">0.0590</td>
-</tr>
-<tr class="odd">
-<td align="left">workingday</td>
-<td align="right">0.0134</td>
-</tr>
-<tr class="even">
-<td align="left">weathersit</td>
-<td align="right">0.0754</td>
-</tr>
-<tr class="odd">
-<td align="left">hr_sin</td>
-<td align="right">0.0782</td>
-</tr>
-<tr class="even">
-<td align="left">hr_cos</td>
-<td align="right">0.0872</td>
-</tr>
-<tr class="odd">
-<td align="left">mon_sin</td>
-<td align="right">0.0448</td>
-</tr>
-<tr class="even">
-<td align="left">mon_cos</td>
-<td align="right">0.0753</td>
-</tr>
-<tr class="odd">
-<td align="left">sigma_theta</td>
-<td align="right">0.1195</td>
-</tr>
-</tbody>
-</table>
+<div id="setting-prior-point-estimates-associated-credible-intervals-and-correlation" class="section level1">
+<h1>Setting prior point estimates, associated credible intervals, and
+correlation</h1>
+<p>We are now ready to specify our two point estimates with associated
+prior credible intervals and an assumed correlation (on the link scale).
+For the first reference age (13), we will provide a point estimate of
+0.5 (50%) for the percentage of girls who have had their first period by
+age 13. To account for the possibility that this percentage was a bit
+lower in Warsaw at the time data was collected, we will assume that the
+lower end of a 90% credible interval is at 0.3 (30%).</p>
+<p>For the second reference age (15), we have not accessed as much
+meaningful data from other sources to inform the prior estimate, but we
+have a general sense that <em>“most”</em> girls likely have had their
+period by that age. Based on this, we select 0.9 (90%) as a prior point
+estimate and select 0.7 (70%) as the lower end of our associated
+credible interval.</p>
+<p>To complete the information needed to map this information to both
+prior means and a fully populated Variance-Covariance matrix, we account
+for the likely correlation between the percentage at the two ages. If
+one of our two point estimates turn out to be either too high (or low)
+for the Warsaw data, it is likely that the other estimate also could be
+too high (or low) for the data as well. To that end, we assume a prior
+0.4 correlation between the two estimates on the relevant link
+scale.</p>
+<p>Here is code setting these assumptions up.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="do">## Point estimates at reference ages</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>m1<span class="ot">=</span><span class="fl">0.5</span>  </span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>m2<span class="ot">=</span><span class="fl">0.9</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="do">## Lower bound of prior credible intervals for point estimates</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>m1_lower<span class="ot">=</span><span class="fl">0.3</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>m2_lower<span class="ot">=</span><span class="fl">0.7</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="do">## Assumed correlation between the two (on link scale)</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>m_corr<span class="ot">=</span><span class="fl">0.4</span></span></code></pre></div>
 </div>
-<div id="out-of-sample-prediction" class="section level2">
-<h2>5. Out-of-Sample Prediction</h2>
-<p>We compare two prediction strategies on the held-out test set:</p>
+<div id="mapping-the-prior-to-the-link-scale" class="section level1">
+<h1>Mapping the prior to the link scale</h1>
+<p>To be able to use the prior information in our model, the information
+has to be mapped to the link scale and the point estimates (with
+associated credible intervals) have to be mapped to a point estimate and
+uncertainty for the slope. In order to do this, we first get the
+required link function and set up the matrices into which we will store
+the prior information (<em>mu1</em> and <em>V1</em>).</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="do">## Set up link function and initialize prior mean and Variance-Covariance matrices</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>bi_logit <span class="ot">&lt;-</span> <span class="fu">binomial</span>(<span class="at">link=</span><span class="st">&quot;logit&quot;</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>mu1<span class="ot">&lt;-</span><span class="fu">matrix</span>(<span class="dv">0</span>,<span class="at">nrow=</span>nvars,<span class="at">ncol=</span><span class="dv">1</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="fu">rownames</span>(mu1)<span class="ot">=</span><span class="fu">c</span>(<span class="st">&quot;Intercept&quot;</span>,<span class="st">&quot;Age2&quot;</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="fu">colnames</span>(mu1)<span class="ot">=</span><span class="fu">c</span>(<span class="st">&quot;Prior Mean&quot;</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>V1<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">*</span><span class="fu">diag</span>(nvars)</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="fu">rownames</span>(V1)<span class="ot">=</span><span class="fu">c</span>(<span class="st">&quot;Intercept&quot;</span>,<span class="st">&quot;Age2&quot;</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="fu">colnames</span>(V1)<span class="ot">=</span><span class="fu">c</span>(<span class="st">&quot;Intercept&quot;</span>,<span class="st">&quot;Age2&quot;</span>)</span></code></pre></div>
+<p><strong>Setting the prior mean</strong></p>
+<p>This piece of code now maps the prior assumptions to the logit scale
+and sets the prior mean vector. The mean for the intercept is just the
+logit transformation of the prior point estimate while the mean for the
+slope uses the difference between the logit transformed point estimates
+divided by the Age_Difference.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="do">## Prior mean for intercept is set to point estimate </span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="do">## at reference age1 (on logit scale)</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>mu1[<span class="dv">1</span>,<span class="dv">1</span>]<span class="ot">=</span>bi_logit<span class="sc">$</span><span class="fu">linkfun</span>(m1)</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="do">## Prior mean for slope is set to difference in point estimates</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="do">## on logit scale divided by Age_Diff</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>mu1[<span class="dv">2</span>,<span class="dv">1</span>]<span class="ot">=</span>(bi_logit<span class="sc">$</span><span class="fu">linkfun</span>(m2) <span class="sc">-</span>bi_logit<span class="sc">$</span><span class="fu">linkfun</span>(m1))<span class="sc">/</span>Age_Diff </span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="fu">print</span>(mu1)</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;           Prior Mean</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; Intercept   0.000000</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; Age2        1.098612</span></span></code></pre></div>
+<p><strong>Setting the prior Variance-Covariance Matrix</strong></p>
+<p>The piece of code setting the prior variance-covariance matrix for
+this prior specification is a bit more complex. It proceeds as
+follows:</p>
 <ul>
-<li><strong>Option A (conditional):</strong> <span class="math inline">\(\hat{y}_i = \exp(x_i^\top \bar{\beta})\)</span>,
-where <span class="math inline">\(\bar{\beta}\)</span> is the posterior
-mean. No random-effect uncertainty.</li>
-<li><strong>Option B (posterior predictive):</strong> Draw <span class="math inline">\(\theta_{\text{test}} \sim N(X_{\text{test}}
-\beta^{(s)}, \sigma^{(s)2})\)</span>, then <span class="math inline">\(y
-\sim \text{Poisson}(\exp(\theta_{\text{test}}))\)</span> for each
-posterior sample <span class="math inline">\(s\)</span>; report the mean
-over samples.</li>
+<li>Calculate the prior standard deviation for each of the point
+estimates by leveraging the lower bounds</li>
+<li>Calculate the implied standard deviation for the slope using the
+formula for the variance of differences</li>
+<li>Calculate the implied covariance between the intercept and the
+slope</li>
+<li>Populate the Prior Variance-Covariance matrix using the derived
+information</li>
 </ul>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>beta_mean <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(beta_out)</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>sigma_mean <span class="ot">&lt;-</span> <span class="fu">mean</span>(sigma_out)</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co"># Option A: conditional mean</span></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>y_pred_cond <span class="ot">&lt;-</span> <span class="fu">exp</span>(X_test <span class="sc">%*%</span> beta_mean)</span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>mae_cond  <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">abs</span>(y_test <span class="sc">-</span> y_pred_cond))</span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>rmse_cond <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">mean</span>((y_test <span class="sc">-</span> y_pred_cond)<span class="sc">^</span><span class="dv">2</span>))</span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a></span>
-<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co"># Option B: posterior predictive mean</span></span>
-<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>n_pred <span class="ot">&lt;-</span> <span class="dv">500</span></span>
-<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>y_pred_samples <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> n_pred, <span class="at">ncol =</span> n_test)</span>
-<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="cf">for</span> (s <span class="cf">in</span> <span class="fu">seq_len</span>(n_pred)) {</span>
-<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>  idx_s <span class="ot">&lt;-</span> <span class="fu">sample</span>(n_sim, <span class="dv">1</span>)</span>
-<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>  beta_s  <span class="ot">&lt;-</span> beta_out[idx_s, ]</span>
-<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>  sigma_s <span class="ot">&lt;-</span> sigma_out[idx_s]</span>
-<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>  theta_test <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n_test, <span class="at">mean =</span> X_test <span class="sc">%*%</span> beta_s, <span class="at">sd =</span> sigma_s)</span>
-<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>  y_pred_samples[s, ] <span class="ot">&lt;-</span> <span class="fu">rpois</span>(n_test, <span class="at">lambda =</span> <span class="fu">exp</span>(theta_test))</span>
-<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>}</span>
-<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>y_pred_mean <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(y_pred_samples)</span>
-<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>mae_pp  <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">abs</span>(y_test <span class="sc">-</span> y_pred_mean))</span>
-<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>rmse_pp <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">mean</span>((y_test <span class="sc">-</span> y_pred_mean)<span class="sc">^</span><span class="dv">2</span>))</span>
-<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a></span>
-<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Option A (conditional): MAE =&quot;</span>, <span class="fu">round</span>(mae_cond, <span class="dv">2</span>), <span class="st">&quot; RMSE =&quot;</span>, <span class="fu">round</span>(rmse_cond, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="co">#&gt; Option A (conditional): MAE = 87.27  RMSE = 136.55</span></span>
-<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Option B (post. pred.): MAE =&quot;</span>, <span class="fu">round</span>(mae_pp, <span class="dv">2</span>), <span class="st">&quot; RMSE =&quot;</span>, <span class="fu">round</span>(rmse_pp, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="co">#&gt; Option B (post. pred.): MAE = 96.16  RMSE = 137.24</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="do">## Implied standard deviations for point estimates on logit scale</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>sd_m1<span class="ot">=</span> (bi_logit<span class="sc">$</span><span class="fu">linkfun</span>(m1) <span class="sc">-</span>bi_logit<span class="sc">$</span><span class="fu">linkfun</span>(m1_lower))<span class="sc">/</span><span class="fl">1.96</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>sd_m2<span class="ot">=</span> (bi_logit<span class="sc">$</span><span class="fu">linkfun</span>(m2) <span class="sc">-</span>bi_logit<span class="sc">$</span><span class="fu">linkfun</span>(m2_lower))<span class="sc">/</span><span class="fl">1.96</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="do">## Also compute implied estimate for upper bound of confidence intervals</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>m1_upper<span class="ot">=</span>bi_logit<span class="sc">$</span><span class="fu">linkinv</span>(bi_logit<span class="sc">$</span><span class="fu">linkfun</span>(m1)<span class="sc">+</span>sd_m1<span class="sc">*</span><span class="fl">1.96</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>m2_upper<span class="ot">=</span>bi_logit<span class="sc">$</span><span class="fu">linkinv</span>(bi_logit<span class="sc">$</span><span class="fu">linkfun</span>(m2)<span class="sc">+</span>sd_m2<span class="sc">*</span><span class="fl">1.96</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;m1_upper is:&quot;</span>)</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; [1] &quot;m1_upper is:&quot;</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>m1_upper</span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="co">#&gt; [1] 0.7</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;m2_upper is:&quot;</span>)</span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="co">#&gt; [1] &quot;m2_upper is:&quot;</span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>m2_upper</span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="co">#&gt; [1] 0.972</span></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a><span class="do">## Implied Standard deviation for slope (using variance formula for difference between two variables)</span></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>a<span class="ot">=</span>(<span class="dv">1</span><span class="sc">/</span>Age_Diff)</span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a>sd_slope<span class="ot">=</span><span class="fu">sqrt</span>((a<span class="sc">*</span>sd_m1)<span class="sc">^</span><span class="dv">2</span><span class="sc">+</span>(a<span class="sc">*</span>sd_m2)<span class="sc">^</span><span class="dv">2-2</span><span class="sc">*</span>a<span class="sc">*</span>a<span class="sc">*</span>(sd_m1<span class="sc">*</span>sd_m2<span class="sc">*</span>m_corr))</span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a></span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="co">#Cov(m1,slope)=cov(m1, a*(m2-m1)) =a*E[(m1-E[m1])((m2-m1)-E[m2-m1])]</span></span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="co">#   =a*E[(m1-E[m1])(m2-E[m2])]- a* E[(m1-E[m1])(m1-E[m1])]</span></span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="do">##   =a*Cov[m1,m2] - a*Var[m1]</span></span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="do">##  =a*sd_m1*sd_m2*m_corr-a* sd_m1*sd_m1</span></span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a>cov_V1<span class="ot">=</span>a<span class="sc">*</span>sd_m1<span class="sc">*</span>sd_m2<span class="sc">*</span>m_corr<span class="sc">-</span>a<span class="sc">*</span> sd_m1<span class="sc">*</span>sd_m1</span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a></span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a><span class="co"># Set covariance matrix</span></span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a>V1[<span class="dv">1</span>,<span class="dv">1</span>]<span class="ot">=</span>sd_m1<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a>V1[<span class="dv">2</span>,<span class="dv">2</span>]<span class="ot">=</span>sd_slope<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a>V1[<span class="dv">1</span>,<span class="dv">2</span>]<span class="ot">=</span>cov_V1</span>
+<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a>V1[<span class="dv">2</span>,<span class="dv">1</span>]<span class="ot">=</span>V1[<span class="dv">1</span>,<span class="dv">2</span>]</span>
+<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;V1 is:&quot;</span>)</span>
+<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a><span class="co">#&gt; [1] &quot;V1 is:&quot;</span></span>
+<span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a><span class="fu">print</span>(V1)</span>
+<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a><span class="co">#&gt;             Intercept        Age2</span></span>
+<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a><span class="co">#&gt; Intercept  0.18687882 -0.03389182</span></span>
+<span id="cb7-40"><a href="#cb7-40" tabindex="-1"></a><span class="co">#&gt; Age2      -0.03389182  0.10576217</span></span></code></pre></div>
 </div>
-<div id="summary" class="section level2">
-<h2>6. Summary</h2>
-<table>
-<colgroup>
-<col width="40%" />
-<col width="59%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Component</th>
-<th>Implementation</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Block 1 (population)</strong></td>
-<td><code>rglmb(1, theta, X, family = gaussian(), pfamily = dNormal_Gamma(...))</code></td>
-</tr>
-<tr class="even">
-<td><strong>Block 2 (observations)</strong></td>
-<td>For each <span class="math inline">\(i\)</span>:
-<code>rglmb(1, y[i], matrix(1,1,1), family = poisson(), pfamily = dNormal(mu_i, sigma^2))</code></td>
-</tr>
-<tr class="odd">
-<td><strong>Prior for <span class="math inline">\(\beta,
-\sigma^2\)</span></strong></td>
-<td>From <code>Prior_Setup</code> on <span class="math inline">\(\theta
-\sim X\beta\)</span> (Gaussian)</td>
-</tr>
-<tr class="even">
-<td><strong>Data</strong></td>
-<td>BikeSharing (1% train, 99% test for vignette)</td>
-</tr>
-<tr class="odd">
-<td><strong>Vignette chain</strong></td>
-<td>Precomputed <code>BikeSharing_ch14_gibbs.rds</code> (200 burn-in,
-1000 stored iterations)</td>
-</tr>
-</tbody>
-</table>
-<p>For longer runs and full diagnostics, see
-<strong><code>demo(&quot;Ex_09_BikeSharingPoisson&quot;)</code></strong>. For
-hierarchical linear models, see Chapter 13.</p>
+<div id="running-the-model" class="section level1">
+<h1>Running the Model</h1>
+<p>We are now ready to run a Logit model using the above specification.
+As a best practice, we recommend creating a data frame holding all the
+variables used in the model formula and to use it as the “data” for the
+model. We will show how this data can be used an an input to the
+prediction function in the next Chapter.</p>
+<p>The below code performs the step creating the Model data frame and
+then submits the model.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>Menarche_Model_Data<span class="ot">=</span><span class="fu">data.frame</span>(<span class="at">Age=</span>menarche<span class="sc">$</span>Age,<span class="at">Total=</span><span class="fu">as.integer</span>(menarche<span class="sc">$</span>Total),</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="at">Menarche=</span><span class="fu">as.integer</span>(menarche<span class="sc">$</span>Menarche),Age2)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>glmb.out1<span class="ot">&lt;-</span><span class="fu">glmb</span>(<span class="at">n=</span><span class="dv">1000</span>,<span class="fu">cbind</span>(Menarche, <span class="fu">as.integer</span>(Total<span class="sc">-</span>Menarche)) <span class="sc">~</span>Age2,<span class="at">family=</span><span class="fu">binomial</span>(logit),</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="at">pfamily=</span><span class="fu">dNormal</span>(<span class="at">mu=</span>mu1,<span class="at">Sigma=</span>V1),<span class="at">data=</span>Menarche_Model_Data)</span></code></pre></div>
+<p><strong>Reviewing the printed output</strong></p>
+<p>To get a first read of the results, we now print the results of the
+model and re-print the prior mean specification so that we can do an
+initial comparison of the prior to the estimated posterior means.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co"># Print model output</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="fu">print</span>(glmb.out1)</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; Call:  glmb(formula = cbind(Menarche, as.integer(Total - Menarche)) ~ </span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt;     Age2, family = binomial(logit), pfamily = dNormal(mu = mu1, </span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt;     Sigma = V1), n = 1000, data = Menarche_Model_Data)</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; Posterior Mean Coefficients:</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt; (Intercept)         Age2  </span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt;    -0.01315      1.61811  </span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 1.864916 </span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 28.62598 </span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt; DIC: 114.5427</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co"># Print prior mean as comparison</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">t</span>(mu1))</span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a><span class="co">#&gt;            Intercept     Age2</span></span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a><span class="co">#&gt; Prior Mean         0 1.098612</span></span></code></pre></div>
+<p>In reviewing the coefficients, we see that the intercepts look quite
+close, so our prior estimate at age 13 does not seem to have been a bad
+estimate for what the Warsaw data suggests. Our prior estimate for the
+slope parameter seems to be a bit lower than the posterior mean estimate
+but without information on the standard error or credible intervals
+connected to the posterior mean, we can’t tell how off it might have
+been. We ignore the other printed output for now (it will be discussed
+in the next chapter) and instead turn to a more extensive model
+summary.</p>
+<p><strong>Summarizing the model</strong></p>
+<p>To get a more detailed view of the model output, we simply use the
+summary function and its print method much like you would to generate a
+summary for output from the <em>glm</em> function. This results in a
+printed view with several sections of outputs</p>
+<ul>
+<li>Expected Deviance Residuals (Discussed more in the next
+Chapter)</li>
+<li>Prior and Maximum Likelihood Estimates with Standard Deviations</li>
+<li>Bayesian Estimates Based on iid draws from the posterior (in this
+case 1000 draws)</li>
+<li>Distribution Percentiles (Credible Interval type information)</li>
+<li>DIC related information (Discussed more in the next chapter)</li>
+<li>Information related to the number of candidates per iid draw
+(discussed more in one of our Appendix chapters)</li>
+</ul>
+<p>We discuss several of these after the print view of the output from
+the call to the summary function.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">summary</span>(glmb.out1)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="co">#&gt; Call</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="co">#&gt; glmb(formula = cbind(Menarche, as.integer(Total - Menarche)) ~ Age2, family = binomial(logit), pfamily = dNormal(mu = mu1, Sigma = V1), n = 1000, data = Menarche_Model_Data) </span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co">#&gt; Expected Residuals:</span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="co">#&gt;        Min         1Q     Median         3Q        Max </span></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co">#&gt; -2.0808495 -1.0050703 -0.4376242  0.7242376  1.3361087 </span></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt; Prior and Maximum Likelihood Estimates with Standard Deviations</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt;             Null Mode Prior Mean Prior.sd Max Like. Like.sd</span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#&gt; (Intercept)   0.36015    0.00000  0.43229  -0.01081   0.063</span></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co">#&gt; Age2          0.00000    1.09861  0.32521   1.63197   0.059</span></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co">#&gt; Bayesian Estimates Based on 1000 iid draws</span></span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a><span class="co">#&gt;             Post.Mode Post.Mean   Post.Sd  MC Error Pr(Null_tail) SE(tail)</span></span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.013688 -0.013152  0.060603  0.001916      0.000000    0.016</span></span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a><span class="co">#&gt; Age2         1.614377  1.618109  0.056418  0.001784      0.000000    0.000</span></span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a><span class="co">#&gt;             Pr(Prior_tail)    </span></span>
+<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a><span class="co">#&gt; (Intercept)          0.416    </span></span>
+<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a><span class="co">#&gt; Age2                &lt;2e-16 ***</span></span>
+<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a><span class="co">#&gt;   Directional Tail Summaries:</span></span>
+<span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-27"><a href="#cb10-27" tabindex="-1"></a><span class="co">#&gt;                Metric vs Null vs Prior</span></span>
+<span id="cb10-28"><a href="#cb10-28" tabindex="-1"></a><span class="co">#&gt;  Mahalanobis Distance 28.7658   9.0930</span></span>
+<span id="cb10-29"><a href="#cb10-29" tabindex="-1"></a><span class="co">#&gt;      Tail Probability  0.0000   0.0000</span></span>
+<span id="cb10-30"><a href="#cb10-30" tabindex="-1"></a><span class="co">#&gt;   [Tail probabilities are P(delta^T * Z &lt;= 0) in whitened space]</span></span>
+<span id="cb10-31"><a href="#cb10-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-32"><a href="#cb10-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-33"><a href="#cb10-33" tabindex="-1"></a><span class="co">#&gt; Distribution Percentiles</span></span>
+<span id="cb10-34"><a href="#cb10-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-35"><a href="#cb10-35" tabindex="-1"></a><span class="co">#&gt;                 1.0%     2.5%     5.0%   Median    95.0%    97.5% 99.0%</span></span>
+<span id="cb10-36"><a href="#cb10-36" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.15153 -0.12906 -0.11458 -0.01223  0.08683  0.11022 0.134</span></span>
+<span id="cb10-37"><a href="#cb10-37" tabindex="-1"></a><span class="co">#&gt; Age2         1.48839  1.50671  1.52609  1.61786  1.70963  1.73204 1.749</span></span>
+<span id="cb10-38"><a href="#cb10-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-39"><a href="#cb10-39" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 1.864916 </span></span>
+<span id="cb10-40"><a href="#cb10-40" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 28.62598 </span></span>
+<span id="cb10-41"><a href="#cb10-41" tabindex="-1"></a><span class="co">#&gt; DIC: 114.5427 </span></span>
+<span id="cb10-42"><a href="#cb10-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-43"><a href="#cb10-43" tabindex="-1"></a><span class="co">#&gt; Expected Mean dispersion: 1 </span></span>
+<span id="cb10-44"><a href="#cb10-44" tabindex="-1"></a><span class="co">#&gt; Sq.root of Expected Mean dispersion: 1 </span></span>
+<span id="cb10-45"><a href="#cb10-45" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-46"><a href="#cb10-46" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 1.276</span></span></code></pre></div>
+<p><em>Interpreting the “Prior and Maximum Likelihood Estimates with
+Standard Deviations” table</em></p>
+<p>This table gives a side-by-side comparison of the prior and the data
+driven maximum likelihood estimates (that should match the ouput from
+the glm function for the same model). In addition to revealing any
+differences in the estimates themselves, the relative magnitude of the
+standard deviations give insight into how “strong” the prior
+specification is relative to the information contained in the data. The
+unstandardized weights on the prior and data respectively are in most
+cases likely to be close to <em>(1/sd_prior)^2</em> and
+<em>(1/sd_data)^2</em> respectively. The fact that the prior standard
+deviations are much larger in this case tells us that the posterior mean
+estimates are likely to be much closer to the maximum likelihood
+estimates than to the prior estimates.</p>
+<p><em>Interpreting the “Bayesian Estimates Based on 1000 iid draws
+table</em></p>
+<p>This table gives more information related to the estimates seen in
+the print output. We now have a view of both the posterior mode and
+posterior mean. If these were substantially different, it would indicate
+that the posterior density had substantial asymmetry. The posterior
+standard deviation will generally be smaller than both the prior and the
+likelihood standard deviations. In this case, the posterior standard
+deviation for the <em>intercept</em> appears to be nearly the same as
+the likelihood standard deviation while the posterior standard deviation
+for <em>Age2</em> is substantially smaller (suggesting some weight on
+the prior).</p>
+<p>The tail probability gives the probability (under the posterior
+density) of the true coefficient being at least as far away from the
+center as the prior point estimate. In this case, there is ~44%
+probability of the intercept being greater than 0 but only a ~0.01%
+chance that the Age2 coefficient is smaller than the prior point
+estimate of 1.098. The latter is flagged as highly significant
+suggesting that the true slope coefficient is substantially larger than
+the prior point estimate.</p>
+<p>The MC error column gives a sense of any error in the estimates
+driven by the fact that we are using monte carlo simulation to generate
+our estimates. In this case, we used 1000 draws which appears to have
+been enough to make this error small. The user can experiment with this
+to see how the errors increase if we base the estimates on a smaller
+number of draws. In general, it is not recommended to interpret model
+output based on small number of draws. On the other hand, the fact that
+estimates are iid draws as opposed to Markov Chain Monte Carlo outputs
+eliminates any need for convergence diagnostics and burn-in phases.</p>
+<p><em>Interpreting the “Distribution Percentile” table</em></p>
+<p>This table providence credible interval information at several
+significance levels for the model. It gives the user insight into the
+range of most of the support for the posterior density and how it
+compares to both the prior and maximum likelihood point estimates. In
+this case, we can see that the prior point estimate for the intercept is
+close to the center of the density while the prior point estimate is far
+away from it.</p>
+<p><em>Brief discussion of Findings from model</em></p>
+<p>As we noted above, the posterior estimates for the intercept appear
+broadly consistent with the prior specification, so in a sense our prior
+beliefs are “validated” for the 13 year old girls. As the slope is
+substantially larger than in our prior specification, however, it seems
+like we underestimated the % of girls at age 15 who had already had
+their first period. The percentage is apparently substantially higher
+than the 90% we specificed using our prior and if we are Bayesians we
+should hence update our beliefs substantially based on the data. To
+understand exactly how much requires us to look at the model
+predictions(in particular predictions on the inverse link scale). We
+will do so in a later chapter.</p>
 </div>
+<div id="concluding-discussion" class="section level1">
+<h1>Concluding Discussion</h1>
+<p>In this note, we walked through an example illustrating a process for
+setting of the prior in the case of the <em>Age of Menarche</em> model
+based on the data in <span class="citation">(Venables and Ripley
+2002)</span>. There are several approaches taken here the we believe
+analysts can find useful in setting reasonable priors. These
+include:</p>
+<ul>
+<li>Centering variables so that the intercept can be given a meaningful
+prior and so that meaningful priors for the other variables can be
+formulated based on sensitivity in the support of data</li>
+<li>Incorporating external information if available (like our
+information regarding the average age of Menarche in the UK)</li>
+<li>Making reasonable assumptions based on other knowledge/insight
+(e.g., our prior point estimate at age 15)</li>
+</ul>
+<p>In the next section, we will take a take a look at how the analysts
+can check whether the data seems consistent with the specified
+prior.</p>
 </div>
 <div id="bibliography" class="section level1 unnumbered">
 <h1 class="unnumbered">References</h1>
 <div id="refs" class="references csl-bib-body hanging-indent">
-<div id="ref-Gelman2013" class="csl-entry">
-Gelman, Andrew, John B. Carlin, Hal S. Stern, David B. Dunson, Aki
-Vehtari, and Donald B. Rubin. 2013. <em>Bayesian Data Analysis</em>. 3rd
-ed. CRC Press.
+<div id="ref-HamiltonFairley2004" class="csl-entry">
+Hamilton-Fairley, Diana. 2004. <em>Lecture Notes: Obstetrics and
+Gynaecology</em>. Blackwell Publishing.
 </div>
-<div id="ref-GelmanHill2007" class="csl-entry">
-Gelman, Andrew, and Jennifer Hill. 2007. <em>Data Analysis Using
-Regression and Multilevel/Hierarchical Models</em>. Cambridge University
-Press.
+<div id="ref-Nygren2006" class="csl-entry">
+Nygren, K. N., and L. M. Nygren. 2006. <span>“<span>Likelihood
+Subgradient Densities</span>.”</span> <em>Journal of the American
+Statistical Association</em> 101 (475): 1144–56. <a href="https://doi.org/10.1198/016214506000000357">https://doi.org/10.1198/016214506000000357</a>.
 </div>
-<div id="ref-PlummerEtAl2006" class="csl-entry">
-Plummer, Martyn, Nicky Best, Kate Cowles, and Karen Vines. 2006.
-<span>“<span>CODA</span>: Convergence Diagnosis and Output Analysis for
-<span>MCMC</span>.”</span> <em>R News</em> 6 (1): 7–11. <a href="https://CRAN.R-project.org/doc/Rnews/">https://CRAN.R-project.org/doc/Rnews/</a>.
-</div>
-<div id="ref-RobertCasella2004" class="csl-entry">
-Robert, Christian P., and George Casella. 2004. <em>Monte Carlo
-Statistical Methods</em>. 2nd ed. Springer.
+<div id="ref-VenablesRipley2002" class="csl-entry">
+Venables, W. N., and B. D. Ripley. 2002. <em><span class="nocase">Modern
+Applied Statistics with S</span></em>. Springer.
 </div>
 </div>
 </div>

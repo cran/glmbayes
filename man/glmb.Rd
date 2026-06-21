@@ -215,6 +215,15 @@ Currently supported response families are
 \code{quasibinomial} (logit, probit, cloglog). All families support a
 \code{dNormal} prior; the Gaussian family also offers
 \code{dNormalGamma} and \code{dIndependent_Normal_Gamma}.
+Two conjugate pfamilies add closed-form IID sampling for intercept-only
+models with an identity link: \code{\link{dBeta}} for
+\code{binomial(link = "identity")} (Beta--Binomial conjugacy) and
+\code{\link{dGamma}(Inv_Dispersion = FALSE)} for
+\code{poisson(link = "identity")} and \code{Gamma(link = "identity")}
+(Gamma--Poisson and Gamma--Gamma rate conjugacy).
+For dispersion estimation with fixed coefficients, \code{\link{dGamma}}
+(default \code{Inv_Dispersion = TRUE}) places a Gamma prior on the
+inverse dispersion for Gaussian and Gamma(log) models.
 
 For the Gaussian family, draws under \code{dNormal} and
 \code{dNormalGamma} come from posterior distributions resulting from conjugate
@@ -278,7 +287,7 @@ family=binomial(logit),pfamily=dNormal(mu=ps1$mu,Sigma=ps1$Sigma), data=menarche
 summary(glmb.out1)
 
 ## Posterior mean fitted probabilities on the response scale (see also
-## \code{vignette("Chapter-04", package = "glmbayes")})
+## \code{vignette("Chapter-05", package = "glmbayes")})
 require(graphics)
 pred1 <- predict(glmb.out1, type = "response")
 pred1_m <- colMeans(pred1)
