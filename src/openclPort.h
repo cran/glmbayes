@@ -91,21 +91,7 @@ int detect_num_gpus_internal();
 
 
 // -------------------------------------------------------------------------
-// R-facing wrappers for kernel source loading
-// -------------------------------------------------------------------------
-std::string load_kernel_source_wrapper(
-    std::string relative_path,
-    std::string package = "glmbayes"
-);
-
-std::string load_kernel_library_wrapper(
-    std::string subdir,
-    std::string package = "glmbayes",
-    bool verbose = false
-);
-
-// -------------------------------------------------------------------------
-// Device / OpenCL utilities
+// R-facing wrappers for OpenCL build probes
 // -------------------------------------------------------------------------
 
 bool has_opencl();
@@ -135,6 +121,26 @@ std::string load_kernel_library(
     const std::string& package = "glmbayes",
     bool verbose = false
 );
+
+// Minimal library subset from a kernel annotation; kernel and library may
+// live in different installed packages (paths relative to inst/cl/).
+std::string load_library_for_kernel(
+    const std::string& kernel_relative_path,
+    const std::string& library_subdir,
+    const std::string& package,
+    const std::string& depends_tag);
+
+std::string load_library_for_kernel_cross_package(
+    const std::string& kernel_relative_path,
+    const std::string& kernel_package,
+    const std::string& library_subdir,
+    const std::string& library_package,
+    const std::string& depends_tag);
+
+std::string load_program_preload(
+    const std::string& manifest_relative_path = "program_preload_manifest.tsv",
+    const std::string& source_package = "nmathopencl",
+    bool verbose = false);
 
 struct OpenCLConfig {
   bool have_expm1;

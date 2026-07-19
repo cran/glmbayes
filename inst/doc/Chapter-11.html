@@ -749,8 +749,8 @@ with known dispersion<br />
 <span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; glmb(formula = Cost/Claims ~ Merit + Class, family = Gamma(link = &quot;log&quot;), pfamily = dNormal(mu = mu, Sigma = V, dispersion = disp), weights = Claims) </span></span>
 <span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; Expected Residuals:</span></span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt;       Min        1Q    Median        3Q       Max </span></span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt; -5.997144 -2.129342 -0.316224  2.288881  6.335870 </span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt;        Min         1Q     Median         3Q        Max </span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt; -6.0192013 -2.1836810 -0.3780228  2.2489274  6.3290123 </span></span>
 <span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; Prior and Maximum Likelihood Estimates with Standard Deviations</span></span>
 <span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
@@ -767,29 +767,29 @@ with known dispersion<br />
 <span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a><span class="co">#&gt; Bayesian Estimates Based on 1000 iid draws</span></span>
 <span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="co">#&gt;              Post.Mode  Post.Mean    Post.Sd   MC Error Pr(Null_tail) SE(tail)</span></span>
-<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="co">#&gt; (Intercept) -1.1747274 -1.1748529  0.0124049  0.0003923     0.2580000    0.003</span></span>
-<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="co">#&gt; Merit1      -0.0682525 -0.0683218  0.0201660  0.0006377     0.0000000    0.000</span></span>
-<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="co">#&gt; Merit2      -0.0698241 -0.0694499  0.0214487  0.0006783     0.0000000    0.000</span></span>
-<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a><span class="co">#&gt; Merit3      -0.0563841 -0.0563838  0.0131616  0.0004162     0.0000000    0.000</span></span>
-<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a><span class="co">#&gt; Class2       0.0822404  0.0820492  0.0206730  0.0006537     0.0000000    0.000</span></span>
-<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a><span class="co">#&gt; Class3       0.0157394  0.0155303  0.0141560  0.0004477     0.1320000    0.011</span></span>
-<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a><span class="co">#&gt; Class4       0.1588636  0.1590965  0.0146758  0.0004641     0.0000000    0.000</span></span>
-<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a><span class="co">#&gt; Class5      -0.0809389 -0.0805547  0.0307857  0.0009735     0.0070000    0.003</span></span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="co">#&gt; (Intercept) -1.1747274 -1.1743770  0.0111544  0.0003527     0.2310000    0.003</span></span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="co">#&gt; Merit1      -0.0682525 -0.0672917  0.0191945  0.0006070     0.0010000    0.001</span></span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="co">#&gt; Merit2      -0.0698241 -0.0698061  0.0216938  0.0006860     0.0010000    0.001</span></span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a><span class="co">#&gt; Merit3      -0.0563841 -0.0567301  0.0118564  0.0003749     0.0000000    0.000</span></span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a><span class="co">#&gt; Class2       0.0822404  0.0821277  0.0201193  0.0006362     0.0000000    0.000</span></span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a><span class="co">#&gt; Class3       0.0157394  0.0158483  0.0136378  0.0004313     0.1280000    0.011</span></span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a><span class="co">#&gt; Class4       0.1588636  0.1589895  0.0150561  0.0004761     0.0000000    0.000</span></span>
+<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a><span class="co">#&gt; Class5      -0.0809389 -0.0794785  0.0302344  0.0009561     0.0040000    0.002</span></span>
 <span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a><span class="co">#&gt;             Pr(Prior_tail)    </span></span>
-<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a><span class="co">#&gt; (Intercept)          0.012 *  </span></span>
-<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a><span class="co">#&gt; Merit1              &lt;2e-16 ***</span></span>
-<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a><span class="co">#&gt; Merit2              &lt;2e-16 ***</span></span>
+<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a><span class="co">#&gt; (Intercept)          0.007 ** </span></span>
+<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a><span class="co">#&gt; Merit1               0.001 ** </span></span>
+<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a><span class="co">#&gt; Merit2               0.001 ** </span></span>
 <span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a><span class="co">#&gt; Merit3              &lt;2e-16 ***</span></span>
 <span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a><span class="co">#&gt; Class2              &lt;2e-16 ***</span></span>
-<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a><span class="co">#&gt; Class3               0.132    </span></span>
+<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a><span class="co">#&gt; Class3               0.128    </span></span>
 <span id="cb7-40"><a href="#cb7-40" tabindex="-1"></a><span class="co">#&gt; Class4              &lt;2e-16 ***</span></span>
-<span id="cb7-41"><a href="#cb7-41" tabindex="-1"></a><span class="co">#&gt; Class5               0.007 ** </span></span>
+<span id="cb7-41"><a href="#cb7-41" tabindex="-1"></a><span class="co">#&gt; Class5               0.004 ** </span></span>
 <span id="cb7-42"><a href="#cb7-42" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
 <span id="cb7-43"><a href="#cb7-43" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
 <span id="cb7-44"><a href="#cb7-44" tabindex="-1"></a><span class="co">#&gt;   Directional Tail Summaries:</span></span>
 <span id="cb7-45"><a href="#cb7-45" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb7-46"><a href="#cb7-46" tabindex="-1"></a><span class="co">#&gt;                Metric vs Null vs Prior</span></span>
-<span id="cb7-47"><a href="#cb7-47" tabindex="-1"></a><span class="co">#&gt;  Mahalanobis Distance 16.7241  15.8947</span></span>
+<span id="cb7-47"><a href="#cb7-47" tabindex="-1"></a><span class="co">#&gt;  Mahalanobis Distance 16.6888  15.8866</span></span>
 <span id="cb7-48"><a href="#cb7-48" tabindex="-1"></a><span class="co">#&gt;      Tail Probability  0.0000   0.0000</span></span>
 <span id="cb7-49"><a href="#cb7-49" tabindex="-1"></a><span class="co">#&gt;   [Tail probabilities are P(delta^T * Z &lt;= 0) in whitened space]</span></span>
 <span id="cb7-50"><a href="#cb7-50" tabindex="-1"></a><span class="co">#&gt; </span></span>
@@ -797,23 +797,23 @@ with known dispersion<br />
 <span id="cb7-52"><a href="#cb7-52" tabindex="-1"></a><span class="co">#&gt; Distribution Percentiles</span></span>
 <span id="cb7-53"><a href="#cb7-53" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb7-54"><a href="#cb7-54" tabindex="-1"></a><span class="co">#&gt;                  1.0%      2.5%      5.0%    Median     95.0%     97.5%  99.0%</span></span>
-<span id="cb7-55"><a href="#cb7-55" tabindex="-1"></a><span class="co">#&gt; (Intercept) -1.202788 -1.198393 -1.196130 -1.174662 -1.154046 -1.150353 -1.148</span></span>
-<span id="cb7-56"><a href="#cb7-56" tabindex="-1"></a><span class="co">#&gt; Merit1      -0.114875 -0.105898 -0.099868 -0.067881 -0.034968 -0.027306 -0.021</span></span>
-<span id="cb7-57"><a href="#cb7-57" tabindex="-1"></a><span class="co">#&gt; Merit2      -0.119475 -0.110285 -0.103639 -0.068959 -0.035013 -0.027636 -0.019</span></span>
-<span id="cb7-58"><a href="#cb7-58" tabindex="-1"></a><span class="co">#&gt; Merit3      -0.086946 -0.082139 -0.078211 -0.056405 -0.035365 -0.031042 -0.025</span></span>
-<span id="cb7-59"><a href="#cb7-59" tabindex="-1"></a><span class="co">#&gt; Class2       0.031115  0.040998  0.048813  0.081588  0.116481  0.123424  0.128</span></span>
-<span id="cb7-60"><a href="#cb7-60" tabindex="-1"></a><span class="co">#&gt; Class3      -0.017186 -0.011762 -0.007127  0.015565  0.039685  0.043562  0.048</span></span>
-<span id="cb7-61"><a href="#cb7-61" tabindex="-1"></a><span class="co">#&gt; Class4       0.124614  0.129955  0.134472  0.159205  0.182577  0.187139  0.193</span></span>
-<span id="cb7-62"><a href="#cb7-62" tabindex="-1"></a><span class="co">#&gt; Class5      -0.153963 -0.138125 -0.129093 -0.079072 -0.031762 -0.019854 -0.008</span></span>
+<span id="cb7-55"><a href="#cb7-55" tabindex="-1"></a><span class="co">#&gt; (Intercept) -1.199032 -1.195703 -1.192581 -1.174275 -1.156230 -1.152994 -1.150</span></span>
+<span id="cb7-56"><a href="#cb7-56" tabindex="-1"></a><span class="co">#&gt; Merit1      -0.108359 -0.104127 -0.098510 -0.067569 -0.035254 -0.028845 -0.019</span></span>
+<span id="cb7-57"><a href="#cb7-57" tabindex="-1"></a><span class="co">#&gt; Merit2      -0.118680 -0.110933 -0.104502 -0.069690 -0.034032 -0.024334 -0.019</span></span>
+<span id="cb7-58"><a href="#cb7-58" tabindex="-1"></a><span class="co">#&gt; Merit3      -0.083723 -0.079862 -0.076568 -0.056651 -0.037301 -0.033765 -0.028</span></span>
+<span id="cb7-59"><a href="#cb7-59" tabindex="-1"></a><span class="co">#&gt; Class2       0.038094  0.043971  0.049891  0.082011  0.116536  0.121888  0.126</span></span>
+<span id="cb7-60"><a href="#cb7-60" tabindex="-1"></a><span class="co">#&gt; Class3      -0.015663 -0.011753 -0.008022  0.016194  0.038735  0.042798  0.047</span></span>
+<span id="cb7-61"><a href="#cb7-61" tabindex="-1"></a><span class="co">#&gt; Class4       0.124575  0.128416  0.134697  0.158663  0.183604  0.189601  0.195</span></span>
+<span id="cb7-62"><a href="#cb7-62" tabindex="-1"></a><span class="co">#&gt; Class5      -0.152808 -0.137849 -0.128352 -0.079690 -0.027998 -0.021814 -0.012</span></span>
 <span id="cb7-63"><a href="#cb7-63" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-64"><a href="#cb7-64" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 8.151565 </span></span>
-<span id="cb7-65"><a href="#cb7-65" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 220.873 </span></span>
-<span id="cb7-66"><a href="#cb7-66" tabindex="-1"></a><span class="co">#&gt; DIC: -106.9279 </span></span>
+<span id="cb7-64"><a href="#cb7-64" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 7.713254 </span></span>
+<span id="cb7-65"><a href="#cb7-65" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 217.5221 </span></span>
+<span id="cb7-66"><a href="#cb7-66" tabindex="-1"></a><span class="co">#&gt; DIC: -107.7936 </span></span>
 <span id="cb7-67"><a href="#cb7-67" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb7-68"><a href="#cb7-68" tabindex="-1"></a><span class="co">#&gt; Expected Mean dispersion: 7.840919 </span></span>
 <span id="cb7-69"><a href="#cb7-69" tabindex="-1"></a><span class="co">#&gt; Sq.root of Expected Mean dispersion: 2.800164 </span></span>
 <span id="cb7-70"><a href="#cb7-70" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-71"><a href="#cb7-71" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 2.64</span></span>
+<span id="cb7-71"><a href="#cb7-71" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 2.551</span></span>
 <span id="cb7-72"><a href="#cb7-72" tabindex="-1"></a>    <span class="fu">options</span>(oldopt)</span></code></pre></div>
 <p>The Bayesian summary will report:</p>
 <ul>

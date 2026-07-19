@@ -12,7 +12,7 @@
 
 <meta name="author" content="Kjell Nygren" />
 
-<meta name="date" content="2026-06-21" />
+<meta name="date" content="2026-07-19" />
 
 <title>Chapter 04: Tailoring priors — leveraging the Prior_Setup function</title>
 
@@ -364,7 +364,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Chapter 04: Tailoring priors — leveraging
 the Prior_Setup function</h1>
 <h4 class="author">Kjell Nygren</h4>
-<h4 class="date">2026-06-21</h4>
+<h4 class="date">2026-07-19</h4>
 
 
 
@@ -1104,237 +1104,58 @@ deviations and display the resulting output.</p>
 <span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a>sum_lmbcars7<span class="ot">&lt;-</span><span class="fu">summary</span>(lmb_cars7)</span>
 <span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a>sum_lmbcars7</span>
 <span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a><span class="co">#&gt; Call</span></span>
-<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a><span class="co">#&gt; lmb(formula = gpm ~ c_wt + c_cyl, pfamily = structure(list(pfamily = &quot;dNormal&quot;, prior_list = structure(list(mu = structure(c(0.0542272395141698, 0, 0), dim = c(3L, 1L), dimnames = list(c(&quot;(Intercept)&quot;, &quot;c_wt&quot;, &quot;c_cyl&quot;), &quot;mu&quot;)), Sigma = structure(c(2.5e-05, -3.50784920804904e-22, 6.72434772084995e-23, -3.50784920804904e-22, 1e-04, -1.17374369169486e-05, 6.72434772084995e-23, -1.17374369169486e-05, 2.25e-06), dim = c(3L, 3L), dimnames = list(c(&quot;(Intercept)&quot;, &quot;c_wt&quot;, &quot;c_cyl&quot;), c(&quot;(Intercept)&quot;, &quot;c_wt&quot;, </span></span>
-<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a><span class="co">#&gt; &quot;c_cyl&quot;))), dispersion = 6.88608636003347e-05, ddef = FALSE), &quot;`Prior Type`&quot; = &quot;dNormal&quot;), okfamilies = c(&quot;gaussian&quot;, &quot;poisson&quot;, &quot;binomial&quot;, &quot;quasipoisson&quot;, &quot;quasibinomial&quot;, &quot;Gamma&quot;), plinks = function (family) </span></span>
-<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a><span class="co">#&gt; {</span></span>
-<span id="cb22-10"><a href="#cb22-10" tabindex="-1"></a><span class="co">#&gt;     if (family$family == &quot;gaussian&quot;) </span></span>
-<span id="cb22-11"><a href="#cb22-11" tabindex="-1"></a><span class="co">#&gt;         oklinks &lt;- c(&quot;identity&quot;)</span></span>
-<span id="cb22-12"><a href="#cb22-12" tabindex="-1"></a><span class="co">#&gt;     if (family$family == &quot;poisson&quot; || family$family == &quot;quasipoisson&quot;) </span></span>
-<span id="cb22-13"><a href="#cb22-13" tabindex="-1"></a><span class="co">#&gt;         oklinks &lt;- c(&quot;log&quot;)</span></span>
-<span id="cb22-14"><a href="#cb22-14" tabindex="-1"></a><span class="co">#&gt;     if (family$family == &quot;binomial&quot; || family$family == &quot;quasibinomial&quot;) </span></span>
-<span id="cb22-15"><a href="#cb22-15" tabindex="-1"></a><span class="co">#&gt;         oklinks &lt;- c(&quot;logit&quot;, &quot;probit&quot;, &quot;cloglog&quot;)</span></span>
-<span id="cb22-16"><a href="#cb22-16" tabindex="-1"></a><span class="co">#&gt;     if (family$family == &quot;Gamma&quot;) </span></span>
-<span id="cb22-17"><a href="#cb22-17" tabindex="-1"></a><span class="co">#&gt;         oklinks &lt;- c(&quot;log&quot;)</span></span>
-<span id="cb22-18"><a href="#cb22-18" tabindex="-1"></a><span class="co">#&gt;     return(oklinks)</span></span>
-<span id="cb22-19"><a href="#cb22-19" tabindex="-1"></a><span class="co">#&gt; }, simfun = function (n, y, x, prior_list, offset = NULL, weights = 1, family = gaussian(), Gridtype = 2, n_envopt = NULL, use_parallel = TRUE, use_opencl = FALSE, verbose = FALSE, progbar = FALSE) </span></span>
-<span id="cb22-20"><a href="#cb22-20" tabindex="-1"></a><span class="co">#&gt; {</span></span>
-<span id="cb22-21"><a href="#cb22-21" tabindex="-1"></a><span class="co">#&gt;     offset2 = offset</span></span>
-<span id="cb22-22"><a href="#cb22-22" tabindex="-1"></a><span class="co">#&gt;     wt = weights</span></span>
-<span id="cb22-23"><a href="#cb22-23" tabindex="-1"></a><span class="co">#&gt;     if (missing(prior_list)) </span></span>
-<span id="cb22-24"><a href="#cb22-24" tabindex="-1"></a><span class="co">#&gt;         stop(&quot;Prior Specification Missing&quot;)</span></span>
-<span id="cb22-25"><a href="#cb22-25" tabindex="-1"></a><span class="co">#&gt;     if (!missing(prior_list)) {</span></span>
-<span id="cb22-26"><a href="#cb22-26" tabindex="-1"></a><span class="co">#&gt;         if (!is.null(prior_list$mu)) </span></span>
-<span id="cb22-27"><a href="#cb22-27" tabindex="-1"></a><span class="co">#&gt;             mu = prior_list$mu</span></span>
-<span id="cb22-28"><a href="#cb22-28" tabindex="-1"></a><span class="co">#&gt;         if (!is.null(prior_list$Sigma)) </span></span>
-<span id="cb22-29"><a href="#cb22-29" tabindex="-1"></a><span class="co">#&gt;             Sigma = prior_list$Sigma</span></span>
-<span id="cb22-30"><a href="#cb22-30" tabindex="-1"></a><span class="co">#&gt;         if (!is.null(prior_list$P)) </span></span>
-<span id="cb22-31"><a href="#cb22-31" tabindex="-1"></a><span class="co">#&gt;             P = prior_list$P</span></span>
-<span id="cb22-32"><a href="#cb22-32" tabindex="-1"></a><span class="co">#&gt;         if (is.null(prior_list$P)) {</span></span>
-<span id="cb22-33"><a href="#cb22-33" tabindex="-1"></a><span class="co">#&gt;             R &lt;- chol(prior_list$Sigma)</span></span>
-<span id="cb22-34"><a href="#cb22-34" tabindex="-1"></a><span class="co">#&gt;             Pinv &lt;- chol2inv(R)</span></span>
-<span id="cb22-35"><a href="#cb22-35" tabindex="-1"></a><span class="co">#&gt;             P &lt;- 0.5 * (Pinv + t(Pinv))</span></span>
-<span id="cb22-36"><a href="#cb22-36" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb22-37"><a href="#cb22-37" tabindex="-1"></a><span class="co">#&gt;         if (!is.null(prior_list$dispersion)) </span></span>
-<span id="cb22-38"><a href="#cb22-38" tabindex="-1"></a><span class="co">#&gt;             dispersion = prior_list$dispersion</span></span>
-<span id="cb22-39"><a href="#cb22-39" tabindex="-1"></a><span class="co">#&gt;         else dispersion = NULL</span></span>
-<span id="cb22-40"><a href="#cb22-40" tabindex="-1"></a><span class="co">#&gt;         if (!is.null(prior_list$shape)) </span></span>
-<span id="cb22-41"><a href="#cb22-41" tabindex="-1"></a><span class="co">#&gt;             shape = prior_list$shape</span></span>
-<span id="cb22-42"><a href="#cb22-42" tabindex="-1"></a><span class="co">#&gt;         else shape = NULL</span></span>
-<span id="cb22-43"><a href="#cb22-43" tabindex="-1"></a><span class="co">#&gt;         if (!is.null(prior_list$rate)) </span></span>
-<span id="cb22-44"><a href="#cb22-44" tabindex="-1"></a><span class="co">#&gt;             rate = prior_list$rate</span></span>
-<span id="cb22-45"><a href="#cb22-45" tabindex="-1"></a><span class="co">#&gt;         else rate = NULL</span></span>
-<span id="cb22-46"><a href="#cb22-46" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb22-47"><a href="#cb22-47" tabindex="-1"></a><span class="co">#&gt;     if (is.numeric(n) == FALSE || is.numeric(y) == FALSE || is.numeric(x) == FALSE || is.numeric(mu) == FALSE || is.numeric(P) == FALSE) </span></span>
-<span id="cb22-48"><a href="#cb22-48" tabindex="-1"></a><span class="co">#&gt;         stop(&quot;non-numeric argument to numeric function&quot;)</span></span>
-<span id="cb22-49"><a href="#cb22-49" tabindex="-1"></a><span class="co">#&gt;     if (is.null(n_envopt)) </span></span>
-<span id="cb22-50"><a href="#cb22-50" tabindex="-1"></a><span class="co">#&gt;         n_envopt &lt;- n</span></span>
-<span id="cb22-51"><a href="#cb22-51" tabindex="-1"></a><span class="co">#&gt;     n_envopt &lt;- as.integer(n_envopt)</span></span>
-<span id="cb22-52"><a href="#cb22-52" tabindex="-1"></a><span class="co">#&gt;     x &lt;- as.matrix(x)</span></span>
-<span id="cb22-53"><a href="#cb22-53" tabindex="-1"></a><span class="co">#&gt;     mu &lt;- as.matrix(as.vector(mu))</span></span>
-<span id="cb22-54"><a href="#cb22-54" tabindex="-1"></a><span class="co">#&gt;     P &lt;- as.matrix(P)</span></span>
-<span id="cb22-55"><a href="#cb22-55" tabindex="-1"></a><span class="co">#&gt;     start &lt;- mu</span></span>
-<span id="cb22-56"><a href="#cb22-56" tabindex="-1"></a><span class="co">#&gt;     if (length(n) &gt; 1) </span></span>
-<span id="cb22-57"><a href="#cb22-57" tabindex="-1"></a><span class="co">#&gt;         n &lt;- length(n)</span></span>
-<span id="cb22-58"><a href="#cb22-58" tabindex="-1"></a><span class="co">#&gt;     nobs &lt;- NROW(y)</span></span>
-<span id="cb22-59"><a href="#cb22-59" tabindex="-1"></a><span class="co">#&gt;     nvars &lt;- ncol(x)</span></span>
-<span id="cb22-60"><a href="#cb22-60" tabindex="-1"></a><span class="co">#&gt;     if (is.null(offset2)) </span></span>
-<span id="cb22-61"><a href="#cb22-61" tabindex="-1"></a><span class="co">#&gt;         offset2 = rep(0, nobs)</span></span>
-<span id="cb22-62"><a href="#cb22-62" tabindex="-1"></a><span class="co">#&gt;     nvars2 &lt;- length(mu)</span></span>
-<span id="cb22-63"><a href="#cb22-63" tabindex="-1"></a><span class="co">#&gt;     if (!nvars == nvars2) </span></span>
-<span id="cb22-64"><a href="#cb22-64" tabindex="-1"></a><span class="co">#&gt;         stop(&quot;incompatible dimensions&quot;)</span></span>
-<span id="cb22-65"><a href="#cb22-65" tabindex="-1"></a><span class="co">#&gt;     if (!all(dim(P) == c(nvars2, nvars2))) </span></span>
-<span id="cb22-66"><a href="#cb22-66" tabindex="-1"></a><span class="co">#&gt;         stop(&quot;incompatible dimensions&quot;)</span></span>
-<span id="cb22-67"><a href="#cb22-67" tabindex="-1"></a><span class="co">#&gt;     if (!isSymmetric(P)) </span></span>
-<span id="cb22-68"><a href="#cb22-68" tabindex="-1"></a><span class="co">#&gt;         stop(&quot;matrix P must be symmetric&quot;)</span></span>
-<span id="cb22-69"><a href="#cb22-69" tabindex="-1"></a><span class="co">#&gt;     if (length(wt) == 1) </span></span>
-<span id="cb22-70"><a href="#cb22-70" tabindex="-1"></a><span class="co">#&gt;         wt = rep(wt, nobs)</span></span>
-<span id="cb22-71"><a href="#cb22-71" tabindex="-1"></a><span class="co">#&gt;     nobs2 = NROW(wt)</span></span>
-<span id="cb22-72"><a href="#cb22-72" tabindex="-1"></a><span class="co">#&gt;     nobs3 = NROW(x)</span></span>
-<span id="cb22-73"><a href="#cb22-73" tabindex="-1"></a><span class="co">#&gt;     nobs4 = NROW(offset2)</span></span>
-<span id="cb22-74"><a href="#cb22-74" tabindex="-1"></a><span class="co">#&gt;     if (nobs2 != nobs) </span></span>
-<span id="cb22-75"><a href="#cb22-75" tabindex="-1"></a><span class="co">#&gt;         stop(&quot;weighting vector must have same number of elements as y&quot;)</span></span>
-<span id="cb22-76"><a href="#cb22-76" tabindex="-1"></a><span class="co">#&gt;     if (nobs3 != nobs) </span></span>
-<span id="cb22-77"><a href="#cb22-77" tabindex="-1"></a><span class="co">#&gt;         stop(&quot;matrix X must have same number of rows as y&quot;)</span></span>
-<span id="cb22-78"><a href="#cb22-78" tabindex="-1"></a><span class="co">#&gt;     if (nobs4 != nobs) </span></span>
-<span id="cb22-79"><a href="#cb22-79" tabindex="-1"></a><span class="co">#&gt;         stop(&quot;offset vector must have same number of rows as y&quot;)</span></span>
-<span id="cb22-80"><a href="#cb22-80" tabindex="-1"></a><span class="co">#&gt;     tol &lt;- 1e-06</span></span>
-<span id="cb22-81"><a href="#cb22-81" tabindex="-1"></a><span class="co">#&gt;     eS &lt;- eigen(P, symmetric = TRUE, only.values = FALSE)</span></span>
-<span id="cb22-82"><a href="#cb22-82" tabindex="-1"></a><span class="co">#&gt;     ev &lt;- eS$values</span></span>
-<span id="cb22-83"><a href="#cb22-83" tabindex="-1"></a><span class="co">#&gt;     if (!all(ev &gt;= -tol * abs(ev[1L]))) </span></span>
-<span id="cb22-84"><a href="#cb22-84" tabindex="-1"></a><span class="co">#&gt;         stop(&quot;&#39;P&#39; is not positive definite&quot;)</span></span>
-<span id="cb22-85"><a href="#cb22-85" tabindex="-1"></a><span class="co">#&gt;     if (is.character(family)) </span></span>
-<span id="cb22-86"><a href="#cb22-86" tabindex="-1"></a><span class="co">#&gt;         family &lt;- get(family, mode = &quot;function&quot;, envir = parent.frame())</span></span>
-<span id="cb22-87"><a href="#cb22-87" tabindex="-1"></a><span class="co">#&gt;     if (is.function(family)) </span></span>
-<span id="cb22-88"><a href="#cb22-88" tabindex="-1"></a><span class="co">#&gt;         family &lt;- family()</span></span>
-<span id="cb22-89"><a href="#cb22-89" tabindex="-1"></a><span class="co">#&gt;     if (is.null(family$family)) {</span></span>
-<span id="cb22-90"><a href="#cb22-90" tabindex="-1"></a><span class="co">#&gt;         print(family)</span></span>
-<span id="cb22-91"><a href="#cb22-91" tabindex="-1"></a><span class="co">#&gt;         stop(&quot;&#39;family&#39; not recognized&quot;)</span></span>
-<span id="cb22-92"><a href="#cb22-92" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb22-93"><a href="#cb22-93" tabindex="-1"></a><span class="co">#&gt;     okfamilies &lt;- c(&quot;gaussian&quot;, &quot;poisson&quot;, &quot;binomial&quot;, &quot;quasipoisson&quot;, &quot;quasibinomial&quot;, &quot;Gamma&quot;)</span></span>
-<span id="cb22-94"><a href="#cb22-94" tabindex="-1"></a><span class="co">#&gt;     if (family$family %in% okfamilies) {</span></span>
-<span id="cb22-95"><a href="#cb22-95" tabindex="-1"></a><span class="co">#&gt;         if (family$family == &quot;gaussian&quot;) </span></span>
-<span id="cb22-96"><a href="#cb22-96" tabindex="-1"></a><span class="co">#&gt;             oklinks &lt;- c(&quot;identity&quot;)</span></span>
-<span id="cb22-97"><a href="#cb22-97" tabindex="-1"></a><span class="co">#&gt;         if (family$family == &quot;poisson&quot; || family$family == &quot;quasipoisson&quot;) </span></span>
-<span id="cb22-98"><a href="#cb22-98" tabindex="-1"></a><span class="co">#&gt;             oklinks &lt;- c(&quot;log&quot;)</span></span>
-<span id="cb22-99"><a href="#cb22-99" tabindex="-1"></a><span class="co">#&gt;         if (family$family == &quot;binomial&quot; || family$family == &quot;quasibinomial&quot;) </span></span>
-<span id="cb22-100"><a href="#cb22-100" tabindex="-1"></a><span class="co">#&gt;             oklinks &lt;- c(&quot;logit&quot;, &quot;probit&quot;, &quot;cloglog&quot;)</span></span>
-<span id="cb22-101"><a href="#cb22-101" tabindex="-1"></a><span class="co">#&gt;         if (family$family == &quot;Gamma&quot;) </span></span>
-<span id="cb22-102"><a href="#cb22-102" tabindex="-1"></a><span class="co">#&gt;             oklinks &lt;- c(&quot;log&quot;)</span></span>
-<span id="cb22-103"><a href="#cb22-103" tabindex="-1"></a><span class="co">#&gt;         if (family$link %in% oklinks) {</span></span>
-<span id="cb22-104"><a href="#cb22-104" tabindex="-1"></a><span class="co">#&gt;             famfunc &lt;- glmbfamfunc(family)</span></span>
-<span id="cb22-105"><a href="#cb22-105" tabindex="-1"></a><span class="co">#&gt;             f1 &lt;- famfunc$f1</span></span>
-<span id="cb22-106"><a href="#cb22-106" tabindex="-1"></a><span class="co">#&gt;             f2 &lt;- famfunc$f2</span></span>
-<span id="cb22-107"><a href="#cb22-107" tabindex="-1"></a><span class="co">#&gt;             f3 &lt;- famfunc$f3</span></span>
-<span id="cb22-108"><a href="#cb22-108" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb22-109"><a href="#cb22-109" tabindex="-1"></a><span class="co">#&gt;         else {</span></span>
-<span id="cb22-110"><a href="#cb22-110" tabindex="-1"></a><span class="co">#&gt;             stop(gettextf(&quot;link \&quot;%s\&quot; not available for selected family; available links are %s&quot;, family$link, paste(sQuote(oklinks), collapse = &quot;, &quot;)), domain = NA)</span></span>
-<span id="cb22-111"><a href="#cb22-111" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb22-112"><a href="#cb22-112" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb22-113"><a href="#cb22-113" tabindex="-1"></a><span class="co">#&gt;     else {</span></span>
-<span id="cb22-114"><a href="#cb22-114" tabindex="-1"></a><span class="co">#&gt;         stop(gettextf(&quot;family \&quot;%s\&quot; not available in glmb; available families are %s&quot;, family$family, paste(sQuote(okfamilies), collapse = &quot;, &quot;)), domain = NA)</span></span>
-<span id="cb22-115"><a href="#cb22-115" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb22-116"><a href="#cb22-116" tabindex="-1"></a><span class="co">#&gt;     if (&quot;ddef&quot; %in% names(prior_list)) {</span></span>
-<span id="cb22-117"><a href="#cb22-117" tabindex="-1"></a><span class="co">#&gt;         ddef &lt;- prior_list$ddef</span></span>
-<span id="cb22-118"><a href="#cb22-118" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb22-119"><a href="#cb22-119" tabindex="-1"></a><span class="co">#&gt;     else {</span></span>
-<span id="cb22-120"><a href="#cb22-120" tabindex="-1"></a><span class="co">#&gt;         ddef &lt;- is.null(prior_list$dispersion)</span></span>
-<span id="cb22-121"><a href="#cb22-121" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb22-122"><a href="#cb22-122" tabindex="-1"></a><span class="co">#&gt;     if (family$family %in% c(&quot;gaussian&quot;, &quot;Gamma&quot;) &amp;&amp; isTRUE(ddef)) {</span></span>
-<span id="cb22-123"><a href="#cb22-123" tabindex="-1"></a><span class="co">#&gt;         stop(paste0(&quot;For gaussian() and Gamma() models, dNormal() requires an explicit dispersion &quot;, &quot;(e.g. dispersion = ps$dispersion from Prior_Setup()). &quot;, &quot;Omitted or NULL dispersion is not allowed&quot;))</span></span>
-<span id="cb22-124"><a href="#cb22-124" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb22-125"><a href="#cb22-125" tabindex="-1"></a><span class="co">#&gt;     if (family$family == &quot;gaussian&quot;) {</span></span>
-<span id="cb22-126"><a href="#cb22-126" tabindex="-1"></a><span class="co">#&gt;         outlist &lt;- .rNormalReg_cpp(n = n, y = y, x = x, mu = mu, P = P, offset = offset2, wt = wt, dispersion = dispersion, f2 = f2, f3 = f3, start = mu)</span></span>
-<span id="cb22-127"><a href="#cb22-127" tabindex="-1"></a><span class="co">#&gt;         class(outlist$fit) = &quot;lm&quot;</span></span>
-<span id="cb22-128"><a href="#cb22-128" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb22-129"><a href="#cb22-129" tabindex="-1"></a><span class="co">#&gt;     else {</span></span>
-<span id="cb22-130"><a href="#cb22-130" tabindex="-1"></a><span class="co">#&gt;         if (is.null(dispersion)) {</span></span>
-<span id="cb22-131"><a href="#cb22-131" tabindex="-1"></a><span class="co">#&gt;             dispersion2 = 1</span></span>
-<span id="cb22-132"><a href="#cb22-132" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb22-133"><a href="#cb22-133" tabindex="-1"></a><span class="co">#&gt;         else {</span></span>
-<span id="cb22-134"><a href="#cb22-134" tabindex="-1"></a><span class="co">#&gt;             dispersion2 = dispersion</span></span>
-<span id="cb22-135"><a href="#cb22-135" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb22-136"><a href="#cb22-136" tabindex="-1"></a><span class="co">#&gt;         outlist &lt;- .rNormalGLM_cpp(n = n, y = y, x = x, mu = mu, P = P, offset = offset2, wt = wt, dispersion = dispersion2, f2 = f2, f3 = f3, start = start, family = family$family, link = family$link, Gridtype = Gridtype, n_envopt = n_envopt, use_parallel = use_parallel, use_opencl = use_opencl, verbose = verbose)</span></span>
-<span id="cb22-137"><a href="#cb22-137" tabindex="-1"></a><span class="co">#&gt;         betastar = outlist$coef.mode</span></span>
-<span id="cb22-138"><a href="#cb22-138" tabindex="-1"></a><span class="co">#&gt;         x = outlist$x</span></span>
-<span id="cb22-139"><a href="#cb22-139" tabindex="-1"></a><span class="co">#&gt;         y = outlist$y</span></span>
-<span id="cb22-140"><a href="#cb22-140" tabindex="-1"></a><span class="co">#&gt;         weights = outlist$prior.weights</span></span>
-<span id="cb22-141"><a href="#cb22-141" tabindex="-1"></a><span class="co">#&gt;         if (family$family == &quot;quasipoisson&quot; || family$family == &quot;quasibinomial&quot;) {</span></span>
-<span id="cb22-142"><a href="#cb22-142" tabindex="-1"></a><span class="co">#&gt;             linkinv &lt;- family$linkinv</span></span>
-<span id="cb22-143"><a href="#cb22-143" tabindex="-1"></a><span class="co">#&gt;             disp_temp = rep(0, n)</span></span>
-<span id="cb22-144"><a href="#cb22-144" tabindex="-1"></a><span class="co">#&gt;             m = length(y)</span></span>
-<span id="cb22-145"><a href="#cb22-145" tabindex="-1"></a><span class="co">#&gt;             k = ncol(x)</span></span>
-<span id="cb22-146"><a href="#cb22-146" tabindex="-1"></a><span class="co">#&gt;             res_temp = matrix(0, nrow = n, ncol = m)</span></span>
-<span id="cb22-147"><a href="#cb22-147" tabindex="-1"></a><span class="co">#&gt;             fit_temp = x %*% t(outlist$coefficients)</span></span>
-<span id="cb22-148"><a href="#cb22-148" tabindex="-1"></a><span class="co">#&gt;             for (l in 1:n) {</span></span>
-<span id="cb22-149"><a href="#cb22-149" tabindex="-1"></a><span class="co">#&gt;                 fit_temp[1:m, l] = linkinv(offset2 + fit_temp[1:m, l])</span></span>
-<span id="cb22-150"><a href="#cb22-150" tabindex="-1"></a><span class="co">#&gt;                 res_temp[l, 1:m] = (y - fit_temp[1:m, l])</span></span>
-<span id="cb22-151"><a href="#cb22-151" tabindex="-1"></a><span class="co">#&gt;                 disp_temp[l] = (1/(m - k)) * sum(res_temp[l, 1:m]^2 * wt/fit_temp[1:m, l])</span></span>
-<span id="cb22-152"><a href="#cb22-152" tabindex="-1"></a><span class="co">#&gt;             }</span></span>
-<span id="cb22-153"><a href="#cb22-153" tabindex="-1"></a><span class="co">#&gt;             outlist &lt;- .rNormalGLM_cpp(n = n, y = y, x = x, mu = mu, P = P, offset = offset2, wt = wt, dispersion = mean(disp_temp), f2 = f2, f3 = f3, start = start, family = family$family, link = family$link, Gridtype = Gridtype, n_envopt = n_envopt, use_parallel = use_parallel, use_opencl = use_opencl, verbose = verbose)</span></span>
-<span id="cb22-154"><a href="#cb22-154" tabindex="-1"></a><span class="co">#&gt;             outlist$call &lt;- match.call()</span></span>
-<span id="cb22-155"><a href="#cb22-155" tabindex="-1"></a><span class="co">#&gt;             outlist$dispersion = mean(disp_temp)</span></span>
-<span id="cb22-156"><a href="#cb22-156" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb22-157"><a href="#cb22-157" tabindex="-1"></a><span class="co">#&gt;         outlist$fit = glmb.wfit(x, y, weights, offset = offset2, family = family, Bbar = mu, P, betastar)</span></span>
-<span id="cb22-158"><a href="#cb22-158" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb22-159"><a href="#cb22-159" tabindex="-1"></a><span class="co">#&gt;     colnames(outlist$coefficients) &lt;- colnames(x)</span></span>
-<span id="cb22-160"><a href="#cb22-160" tabindex="-1"></a><span class="co">#&gt;     pl_disp &lt;- if (!is.null(dispersion)) </span></span>
-<span id="cb22-161"><a href="#cb22-161" tabindex="-1"></a><span class="co">#&gt;         dispersion</span></span>
-<span id="cb22-162"><a href="#cb22-162" tabindex="-1"></a><span class="co">#&gt;     else outlist$dispersion</span></span>
-<span id="cb22-163"><a href="#cb22-163" tabindex="-1"></a><span class="co">#&gt;     pfamily_obj &lt;- list(pfamily = &quot;dNormal&quot;, prior_list = list(mu = as.numeric(mu), Sigma = Sigma, dispersion = pl_disp))</span></span>
-<span id="cb22-164"><a href="#cb22-164" tabindex="-1"></a><span class="co">#&gt;     attr(pfamily_obj, &quot;Prior Type&quot;) &lt;- &quot;dNormal&quot;</span></span>
-<span id="cb22-165"><a href="#cb22-165" tabindex="-1"></a><span class="co">#&gt;     class(pfamily_obj) &lt;- &quot;pfamily&quot;</span></span>
-<span id="cb22-166"><a href="#cb22-166" tabindex="-1"></a><span class="co">#&gt;     outlist$pfamily &lt;- pfamily_obj</span></span>
-<span id="cb22-167"><a href="#cb22-167" tabindex="-1"></a><span class="co">#&gt;     rglmb_df = as.data.frame(cbind(y, x))</span></span>
-<span id="cb22-168"><a href="#cb22-168" tabindex="-1"></a><span class="co">#&gt;     rglmb_f = DF2formula(rglmb_df)</span></span>
-<span id="cb22-169"><a href="#cb22-169" tabindex="-1"></a><span class="co">#&gt;     rglmb_mf = model.frame(rglmb_f, rglmb_df)</span></span>
-<span id="cb22-170"><a href="#cb22-170" tabindex="-1"></a><span class="co">#&gt;     outlist$family = family</span></span>
-<span id="cb22-171"><a href="#cb22-171" tabindex="-1"></a><span class="co">#&gt;     outlist$famfunc = famfunc</span></span>
-<span id="cb22-172"><a href="#cb22-172" tabindex="-1"></a><span class="co">#&gt;     outlist$call &lt;- match.call()</span></span>
-<span id="cb22-173"><a href="#cb22-173" tabindex="-1"></a><span class="co">#&gt;     outlist$offset2 &lt;- offset2</span></span>
-<span id="cb22-174"><a href="#cb22-174" tabindex="-1"></a><span class="co">#&gt;     outlist$formula &lt;- rglmb_f</span></span>
-<span id="cb22-175"><a href="#cb22-175" tabindex="-1"></a><span class="co">#&gt;     outlist$model &lt;- rglmb_mf</span></span>
-<span id="cb22-176"><a href="#cb22-176" tabindex="-1"></a><span class="co">#&gt;     outlist$data &lt;- rglmb_df</span></span>
-<span id="cb22-177"><a href="#cb22-177" tabindex="-1"></a><span class="co">#&gt;     class(outlist) &lt;- c(outlist$class, c(&quot;rglmb&quot;, &quot;glmb&quot;, &quot;glm&quot;, &quot;lm&quot;))</span></span>
-<span id="cb22-178"><a href="#cb22-178" tabindex="-1"></a><span class="co">#&gt;     outlist</span></span>
-<span id="cb22-179"><a href="#cb22-179" tabindex="-1"></a><span class="co">#&gt; }, call = dNormal(mu = pscars7$mu, Sigma = pscars7$Sigma, dispersion = pscars7$dispersion)), &quot;`Prior Type`&quot; = &quot;dNormal&quot;, class = &quot;pfamily&quot;), n = 1000, data = structure(list(mpg = c(21, 21, 22.8, 21.4, 18.7, 18.1, 14.3, 24.4, 22.8, 19.2, 17.8, 16.4, 17.3, 15.2, 10.4, 10.4, 14.7, 32.4, 30.4, 33.9, 21.5, 15.5, 15.2, 13.3, 19.2, 27.3, 26, 30.4, 15.8, 19.7, 15, 21.4), cyl = c(6, 6, 4, 6, 8, 6, 8, 4, 4, 6, 6, 8, 8, 8, 8, 8, 8, 4, 4, 4, 4, 8, 8, 8, 8, 4, 4, 4, 8, 6, 8, 4), disp = c(160, 160, 108, 258, 360, </span></span>
-<span id="cb22-180"><a href="#cb22-180" tabindex="-1"></a><span class="co">#&gt; 225, 360, 146.7, 140.8, 167.6, 167.6, 275.8, 275.8, 275.8, 472, 460, 440, 78.7, 75.7, 71.1, 120.1, 318, 304, 350, 400, 79, 120.3, 95.1, 351, 145, 301, 121), hp = c(110, 110, 93, 110, 175, 105, 245, 62, 95, 123, 123, 180, 180, 180, 205, 215, 230, 66, 52, 65, 97, 150, 150, 245, 175, 66, 91, 113, 264, 175, 335, 109), drat = c(3.9, 3.9, 3.85, 3.08, 3.15, 2.76, 3.21, 3.69, 3.92, 3.92, 3.92, 3.07, 3.07, 3.07, 2.93, 3, 3.23, 4.08, 4.93, 4.22, 3.7, 2.76, 3.15, 3.73, 3.08, 4.08, 4.43, 3.77, 4.22, 3.62, 3.54, </span></span>
-<span id="cb22-181"><a href="#cb22-181" tabindex="-1"></a><span class="co">#&gt; 4.11), wt = c(2.62, 2.875, 2.32, 3.215, 3.44, 3.46, 3.57, 3.19, 3.15, 3.44, 3.44, 4.07, 3.73, 3.78, 5.25, 5.424, 5.345, 2.2, 1.615, 1.835, 2.465, 3.52, 3.435, 3.84, 3.845, 1.935, 2.14, 1.513, 3.17, 2.77, 3.57, 2.78), qsec = c(16.46, 17.02, 18.61, 19.44, 17.02, 20.22, 15.84, 20, 22.9, 18.3, 18.9, 17.4, 17.6, 18, 17.98, 17.82, 17.42, 19.47, 18.52, 19.9, 20.01, 16.87, 17.3, 15.41, 17.05, 18.9, 16.7, 16.9, 14.5, 15.5, 14.6, 18.6), vs = c(0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, </span></span>
-<span id="cb22-182"><a href="#cb22-182" tabindex="-1"></a><span class="co">#&gt; 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1), am = c(1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1), gear = c(4, 4, 4, 3, 3, 3, 3, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 4, 4, 4, 3, 3, 3, 3, 3, 4, 5, 5, 5, 5, 5, 4), carb = c(4, 4, 1, 1, 2, 1, 4, 2, 2, 4, 4, 3, 3, 3, 4, 4, 4, 1, 2, 1, 1, 2, 2, 4, 2, 1, 2, 2, 4, 6, 8, 2), gpm = c(0.0476190476190476, 0.0476190476190476, 0.043859649122807, 0.0467289719626168, 0.053475935828877, 0.0552486187845304, 0.0699300699300699, 0.0409836065573771, </span></span>
-<span id="cb22-183"><a href="#cb22-183" tabindex="-1"></a><span class="co">#&gt; 0.043859649122807, 0.0520833333333333, 0.0561797752808989, 0.0609756097560976, 0.0578034682080925, 0.0657894736842105, 0.0961538461538461, 0.0961538461538461, 0.0680272108843537, 0.0308641975308642, 0.0328947368421053, 0.0294985250737463, 0.0465116279069767, 0.0645161290322581, 0.0657894736842105, 0.075187969924812, 0.0520833333333333, 0.0366300366300366, 0.0384615384615385, 0.0328947368421053, 0.0632911392405063, 0.050761421319797, 0.0666666666666667, 0.0467289719626168), c_wt = c(-0.59725, -0.34225, </span></span>
-<span id="cb22-184"><a href="#cb22-184" tabindex="-1"></a><span class="co">#&gt; -0.89725, -0.00225000000000009, 0.22275, 0.24275, 0.35275, -0.02725, -0.06725, 0.22275, 0.22275, 0.85275, 0.51275, 0.56275, 2.03275, 2.20675, 2.12775, -1.01725, -1.60225, -1.38225, -0.75225, 0.30275, 0.21775, 0.62275, 0.62775, -1.28225, -1.07725, -1.70425, -0.04725, -0.44725, 0.35275, -0.43725), c_cyl = c(-0.1875, -0.1875, -2.1875, -0.1875, 1.8125, -0.1875, 1.8125, -2.1875, -2.1875, -0.1875, -0.1875, 1.8125, 1.8125, 1.8125, 1.8125, 1.8125, 1.8125, -2.1875, -2.1875, -2.1875, -2.1875, 1.8125, 1.8125, </span></span>
-<span id="cb22-185"><a href="#cb22-185" tabindex="-1"></a><span class="co">#&gt; 1.8125, 1.8125, -2.1875, -2.1875, -2.1875, 1.8125, -0.1875, 1.8125, -2.1875)), row.names = c(&quot;Mazda RX4&quot;, &quot;Mazda RX4 Wag&quot;, &quot;Datsun 710&quot;, &quot;Hornet 4 Drive&quot;, &quot;Hornet Sportabout&quot;, &quot;Valiant&quot;, &quot;Duster 360&quot;, &quot;Merc 240D&quot;, &quot;Merc 230&quot;, &quot;Merc 280&quot;, &quot;Merc 280C&quot;, &quot;Merc 450SE&quot;, &quot;Merc 450SL&quot;, &quot;Merc 450SLC&quot;, &quot;Cadillac Fleetwood&quot;, &quot;Lincoln Continental&quot;, &quot;Chrysler Imperial&quot;, &quot;Fiat 128&quot;, &quot;Honda Civic&quot;, &quot;Toyota Corolla&quot;, &quot;Toyota Corona&quot;, &quot;Dodge Challenger&quot;, &quot;AMC Javelin&quot;, &quot;Camaro Z28&quot;, &quot;Pontiac Firebird&quot;, &quot;Fiat X1-9&quot;, </span></span>
-<span id="cb22-186"><a href="#cb22-186" tabindex="-1"></a><span class="co">#&gt; &quot;Porsche 914-2&quot;, &quot;Lotus Europa&quot;, &quot;Ford Pantera L&quot;, &quot;Ferrari Dino&quot;, &quot;Maserati Bora&quot;, &quot;Volvo 142E&quot;), class = &quot;data.frame&quot;), method = &quot;qr&quot;, model = TRUE, x = TRUE, y = TRUE, qr = TRUE, singular.ok = TRUE, contrasts = NULL, Gridtype = 2, n_envopt = NULL, use_parallel = TRUE, use_opencl = FALSE, verbose = FALSE) </span></span>
-<span id="cb22-187"><a href="#cb22-187" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-188"><a href="#cb22-188" tabindex="-1"></a><span class="co">#&gt; Expected Residuals:</span></span>
-<span id="cb22-189"><a href="#cb22-189" tabindex="-1"></a><span class="co">#&gt;           Min            1Q        Median            3Q           Max </span></span>
-<span id="cb22-190"><a href="#cb22-190" tabindex="-1"></a><span class="co">#&gt; -1.605366e-02 -5.186900e-03  6.241659e-05  4.642549e-03  1.339404e-02 </span></span>
-<span id="cb22-191"><a href="#cb22-191" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-192"><a href="#cb22-192" tabindex="-1"></a><span class="co">#&gt; Prior and Maximum Likelihood Estimates with Standard Deviations</span></span>
-<span id="cb22-193"><a href="#cb22-193" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-194"><a href="#cb22-194" tabindex="-1"></a><span class="co">#&gt;             Null Mode Prior Mean Prior.sd Max Like. Like.sd</span></span>
-<span id="cb22-195"><a href="#cb22-195" tabindex="-1"></a><span class="co">#&gt; (Intercept)  0.054227   0.054227 0.005000  0.054227   0.001</span></span>
-<span id="cb22-196"><a href="#cb22-196" tabindex="-1"></a><span class="co">#&gt; c_wt         0.000000   0.000000 0.010000  0.010960   0.002</span></span>
-<span id="cb22-197"><a href="#cb22-197" tabindex="-1"></a><span class="co">#&gt; c_cyl        0.000000   0.000000 0.001500  0.002785   0.001</span></span>
-<span id="cb22-198"><a href="#cb22-198" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-199"><a href="#cb22-199" tabindex="-1"></a><span class="co">#&gt; Bayesian Estimates Based on 1000 iid draws</span></span>
-<span id="cb22-200"><a href="#cb22-200" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-201"><a href="#cb22-201" tabindex="-1"></a><span class="co">#&gt;             Post.Mode Post.Mean   Post.Sd  MC Error Pr(Null_tail) SE(tail)</span></span>
-<span id="cb22-202"><a href="#cb22-202" tabindex="-1"></a><span class="co">#&gt; (Intercept) 5.423e-02 5.422e-02 1.404e-03 4.439e-05     4.970e-01    0.016</span></span>
-<span id="cb22-203"><a href="#cb22-203" tabindex="-1"></a><span class="co">#&gt; c_wt        1.388e-02 1.391e-02 2.079e-03 6.573e-05     0.000e+00    0.000</span></span>
-<span id="cb22-204"><a href="#cb22-204" tabindex="-1"></a><span class="co">#&gt; c_cyl       1.283e-04 1.509e-04 8.647e-04 2.734e-05     4.380e-01    0.016</span></span>
-<span id="cb22-205"><a href="#cb22-205" tabindex="-1"></a><span class="co">#&gt;             Pr(Prior_tail)    </span></span>
-<span id="cb22-206"><a href="#cb22-206" tabindex="-1"></a><span class="co">#&gt; (Intercept)          0.497    </span></span>
-<span id="cb22-207"><a href="#cb22-207" tabindex="-1"></a><span class="co">#&gt; c_wt                &lt;2e-16 ***</span></span>
-<span id="cb22-208"><a href="#cb22-208" tabindex="-1"></a><span class="co">#&gt; c_cyl                0.438    </span></span>
-<span id="cb22-209"><a href="#cb22-209" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb22-210"><a href="#cb22-210" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb22-211"><a href="#cb22-211" tabindex="-1"></a><span class="co">#&gt;   Directional Tail Summaries:</span></span>
-<span id="cb22-212"><a href="#cb22-212" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-213"><a href="#cb22-213" tabindex="-1"></a><span class="co">#&gt;                Metric vs Null vs Prior</span></span>
-<span id="cb22-214"><a href="#cb22-214" tabindex="-1"></a><span class="co">#&gt;  Mahalanobis Distance 11.1603  11.1603</span></span>
-<span id="cb22-215"><a href="#cb22-215" tabindex="-1"></a><span class="co">#&gt;      Tail Probability  0.0000   0.0000</span></span>
-<span id="cb22-216"><a href="#cb22-216" tabindex="-1"></a><span class="co">#&gt;   [Tail probabilities are P(delta^T * Z &lt;= 0) in whitened space]</span></span>
-<span id="cb22-217"><a href="#cb22-217" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-218"><a href="#cb22-218" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-219"><a href="#cb22-219" tabindex="-1"></a><span class="co">#&gt; Distribution Percentiles</span></span>
-<span id="cb22-220"><a href="#cb22-220" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-221"><a href="#cb22-221" tabindex="-1"></a><span class="co">#&gt;                   1.0%       2.5%       5.0%     Median      95.0%      97.5%</span></span>
-<span id="cb22-222"><a href="#cb22-222" tabindex="-1"></a><span class="co">#&gt; (Intercept)  0.0509665  0.0514507  0.0518178  0.0542199  0.0564434  0.0571390</span></span>
-<span id="cb22-223"><a href="#cb22-223" tabindex="-1"></a><span class="co">#&gt; c_wt         0.0087148  0.0097131  0.0105347  0.0138904  0.0173886  0.0179081</span></span>
-<span id="cb22-224"><a href="#cb22-224" tabindex="-1"></a><span class="co">#&gt; c_cyl       -0.0018906 -0.0015000 -0.0011939  0.0001024  0.0016031  0.0019327</span></span>
-<span id="cb22-225"><a href="#cb22-225" tabindex="-1"></a><span class="co">#&gt;             99.0%</span></span>
-<span id="cb22-226"><a href="#cb22-226" tabindex="-1"></a><span class="co">#&gt; (Intercept) 0.058</span></span>
-<span id="cb22-227"><a href="#cb22-227" tabindex="-1"></a><span class="co">#&gt; c_wt        0.019</span></span>
-<span id="cb22-228"><a href="#cb22-228" tabindex="-1"></a><span class="co">#&gt; c_cyl       0.002</span></span>
-<span id="cb22-229"><a href="#cb22-229" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-230"><a href="#cb22-230" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 2.310513 </span></span>
-<span id="cb22-231"><a href="#cb22-231" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 27.41328 </span></span>
-<span id="cb22-232"><a href="#cb22-232" tabindex="-1"></a><span class="co">#&gt; DIC: -218.1337 </span></span>
-<span id="cb22-233"><a href="#cb22-233" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-234"><a href="#cb22-234" tabindex="-1"></a><span class="co">#&gt; Expected Mean dispersion: 6.886086e-05 </span></span>
-<span id="cb22-235"><a href="#cb22-235" tabindex="-1"></a><span class="co">#&gt; Sq.root of Expected Mean dispersion: 0.008298245 </span></span>
-<span id="cb22-236"><a href="#cb22-236" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-237"><a href="#cb22-237" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 1</span></span></code></pre></div>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a><span class="co">#&gt; lmb(formula = gpm ~ c_wt + c_cyl, data = mtcars) </span></span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a><span class="co">#&gt; Expected Residuals:</span></span>
+<span id="cb22-10"><a href="#cb22-10" tabindex="-1"></a><span class="co">#&gt;           Min            1Q        Median            3Q           Max </span></span>
+<span id="cb22-11"><a href="#cb22-11" tabindex="-1"></a><span class="co">#&gt; -1.605366e-02 -5.186900e-03  6.241659e-05  4.642549e-03  1.339404e-02 </span></span>
+<span id="cb22-12"><a href="#cb22-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-13"><a href="#cb22-13" tabindex="-1"></a><span class="co">#&gt; Prior and Maximum Likelihood Estimates with Standard Deviations</span></span>
+<span id="cb22-14"><a href="#cb22-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-15"><a href="#cb22-15" tabindex="-1"></a><span class="co">#&gt;             Null Mode Prior Mean Prior.sd Max Like. Like.sd</span></span>
+<span id="cb22-16"><a href="#cb22-16" tabindex="-1"></a><span class="co">#&gt; (Intercept)  0.054227   0.054227 0.005000  0.054227   0.001</span></span>
+<span id="cb22-17"><a href="#cb22-17" tabindex="-1"></a><span class="co">#&gt; c_wt         0.000000   0.000000 0.010000  0.010960   0.002</span></span>
+<span id="cb22-18"><a href="#cb22-18" tabindex="-1"></a><span class="co">#&gt; c_cyl        0.000000   0.000000 0.001500  0.002785   0.001</span></span>
+<span id="cb22-19"><a href="#cb22-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-20"><a href="#cb22-20" tabindex="-1"></a><span class="co">#&gt; Bayesian Estimates Based on 1000 iid draws</span></span>
+<span id="cb22-21"><a href="#cb22-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-22"><a href="#cb22-22" tabindex="-1"></a><span class="co">#&gt;             Post.Mode Post.Mean   Post.Sd  MC Error Pr(Null_tail) SE(tail)</span></span>
+<span id="cb22-23"><a href="#cb22-23" tabindex="-1"></a><span class="co">#&gt; (Intercept) 5.423e-02 5.422e-02 1.404e-03 4.439e-05     4.970e-01    0.016</span></span>
+<span id="cb22-24"><a href="#cb22-24" tabindex="-1"></a><span class="co">#&gt; c_wt        1.388e-02 1.391e-02 2.079e-03 6.573e-05     0.000e+00    0.000</span></span>
+<span id="cb22-25"><a href="#cb22-25" tabindex="-1"></a><span class="co">#&gt; c_cyl       1.283e-04 1.509e-04 8.647e-04 2.734e-05     4.380e-01    0.016</span></span>
+<span id="cb22-26"><a href="#cb22-26" tabindex="-1"></a><span class="co">#&gt;             Pr(Prior_tail)    </span></span>
+<span id="cb22-27"><a href="#cb22-27" tabindex="-1"></a><span class="co">#&gt; (Intercept)          0.497    </span></span>
+<span id="cb22-28"><a href="#cb22-28" tabindex="-1"></a><span class="co">#&gt; c_wt                &lt;2e-16 ***</span></span>
+<span id="cb22-29"><a href="#cb22-29" tabindex="-1"></a><span class="co">#&gt; c_cyl                0.438    </span></span>
+<span id="cb22-30"><a href="#cb22-30" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb22-31"><a href="#cb22-31" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb22-32"><a href="#cb22-32" tabindex="-1"></a><span class="co">#&gt;   Directional Tail Summaries:</span></span>
+<span id="cb22-33"><a href="#cb22-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-34"><a href="#cb22-34" tabindex="-1"></a><span class="co">#&gt;                Metric vs Null vs Prior</span></span>
+<span id="cb22-35"><a href="#cb22-35" tabindex="-1"></a><span class="co">#&gt;  Mahalanobis Distance 11.1603  11.1603</span></span>
+<span id="cb22-36"><a href="#cb22-36" tabindex="-1"></a><span class="co">#&gt;      Tail Probability  0.0000   0.0000</span></span>
+<span id="cb22-37"><a href="#cb22-37" tabindex="-1"></a><span class="co">#&gt;   [Tail probabilities are P(delta^T * Z &lt;= 0) in whitened space]</span></span>
+<span id="cb22-38"><a href="#cb22-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-39"><a href="#cb22-39" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-40"><a href="#cb22-40" tabindex="-1"></a><span class="co">#&gt; Distribution Percentiles</span></span>
+<span id="cb22-41"><a href="#cb22-41" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-42"><a href="#cb22-42" tabindex="-1"></a><span class="co">#&gt;                   1.0%       2.5%       5.0%     Median      95.0%      97.5%</span></span>
+<span id="cb22-43"><a href="#cb22-43" tabindex="-1"></a><span class="co">#&gt; (Intercept)  0.0509665  0.0514507  0.0518178  0.0542199  0.0564434  0.0571390</span></span>
+<span id="cb22-44"><a href="#cb22-44" tabindex="-1"></a><span class="co">#&gt; c_wt         0.0087148  0.0097131  0.0105347  0.0138904  0.0173886  0.0179081</span></span>
+<span id="cb22-45"><a href="#cb22-45" tabindex="-1"></a><span class="co">#&gt; c_cyl       -0.0018906 -0.0015000 -0.0011939  0.0001024  0.0016031  0.0019327</span></span>
+<span id="cb22-46"><a href="#cb22-46" tabindex="-1"></a><span class="co">#&gt;             99.0%</span></span>
+<span id="cb22-47"><a href="#cb22-47" tabindex="-1"></a><span class="co">#&gt; (Intercept) 0.058</span></span>
+<span id="cb22-48"><a href="#cb22-48" tabindex="-1"></a><span class="co">#&gt; c_wt        0.019</span></span>
+<span id="cb22-49"><a href="#cb22-49" tabindex="-1"></a><span class="co">#&gt; c_cyl       0.002</span></span>
+<span id="cb22-50"><a href="#cb22-50" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-51"><a href="#cb22-51" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 2.310513 </span></span>
+<span id="cb22-52"><a href="#cb22-52" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 27.41328 </span></span>
+<span id="cb22-53"><a href="#cb22-53" tabindex="-1"></a><span class="co">#&gt; DIC: -218.1337 </span></span>
+<span id="cb22-54"><a href="#cb22-54" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-55"><a href="#cb22-55" tabindex="-1"></a><span class="co">#&gt; Expected Mean dispersion: 6.886086e-05 </span></span>
+<span id="cb22-56"><a href="#cb22-56" tabindex="-1"></a><span class="co">#&gt; Sq.root of Expected Mean dispersion: 0.008298245 </span></span>
+<span id="cb22-57"><a href="#cb22-57" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-58"><a href="#cb22-58" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 1</span></span></code></pre></div>
 <p>The posterior output reflects the impact of our manually specified
 prior standard deviations, which imposed differentiated regularization
 across coefficients. The prior for c_cyl was especially tight (SD =

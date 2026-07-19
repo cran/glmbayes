@@ -12,7 +12,7 @@
 
 <meta name="author" content="Kjell Nygren" />
 
-<meta name="date" content="2026-06-21" />
+<meta name="date" content="2026-07-19" />
 
 <title>Chapter 02-S02: Normal–Normal Conjugacy for One Mean</title>
 
@@ -342,7 +342,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Chapter 02-S02: Normal–Normal Conjugacy for
 One Mean</h1>
 <h4 class="author">Kjell Nygren</h4>
-<h4 class="date">2026-06-21</h4>
+<h4 class="date">2026-07-19</h4>
 
 
 
@@ -654,243 +654,11 @@ small — the data overwhelm the prior.</p>
 <span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="fu">print</span>(fit_faith)</span>
 <span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt; Call:  </span></span>
-<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a><span class="co">#&gt; lmb(formula = y ~ 1, pfamily = structure(list(pfamily = &quot;dNormal&quot;, </span></span>
-<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt;     prior_list = structure(list(mu = structure(72, dim = c(1L, </span></span>
-<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt;     1L), dimnames = list(NULL, &quot;(Intercept)&quot;)), Sigma = structure(225, dim = c(1L, </span></span>
-<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="co">#&gt;     1L), dimnames = list(&quot;(Intercept)&quot;, &quot;(Intercept)&quot;)), dispersion = 184.823312350771, </span></span>
-<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt;         ddef = FALSE), &quot;`Prior Type`&quot; = &quot;dNormal&quot;), okfamilies = c(&quot;gaussian&quot;, </span></span>
-<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a><span class="co">#&gt;     &quot;poisson&quot;, &quot;binomial&quot;, &quot;quasipoisson&quot;, &quot;quasibinomial&quot;, &quot;Gamma&quot;</span></span>
-<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co">#&gt;     ), plinks = function (family) </span></span>
-<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt;     {</span></span>
-<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="co">#&gt;         if (family$family == &quot;gaussian&quot;) </span></span>
-<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a><span class="co">#&gt;             oklinks &lt;- c(&quot;identity&quot;)</span></span>
-<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a><span class="co">#&gt;         if (family$family == &quot;poisson&quot; || family$family == &quot;quasipoisson&quot;) </span></span>
-<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a><span class="co">#&gt;             oklinks &lt;- c(&quot;log&quot;)</span></span>
-<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a><span class="co">#&gt;         if (family$family == &quot;binomial&quot; || family$family == &quot;quasibinomial&quot;) </span></span>
-<span id="cb8-34"><a href="#cb8-34" tabindex="-1"></a><span class="co">#&gt;             oklinks &lt;- c(&quot;logit&quot;, &quot;probit&quot;, &quot;cloglog&quot;)</span></span>
-<span id="cb8-35"><a href="#cb8-35" tabindex="-1"></a><span class="co">#&gt;         if (family$family == &quot;Gamma&quot;) </span></span>
-<span id="cb8-36"><a href="#cb8-36" tabindex="-1"></a><span class="co">#&gt;             oklinks &lt;- c(&quot;log&quot;)</span></span>
-<span id="cb8-37"><a href="#cb8-37" tabindex="-1"></a><span class="co">#&gt;         return(oklinks)</span></span>
-<span id="cb8-38"><a href="#cb8-38" tabindex="-1"></a><span class="co">#&gt;     }, simfun = function (n, y, x, prior_list, offset = NULL, </span></span>
-<span id="cb8-39"><a href="#cb8-39" tabindex="-1"></a><span class="co">#&gt;         weights = 1, family = gaussian(), Gridtype = 2, n_envopt = NULL, </span></span>
-<span id="cb8-40"><a href="#cb8-40" tabindex="-1"></a><span class="co">#&gt;         use_parallel = TRUE, use_opencl = FALSE, verbose = FALSE, </span></span>
-<span id="cb8-41"><a href="#cb8-41" tabindex="-1"></a><span class="co">#&gt;         progbar = FALSE) </span></span>
-<span id="cb8-42"><a href="#cb8-42" tabindex="-1"></a><span class="co">#&gt;     {</span></span>
-<span id="cb8-43"><a href="#cb8-43" tabindex="-1"></a><span class="co">#&gt;         offset2 = offset</span></span>
-<span id="cb8-44"><a href="#cb8-44" tabindex="-1"></a><span class="co">#&gt;         wt = weights</span></span>
-<span id="cb8-45"><a href="#cb8-45" tabindex="-1"></a><span class="co">#&gt;         if (missing(prior_list)) </span></span>
-<span id="cb8-46"><a href="#cb8-46" tabindex="-1"></a><span class="co">#&gt;             stop(&quot;Prior Specification Missing&quot;)</span></span>
-<span id="cb8-47"><a href="#cb8-47" tabindex="-1"></a><span class="co">#&gt;         if (!missing(prior_list)) {</span></span>
-<span id="cb8-48"><a href="#cb8-48" tabindex="-1"></a><span class="co">#&gt;             if (!is.null(prior_list$mu)) </span></span>
-<span id="cb8-49"><a href="#cb8-49" tabindex="-1"></a><span class="co">#&gt;                 mu = prior_list$mu</span></span>
-<span id="cb8-50"><a href="#cb8-50" tabindex="-1"></a><span class="co">#&gt;             if (!is.null(prior_list$Sigma)) </span></span>
-<span id="cb8-51"><a href="#cb8-51" tabindex="-1"></a><span class="co">#&gt;                 Sigma = prior_list$Sigma</span></span>
-<span id="cb8-52"><a href="#cb8-52" tabindex="-1"></a><span class="co">#&gt;             if (!is.null(prior_list$P)) </span></span>
-<span id="cb8-53"><a href="#cb8-53" tabindex="-1"></a><span class="co">#&gt;                 P = prior_list$P</span></span>
-<span id="cb8-54"><a href="#cb8-54" tabindex="-1"></a><span class="co">#&gt;             if (is.null(prior_list$P)) {</span></span>
-<span id="cb8-55"><a href="#cb8-55" tabindex="-1"></a><span class="co">#&gt;                 R &lt;- chol(prior_list$Sigma)</span></span>
-<span id="cb8-56"><a href="#cb8-56" tabindex="-1"></a><span class="co">#&gt;                 Pinv &lt;- chol2inv(R)</span></span>
-<span id="cb8-57"><a href="#cb8-57" tabindex="-1"></a><span class="co">#&gt;                 P &lt;- 0.5 * (Pinv + t(Pinv))</span></span>
-<span id="cb8-58"><a href="#cb8-58" tabindex="-1"></a><span class="co">#&gt;             }</span></span>
-<span id="cb8-59"><a href="#cb8-59" tabindex="-1"></a><span class="co">#&gt;             if (!is.null(prior_list$dispersion)) </span></span>
-<span id="cb8-60"><a href="#cb8-60" tabindex="-1"></a><span class="co">#&gt;                 dispersion = prior_list$dispersion</span></span>
-<span id="cb8-61"><a href="#cb8-61" tabindex="-1"></a><span class="co">#&gt;             else dispersion = NULL</span></span>
-<span id="cb8-62"><a href="#cb8-62" tabindex="-1"></a><span class="co">#&gt;             if (!is.null(prior_list$shape)) </span></span>
-<span id="cb8-63"><a href="#cb8-63" tabindex="-1"></a><span class="co">#&gt;                 shape = prior_list$shape</span></span>
-<span id="cb8-64"><a href="#cb8-64" tabindex="-1"></a><span class="co">#&gt;             else shape = NULL</span></span>
-<span id="cb8-65"><a href="#cb8-65" tabindex="-1"></a><span class="co">#&gt;             if (!is.null(prior_list$rate)) </span></span>
-<span id="cb8-66"><a href="#cb8-66" tabindex="-1"></a><span class="co">#&gt;                 rate = prior_list$rate</span></span>
-<span id="cb8-67"><a href="#cb8-67" tabindex="-1"></a><span class="co">#&gt;             else rate = NULL</span></span>
-<span id="cb8-68"><a href="#cb8-68" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb8-69"><a href="#cb8-69" tabindex="-1"></a><span class="co">#&gt;         if (is.numeric(n) == FALSE || is.numeric(y) == FALSE || </span></span>
-<span id="cb8-70"><a href="#cb8-70" tabindex="-1"></a><span class="co">#&gt;             is.numeric(x) == FALSE || is.numeric(mu) == FALSE || </span></span>
-<span id="cb8-71"><a href="#cb8-71" tabindex="-1"></a><span class="co">#&gt;             is.numeric(P) == FALSE) </span></span>
-<span id="cb8-72"><a href="#cb8-72" tabindex="-1"></a><span class="co">#&gt;             stop(&quot;non-numeric argument to numeric function&quot;)</span></span>
-<span id="cb8-73"><a href="#cb8-73" tabindex="-1"></a><span class="co">#&gt;         if (is.null(n_envopt)) </span></span>
-<span id="cb8-74"><a href="#cb8-74" tabindex="-1"></a><span class="co">#&gt;             n_envopt &lt;- n</span></span>
-<span id="cb8-75"><a href="#cb8-75" tabindex="-1"></a><span class="co">#&gt;         n_envopt &lt;- as.integer(n_envopt)</span></span>
-<span id="cb8-76"><a href="#cb8-76" tabindex="-1"></a><span class="co">#&gt;         x &lt;- as.matrix(x)</span></span>
-<span id="cb8-77"><a href="#cb8-77" tabindex="-1"></a><span class="co">#&gt;         mu &lt;- as.matrix(as.vector(mu))</span></span>
-<span id="cb8-78"><a href="#cb8-78" tabindex="-1"></a><span class="co">#&gt;         P &lt;- as.matrix(P)</span></span>
-<span id="cb8-79"><a href="#cb8-79" tabindex="-1"></a><span class="co">#&gt;         start &lt;- mu</span></span>
-<span id="cb8-80"><a href="#cb8-80" tabindex="-1"></a><span class="co">#&gt;         if (length(n) &gt; 1) </span></span>
-<span id="cb8-81"><a href="#cb8-81" tabindex="-1"></a><span class="co">#&gt;             n &lt;- length(n)</span></span>
-<span id="cb8-82"><a href="#cb8-82" tabindex="-1"></a><span class="co">#&gt;         nobs &lt;- NROW(y)</span></span>
-<span id="cb8-83"><a href="#cb8-83" tabindex="-1"></a><span class="co">#&gt;         nvars &lt;- ncol(x)</span></span>
-<span id="cb8-84"><a href="#cb8-84" tabindex="-1"></a><span class="co">#&gt;         if (is.null(offset2)) </span></span>
-<span id="cb8-85"><a href="#cb8-85" tabindex="-1"></a><span class="co">#&gt;             offset2 = rep(0, nobs)</span></span>
-<span id="cb8-86"><a href="#cb8-86" tabindex="-1"></a><span class="co">#&gt;         nvars2 &lt;- length(mu)</span></span>
-<span id="cb8-87"><a href="#cb8-87" tabindex="-1"></a><span class="co">#&gt;         if (!nvars == nvars2) </span></span>
-<span id="cb8-88"><a href="#cb8-88" tabindex="-1"></a><span class="co">#&gt;             stop(&quot;incompatible dimensions&quot;)</span></span>
-<span id="cb8-89"><a href="#cb8-89" tabindex="-1"></a><span class="co">#&gt;         if (!all(dim(P) == c(nvars2, nvars2))) </span></span>
-<span id="cb8-90"><a href="#cb8-90" tabindex="-1"></a><span class="co">#&gt;             stop(&quot;incompatible dimensions&quot;)</span></span>
-<span id="cb8-91"><a href="#cb8-91" tabindex="-1"></a><span class="co">#&gt;         if (!isSymmetric(P)) </span></span>
-<span id="cb8-92"><a href="#cb8-92" tabindex="-1"></a><span class="co">#&gt;             stop(&quot;matrix P must be symmetric&quot;)</span></span>
-<span id="cb8-93"><a href="#cb8-93" tabindex="-1"></a><span class="co">#&gt;         if (length(wt) == 1) </span></span>
-<span id="cb8-94"><a href="#cb8-94" tabindex="-1"></a><span class="co">#&gt;             wt = rep(wt, nobs)</span></span>
-<span id="cb8-95"><a href="#cb8-95" tabindex="-1"></a><span class="co">#&gt;         nobs2 = NROW(wt)</span></span>
-<span id="cb8-96"><a href="#cb8-96" tabindex="-1"></a><span class="co">#&gt;         nobs3 = NROW(x)</span></span>
-<span id="cb8-97"><a href="#cb8-97" tabindex="-1"></a><span class="co">#&gt;         nobs4 = NROW(offset2)</span></span>
-<span id="cb8-98"><a href="#cb8-98" tabindex="-1"></a><span class="co">#&gt;         if (nobs2 != nobs) </span></span>
-<span id="cb8-99"><a href="#cb8-99" tabindex="-1"></a><span class="co">#&gt;             stop(&quot;weighting vector must have same number of elements as y&quot;)</span></span>
-<span id="cb8-100"><a href="#cb8-100" tabindex="-1"></a><span class="co">#&gt;         if (nobs3 != nobs) </span></span>
-<span id="cb8-101"><a href="#cb8-101" tabindex="-1"></a><span class="co">#&gt;             stop(&quot;matrix X must have same number of rows as y&quot;)</span></span>
-<span id="cb8-102"><a href="#cb8-102" tabindex="-1"></a><span class="co">#&gt;         if (nobs4 != nobs) </span></span>
-<span id="cb8-103"><a href="#cb8-103" tabindex="-1"></a><span class="co">#&gt;             stop(&quot;offset vector must have same number of rows as y&quot;)</span></span>
-<span id="cb8-104"><a href="#cb8-104" tabindex="-1"></a><span class="co">#&gt;         tol &lt;- 1e-06</span></span>
-<span id="cb8-105"><a href="#cb8-105" tabindex="-1"></a><span class="co">#&gt;         eS &lt;- eigen(P, symmetric = TRUE, only.values = FALSE)</span></span>
-<span id="cb8-106"><a href="#cb8-106" tabindex="-1"></a><span class="co">#&gt;         ev &lt;- eS$values</span></span>
-<span id="cb8-107"><a href="#cb8-107" tabindex="-1"></a><span class="co">#&gt;         if (!all(ev &gt;= -tol * abs(ev[1L]))) </span></span>
-<span id="cb8-108"><a href="#cb8-108" tabindex="-1"></a><span class="co">#&gt;             stop(&quot;&#39;P&#39; is not positive definite&quot;)</span></span>
-<span id="cb8-109"><a href="#cb8-109" tabindex="-1"></a><span class="co">#&gt;         if (is.character(family)) </span></span>
-<span id="cb8-110"><a href="#cb8-110" tabindex="-1"></a><span class="co">#&gt;             family &lt;- get(family, mode = &quot;function&quot;, envir = parent.frame())</span></span>
-<span id="cb8-111"><a href="#cb8-111" tabindex="-1"></a><span class="co">#&gt;         if (is.function(family)) </span></span>
-<span id="cb8-112"><a href="#cb8-112" tabindex="-1"></a><span class="co">#&gt;             family &lt;- family()</span></span>
-<span id="cb8-113"><a href="#cb8-113" tabindex="-1"></a><span class="co">#&gt;         if (is.null(family$family)) {</span></span>
-<span id="cb8-114"><a href="#cb8-114" tabindex="-1"></a><span class="co">#&gt;             print(family)</span></span>
-<span id="cb8-115"><a href="#cb8-115" tabindex="-1"></a><span class="co">#&gt;             stop(&quot;&#39;family&#39; not recognized&quot;)</span></span>
-<span id="cb8-116"><a href="#cb8-116" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb8-117"><a href="#cb8-117" tabindex="-1"></a><span class="co">#&gt;         okfamilies &lt;- c(&quot;gaussian&quot;, &quot;poisson&quot;, &quot;binomial&quot;, &quot;quasipoisson&quot;, </span></span>
-<span id="cb8-118"><a href="#cb8-118" tabindex="-1"></a><span class="co">#&gt;             &quot;quasibinomial&quot;, &quot;Gamma&quot;)</span></span>
-<span id="cb8-119"><a href="#cb8-119" tabindex="-1"></a><span class="co">#&gt;         if (family$family %in% okfamilies) {</span></span>
-<span id="cb8-120"><a href="#cb8-120" tabindex="-1"></a><span class="co">#&gt;             if (family$family == &quot;gaussian&quot;) </span></span>
-<span id="cb8-121"><a href="#cb8-121" tabindex="-1"></a><span class="co">#&gt;                 oklinks &lt;- c(&quot;identity&quot;)</span></span>
-<span id="cb8-122"><a href="#cb8-122" tabindex="-1"></a><span class="co">#&gt;             if (family$family == &quot;poisson&quot; || family$family == </span></span>
-<span id="cb8-123"><a href="#cb8-123" tabindex="-1"></a><span class="co">#&gt;                 &quot;quasipoisson&quot;) </span></span>
-<span id="cb8-124"><a href="#cb8-124" tabindex="-1"></a><span class="co">#&gt;                 oklinks &lt;- c(&quot;log&quot;)</span></span>
-<span id="cb8-125"><a href="#cb8-125" tabindex="-1"></a><span class="co">#&gt;             if (family$family == &quot;binomial&quot; || family$family == </span></span>
-<span id="cb8-126"><a href="#cb8-126" tabindex="-1"></a><span class="co">#&gt;                 &quot;quasibinomial&quot;) </span></span>
-<span id="cb8-127"><a href="#cb8-127" tabindex="-1"></a><span class="co">#&gt;                 oklinks &lt;- c(&quot;logit&quot;, &quot;probit&quot;, &quot;cloglog&quot;)</span></span>
-<span id="cb8-128"><a href="#cb8-128" tabindex="-1"></a><span class="co">#&gt;             if (family$family == &quot;Gamma&quot;) </span></span>
-<span id="cb8-129"><a href="#cb8-129" tabindex="-1"></a><span class="co">#&gt;                 oklinks &lt;- c(&quot;log&quot;)</span></span>
-<span id="cb8-130"><a href="#cb8-130" tabindex="-1"></a><span class="co">#&gt;             if (family$link %in% oklinks) {</span></span>
-<span id="cb8-131"><a href="#cb8-131" tabindex="-1"></a><span class="co">#&gt;                 famfunc &lt;- glmbfamfunc(family)</span></span>
-<span id="cb8-132"><a href="#cb8-132" tabindex="-1"></a><span class="co">#&gt;                 f1 &lt;- famfunc$f1</span></span>
-<span id="cb8-133"><a href="#cb8-133" tabindex="-1"></a><span class="co">#&gt;                 f2 &lt;- famfunc$f2</span></span>
-<span id="cb8-134"><a href="#cb8-134" tabindex="-1"></a><span class="co">#&gt;                 f3 &lt;- famfunc$f3</span></span>
-<span id="cb8-135"><a href="#cb8-135" tabindex="-1"></a><span class="co">#&gt;             }</span></span>
-<span id="cb8-136"><a href="#cb8-136" tabindex="-1"></a><span class="co">#&gt;             else {</span></span>
-<span id="cb8-137"><a href="#cb8-137" tabindex="-1"></a><span class="co">#&gt;                 stop(gettextf(&quot;link \&quot;%s\&quot; not available for selected family; available links are %s&quot;, </span></span>
-<span id="cb8-138"><a href="#cb8-138" tabindex="-1"></a><span class="co">#&gt;                   family$link, paste(sQuote(oklinks), collapse = &quot;, &quot;)), </span></span>
-<span id="cb8-139"><a href="#cb8-139" tabindex="-1"></a><span class="co">#&gt;                   domain = NA)</span></span>
-<span id="cb8-140"><a href="#cb8-140" tabindex="-1"></a><span class="co">#&gt;             }</span></span>
-<span id="cb8-141"><a href="#cb8-141" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb8-142"><a href="#cb8-142" tabindex="-1"></a><span class="co">#&gt;         else {</span></span>
-<span id="cb8-143"><a href="#cb8-143" tabindex="-1"></a><span class="co">#&gt;             stop(gettextf(&quot;family \&quot;%s\&quot; not available in glmb; available families are %s&quot;, </span></span>
-<span id="cb8-144"><a href="#cb8-144" tabindex="-1"></a><span class="co">#&gt;                 family$family, paste(sQuote(okfamilies), collapse = &quot;, &quot;)), </span></span>
-<span id="cb8-145"><a href="#cb8-145" tabindex="-1"></a><span class="co">#&gt;                 domain = NA)</span></span>
-<span id="cb8-146"><a href="#cb8-146" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb8-147"><a href="#cb8-147" tabindex="-1"></a><span class="co">#&gt;         if (&quot;ddef&quot; %in% names(prior_list)) {</span></span>
-<span id="cb8-148"><a href="#cb8-148" tabindex="-1"></a><span class="co">#&gt;             ddef &lt;- prior_list$ddef</span></span>
-<span id="cb8-149"><a href="#cb8-149" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb8-150"><a href="#cb8-150" tabindex="-1"></a><span class="co">#&gt;         else {</span></span>
-<span id="cb8-151"><a href="#cb8-151" tabindex="-1"></a><span class="co">#&gt;             ddef &lt;- is.null(prior_list$dispersion)</span></span>
-<span id="cb8-152"><a href="#cb8-152" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb8-153"><a href="#cb8-153" tabindex="-1"></a><span class="co">#&gt;         if (family$family %in% c(&quot;gaussian&quot;, &quot;Gamma&quot;) &amp;&amp; isTRUE(ddef)) {</span></span>
-<span id="cb8-154"><a href="#cb8-154" tabindex="-1"></a><span class="co">#&gt;             stop(paste0(&quot;For gaussian() and Gamma() models, dNormal() requires an explicit dispersion &quot;, </span></span>
-<span id="cb8-155"><a href="#cb8-155" tabindex="-1"></a><span class="co">#&gt;                 &quot;(e.g. dispersion = ps$dispersion from Prior_Setup()). &quot;, </span></span>
-<span id="cb8-156"><a href="#cb8-156" tabindex="-1"></a><span class="co">#&gt;                 &quot;Omitted or NULL dispersion is not allowed&quot;))</span></span>
-<span id="cb8-157"><a href="#cb8-157" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb8-158"><a href="#cb8-158" tabindex="-1"></a><span class="co">#&gt;         if (family$family == &quot;gaussian&quot;) {</span></span>
-<span id="cb8-159"><a href="#cb8-159" tabindex="-1"></a><span class="co">#&gt;             outlist &lt;- .rNormalReg_cpp(n = n, y = y, x = x, mu = mu, </span></span>
-<span id="cb8-160"><a href="#cb8-160" tabindex="-1"></a><span class="co">#&gt;                 P = P, offset = offset2, wt = wt, dispersion = dispersion, </span></span>
-<span id="cb8-161"><a href="#cb8-161" tabindex="-1"></a><span class="co">#&gt;                 f2 = f2, f3 = f3, start = mu)</span></span>
-<span id="cb8-162"><a href="#cb8-162" tabindex="-1"></a><span class="co">#&gt;             class(outlist$fit) = &quot;lm&quot;</span></span>
-<span id="cb8-163"><a href="#cb8-163" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb8-164"><a href="#cb8-164" tabindex="-1"></a><span class="co">#&gt;         else {</span></span>
-<span id="cb8-165"><a href="#cb8-165" tabindex="-1"></a><span class="co">#&gt;             if (is.null(dispersion)) {</span></span>
-<span id="cb8-166"><a href="#cb8-166" tabindex="-1"></a><span class="co">#&gt;                 dispersion2 = 1</span></span>
-<span id="cb8-167"><a href="#cb8-167" tabindex="-1"></a><span class="co">#&gt;             }</span></span>
-<span id="cb8-168"><a href="#cb8-168" tabindex="-1"></a><span class="co">#&gt;             else {</span></span>
-<span id="cb8-169"><a href="#cb8-169" tabindex="-1"></a><span class="co">#&gt;                 dispersion2 = dispersion</span></span>
-<span id="cb8-170"><a href="#cb8-170" tabindex="-1"></a><span class="co">#&gt;             }</span></span>
-<span id="cb8-171"><a href="#cb8-171" tabindex="-1"></a><span class="co">#&gt;             outlist &lt;- .rNormalGLM_cpp(n = n, y = y, x = x, mu = mu, </span></span>
-<span id="cb8-172"><a href="#cb8-172" tabindex="-1"></a><span class="co">#&gt;                 P = P, offset = offset2, wt = wt, dispersion = dispersion2, </span></span>
-<span id="cb8-173"><a href="#cb8-173" tabindex="-1"></a><span class="co">#&gt;                 f2 = f2, f3 = f3, start = start, family = family$family, </span></span>
-<span id="cb8-174"><a href="#cb8-174" tabindex="-1"></a><span class="co">#&gt;                 link = family$link, Gridtype = Gridtype, n_envopt = n_envopt, </span></span>
-<span id="cb8-175"><a href="#cb8-175" tabindex="-1"></a><span class="co">#&gt;                 use_parallel = use_parallel, use_opencl = use_opencl, </span></span>
-<span id="cb8-176"><a href="#cb8-176" tabindex="-1"></a><span class="co">#&gt;                 verbose = verbose)</span></span>
-<span id="cb8-177"><a href="#cb8-177" tabindex="-1"></a><span class="co">#&gt;             betastar = outlist$coef.mode</span></span>
-<span id="cb8-178"><a href="#cb8-178" tabindex="-1"></a><span class="co">#&gt;             x = outlist$x</span></span>
-<span id="cb8-179"><a href="#cb8-179" tabindex="-1"></a><span class="co">#&gt;             y = outlist$y</span></span>
-<span id="cb8-180"><a href="#cb8-180" tabindex="-1"></a><span class="co">#&gt;             weights = outlist$prior.weights</span></span>
-<span id="cb8-181"><a href="#cb8-181" tabindex="-1"></a><span class="co">#&gt;             if (family$family == &quot;quasipoisson&quot; || family$family == </span></span>
-<span id="cb8-182"><a href="#cb8-182" tabindex="-1"></a><span class="co">#&gt;                 &quot;quasibinomial&quot;) {</span></span>
-<span id="cb8-183"><a href="#cb8-183" tabindex="-1"></a><span class="co">#&gt;                 linkinv &lt;- family$linkinv</span></span>
-<span id="cb8-184"><a href="#cb8-184" tabindex="-1"></a><span class="co">#&gt;                 disp_temp = rep(0, n)</span></span>
-<span id="cb8-185"><a href="#cb8-185" tabindex="-1"></a><span class="co">#&gt;                 m = length(y)</span></span>
-<span id="cb8-186"><a href="#cb8-186" tabindex="-1"></a><span class="co">#&gt;                 k = ncol(x)</span></span>
-<span id="cb8-187"><a href="#cb8-187" tabindex="-1"></a><span class="co">#&gt;                 res_temp = matrix(0, nrow = n, ncol = m)</span></span>
-<span id="cb8-188"><a href="#cb8-188" tabindex="-1"></a><span class="co">#&gt;                 fit_temp = x %*% t(outlist$coefficients)</span></span>
-<span id="cb8-189"><a href="#cb8-189" tabindex="-1"></a><span class="co">#&gt;                 for (l in 1:n) {</span></span>
-<span id="cb8-190"><a href="#cb8-190" tabindex="-1"></a><span class="co">#&gt;                   fit_temp[1:m, l] = linkinv(offset2 + fit_temp[1:m, </span></span>
-<span id="cb8-191"><a href="#cb8-191" tabindex="-1"></a><span class="co">#&gt;                     l])</span></span>
-<span id="cb8-192"><a href="#cb8-192" tabindex="-1"></a><span class="co">#&gt;                   res_temp[l, 1:m] = (y - fit_temp[1:m, l])</span></span>
-<span id="cb8-193"><a href="#cb8-193" tabindex="-1"></a><span class="co">#&gt;                   disp_temp[l] = (1/(m - k)) * sum(res_temp[l, </span></span>
-<span id="cb8-194"><a href="#cb8-194" tabindex="-1"></a><span class="co">#&gt;                     1:m]^2 * wt/fit_temp[1:m, l])</span></span>
-<span id="cb8-195"><a href="#cb8-195" tabindex="-1"></a><span class="co">#&gt;                 }</span></span>
-<span id="cb8-196"><a href="#cb8-196" tabindex="-1"></a><span class="co">#&gt;                 outlist &lt;- .rNormalGLM_cpp(n = n, y = y, x = x, </span></span>
-<span id="cb8-197"><a href="#cb8-197" tabindex="-1"></a><span class="co">#&gt;                   mu = mu, P = P, offset = offset2, wt = wt, </span></span>
-<span id="cb8-198"><a href="#cb8-198" tabindex="-1"></a><span class="co">#&gt;                   dispersion = mean(disp_temp), f2 = f2, f3 = f3, </span></span>
-<span id="cb8-199"><a href="#cb8-199" tabindex="-1"></a><span class="co">#&gt;                   start = start, family = family$family, link = family$link, </span></span>
-<span id="cb8-200"><a href="#cb8-200" tabindex="-1"></a><span class="co">#&gt;                   Gridtype = Gridtype, n_envopt = n_envopt, use_parallel = use_parallel, </span></span>
-<span id="cb8-201"><a href="#cb8-201" tabindex="-1"></a><span class="co">#&gt;                   use_opencl = use_opencl, verbose = verbose)</span></span>
-<span id="cb8-202"><a href="#cb8-202" tabindex="-1"></a><span class="co">#&gt;                 outlist$call &lt;- match.call()</span></span>
-<span id="cb8-203"><a href="#cb8-203" tabindex="-1"></a><span class="co">#&gt;                 outlist$dispersion = mean(disp_temp)</span></span>
-<span id="cb8-204"><a href="#cb8-204" tabindex="-1"></a><span class="co">#&gt;             }</span></span>
-<span id="cb8-205"><a href="#cb8-205" tabindex="-1"></a><span class="co">#&gt;             outlist$fit = glmb.wfit(x, y, weights, offset = offset2, </span></span>
-<span id="cb8-206"><a href="#cb8-206" tabindex="-1"></a><span class="co">#&gt;                 family = family, Bbar = mu, P, betastar)</span></span>
-<span id="cb8-207"><a href="#cb8-207" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb8-208"><a href="#cb8-208" tabindex="-1"></a><span class="co">#&gt;         colnames(outlist$coefficients) &lt;- colnames(x)</span></span>
-<span id="cb8-209"><a href="#cb8-209" tabindex="-1"></a><span class="co">#&gt;         pl_disp &lt;- if (!is.null(dispersion)) </span></span>
-<span id="cb8-210"><a href="#cb8-210" tabindex="-1"></a><span class="co">#&gt;             dispersion</span></span>
-<span id="cb8-211"><a href="#cb8-211" tabindex="-1"></a><span class="co">#&gt;         else outlist$dispersion</span></span>
-<span id="cb8-212"><a href="#cb8-212" tabindex="-1"></a><span class="co">#&gt;         pfamily_obj &lt;- list(pfamily = &quot;dNormal&quot;, prior_list = list(mu = as.numeric(mu), </span></span>
-<span id="cb8-213"><a href="#cb8-213" tabindex="-1"></a><span class="co">#&gt;             Sigma = Sigma, dispersion = pl_disp))</span></span>
-<span id="cb8-214"><a href="#cb8-214" tabindex="-1"></a><span class="co">#&gt;         attr(pfamily_obj, &quot;Prior Type&quot;) &lt;- &quot;dNormal&quot;</span></span>
-<span id="cb8-215"><a href="#cb8-215" tabindex="-1"></a><span class="co">#&gt;         class(pfamily_obj) &lt;- &quot;pfamily&quot;</span></span>
-<span id="cb8-216"><a href="#cb8-216" tabindex="-1"></a><span class="co">#&gt;         outlist$pfamily &lt;- pfamily_obj</span></span>
-<span id="cb8-217"><a href="#cb8-217" tabindex="-1"></a><span class="co">#&gt;         rglmb_df = as.data.frame(cbind(y, x))</span></span>
-<span id="cb8-218"><a href="#cb8-218" tabindex="-1"></a><span class="co">#&gt;         rglmb_f = DF2formula(rglmb_df)</span></span>
-<span id="cb8-219"><a href="#cb8-219" tabindex="-1"></a><span class="co">#&gt;         rglmb_mf = model.frame(rglmb_f, rglmb_df)</span></span>
-<span id="cb8-220"><a href="#cb8-220" tabindex="-1"></a><span class="co">#&gt;         outlist$family = family</span></span>
-<span id="cb8-221"><a href="#cb8-221" tabindex="-1"></a><span class="co">#&gt;         outlist$famfunc = famfunc</span></span>
-<span id="cb8-222"><a href="#cb8-222" tabindex="-1"></a><span class="co">#&gt;         outlist$call &lt;- match.call()</span></span>
-<span id="cb8-223"><a href="#cb8-223" tabindex="-1"></a><span class="co">#&gt;         outlist$offset2 &lt;- offset2</span></span>
-<span id="cb8-224"><a href="#cb8-224" tabindex="-1"></a><span class="co">#&gt;         outlist$formula &lt;- rglmb_f</span></span>
-<span id="cb8-225"><a href="#cb8-225" tabindex="-1"></a><span class="co">#&gt;         outlist$model &lt;- rglmb_mf</span></span>
-<span id="cb8-226"><a href="#cb8-226" tabindex="-1"></a><span class="co">#&gt;         outlist$data &lt;- rglmb_df</span></span>
-<span id="cb8-227"><a href="#cb8-227" tabindex="-1"></a><span class="co">#&gt;         class(outlist) &lt;- c(outlist$class, c(&quot;rglmb&quot;, &quot;glmb&quot;, </span></span>
-<span id="cb8-228"><a href="#cb8-228" tabindex="-1"></a><span class="co">#&gt;             &quot;glm&quot;, &quot;lm&quot;))</span></span>
-<span id="cb8-229"><a href="#cb8-229" tabindex="-1"></a><span class="co">#&gt;         outlist</span></span>
-<span id="cb8-230"><a href="#cb8-230" tabindex="-1"></a><span class="co">#&gt;     }, call = dNormal(mu = mu_f, Sigma = Sigma_f, dispersion = sigma_faith^2)), &quot;`Prior Type`&quot; = &quot;dNormal&quot;, class = &quot;pfamily&quot;), </span></span>
-<span id="cb8-231"><a href="#cb8-231" tabindex="-1"></a><span class="co">#&gt;     n = 20000, data = structure(list(y = c(79, 54, 74, 62, 85, </span></span>
-<span id="cb8-232"><a href="#cb8-232" tabindex="-1"></a><span class="co">#&gt;     55, 88, 85, 51, 85, 54, 84, 78, 47, 83, 52, 62, 84, 52, 79, </span></span>
-<span id="cb8-233"><a href="#cb8-233" tabindex="-1"></a><span class="co">#&gt;     51, 47, 78, 69, 74, 83, 55, 76, 78, 79, 73, 77, 66, 80, 74, </span></span>
-<span id="cb8-234"><a href="#cb8-234" tabindex="-1"></a><span class="co">#&gt;     52, 48, 80, 59, 90, 80, 58, 84, 58, 73, 83, 64, 53, 82, 59, </span></span>
-<span id="cb8-235"><a href="#cb8-235" tabindex="-1"></a><span class="co">#&gt;     75, 90, 54, 80, 54, 83, 71, 64, 77, 81, 59, 84, 48, 82, 60, </span></span>
-<span id="cb8-236"><a href="#cb8-236" tabindex="-1"></a><span class="co">#&gt;     92, 78, 78, 65, 73, 82, 56, 79, 71, 62, 76, 60, 78, 76, 83, </span></span>
-<span id="cb8-237"><a href="#cb8-237" tabindex="-1"></a><span class="co">#&gt;     75, 82, 70, 65, 73, 88, 76, 80, 48, 86, 60, 90, 50, 78, 63, </span></span>
-<span id="cb8-238"><a href="#cb8-238" tabindex="-1"></a><span class="co">#&gt;     72, 84, 75, 51, 82, 62, 88, 49, 83, 81, 47, 84, 52, 86, 81, </span></span>
-<span id="cb8-239"><a href="#cb8-239" tabindex="-1"></a><span class="co">#&gt;     75, 59, 89, 79, 59, 81, 50, 85, 59, 87, 53, 69, 77, 56, 88, </span></span>
-<span id="cb8-240"><a href="#cb8-240" tabindex="-1"></a><span class="co">#&gt;     81, 45, 82, 55, 90, 45, 83, 56, 89, 46, 82, 51, 86, 53, 79, </span></span>
-<span id="cb8-241"><a href="#cb8-241" tabindex="-1"></a><span class="co">#&gt;     81, 60, 82, 77, 76, 59, 80, 49, 96, 53, 77, 77, 65, 81, 71, </span></span>
-<span id="cb8-242"><a href="#cb8-242" tabindex="-1"></a><span class="co">#&gt;     70, 81, 93, 53, 89, 45, 86, 58, 78, 66, 76, 63, 88, 52, 93, </span></span>
-<span id="cb8-243"><a href="#cb8-243" tabindex="-1"></a><span class="co">#&gt;     49, 57, 77, 68, 81, 81, 73, 50, 85, 74, 55, 77, 83, 83, 51, </span></span>
-<span id="cb8-244"><a href="#cb8-244" tabindex="-1"></a><span class="co">#&gt;     78, 84, 46, 83, 55, 81, 57, 76, 84, 77, 81, 87, 77, 51, 78, </span></span>
-<span id="cb8-245"><a href="#cb8-245" tabindex="-1"></a><span class="co">#&gt;     60, 82, 91, 53, 78, 46, 77, 84, 49, 83, 71, 80, 49, 75, 64, </span></span>
-<span id="cb8-246"><a href="#cb8-246" tabindex="-1"></a><span class="co">#&gt;     76, 53, 94, 55, 76, 50, 82, 54, 75, 78, 79, 78, 78, 70, 79, </span></span>
-<span id="cb8-247"><a href="#cb8-247" tabindex="-1"></a><span class="co">#&gt;     70, 54, 86, 50, 90, 54, 54, 77, 79, 64, 75, 47, 86, 63, 85, </span></span>
-<span id="cb8-248"><a href="#cb8-248" tabindex="-1"></a><span class="co">#&gt;     82, 57, 82, 67, 74, 54, 83, 73, 73, 88, 80, 71, 83, 56, 79, </span></span>
-<span id="cb8-249"><a href="#cb8-249" tabindex="-1"></a><span class="co">#&gt;     78, 84, 58, 83, 43, 60, 75, 81, 46, 90, 46, 74)), class = &quot;data.frame&quot;, row.names = c(NA, </span></span>
-<span id="cb8-250"><a href="#cb8-250" tabindex="-1"></a><span class="co">#&gt;     -272L)), method = &quot;qr&quot;, model = TRUE, x = TRUE, y = TRUE, </span></span>
-<span id="cb8-251"><a href="#cb8-251" tabindex="-1"></a><span class="co">#&gt;     qr = TRUE, singular.ok = TRUE, contrasts = NULL, Gridtype = 2, </span></span>
-<span id="cb8-252"><a href="#cb8-252" tabindex="-1"></a><span class="co">#&gt;     n_envopt = NULL, use_parallel = TRUE, use_opencl = FALSE, </span></span>
-<span id="cb8-253"><a href="#cb8-253" tabindex="-1"></a><span class="co">#&gt;     verbose = FALSE)</span></span>
-<span id="cb8-254"><a href="#cb8-254" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-255"><a href="#cb8-255" tabindex="-1"></a><span class="co">#&gt; Posterior Mean Coefficients:</span></span>
-<span id="cb8-256"><a href="#cb8-256" tabindex="-1"></a><span class="co">#&gt; (Intercept)  </span></span>
-<span id="cb8-257"><a href="#cb8-257" tabindex="-1"></a><span class="co">#&gt;       70.91</span></span></code></pre></div>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a><span class="co">#&gt; lmb(formula = y ~ 1, n = 20000, data = df_faith)</span></span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt; Posterior Mean Coefficients:</span></span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="co">#&gt; (Intercept)  </span></span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt;       70.91</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>faith_compare <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="at">Dataset =</span> <span class="st">&quot;Old Faithful waiting&quot;</span>,</span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="at">Posterior =</span> faith_analytic<span class="sc">$</span>Posterior,</span>

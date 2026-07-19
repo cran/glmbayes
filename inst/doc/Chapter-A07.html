@@ -12,7 +12,7 @@
 
 <meta name="author" content="Kjell Nygren" />
 
-<meta name="date" content="2026-06-21" />
+<meta name="date" content="2026-07-19" />
 
 <title>Chapter A07: Accept–Reject Sampling for gaussian Regression models with independent normal-gamma priors</title>
 
@@ -262,7 +262,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Chapter A07: Accept–Reject Sampling for
 gaussian Regression models with independent normal-gamma priors</h1>
 <h4 class="author">Kjell Nygren</h4>
-<h4 class="date">2026-06-21</h4>
+<h4 class="date">2026-07-19</h4>
 
 
 
@@ -2679,6 +2679,29 @@ the ratio is a weighted average of the <span class="math inline">\(\mu_i\)</span
 \mu_i^{-3}}{\sum_k w_k \mu_k^{-3}}
   \ge 0\)</span> and <span class="math inline">\(\sum_i \rho_i =
 1\)</span>. <span class="math inline">\(\square\)</span></p>
+<blockquote>
+<p><strong>Erratum (corrected below).</strong> The original statement
+and proof of this remark claimed <span class="math inline">\(t^{*} &lt;
+\lambda_{\min}(K)\)</span>. That conclusion is <strong>wrong</strong>:
+the proof’s final step only licenses the weaker bound <span class="math inline">\(t^{*} &lt; \lambda_{\max}(K)\)</span> (see the
+corrected proof below, and the discussion after Claim 7). The stronger,
+incorrect bound was used in the original proof of Claim 7 (part 3) to
+conclude that <span class="math inline">\(\mathrm{UB2}_j(d)\)</span>
+always attains its minimum over <span class="math inline">\([\mathrm{low},
+\mathrm{upp}]\)</span> at an endpoint. That conclusion is only valid
+when <span class="math inline">\(K\)</span> is (numerically) isotropic,
+i.e. the coefficient prior is a Zellner g-prior for the design/weights
+in use; for anisotropic <span class="math inline">\(K\)</span>, a
+genuine interior local minimum of <span class="math inline">\(\mathrm{UB2}_j(d)\)</span> can occur. See the
+corrected Claim 7 and the discussion following its proof for the general
+root-finding procedure this implies. This has been confirmed both by
+concrete counterexamples and by the compiled sampler in
+<code>glmbayesCore</code>
+(<code>data-raw/ub2_root_finding_prototype.R</code>,
+<code>data-raw/validate_ub2_rootfinding_fix.R</code>,
+<code>data-raw/README_ub2_rootfinding_fix.md</code>), which implements
+the corrected, exact minimization described below.</p>
+</blockquote>
 <p><strong>Remark 5.5.7 (Critical points of <span class="math inline">\(\tilde{\mathrm{UB2}}_j\)</span>).</strong> Suppose
 <span class="math inline">\(\Delta &gt; 0\)</span> and <span class="math inline">\(r^{*}_j \neq 0\)</span>. If <span class="math inline">\(t^{*} &gt; 0\)</span> is a critical point of <span class="math inline">\(\tilde{\mathrm{UB2}}_j(t)\)</span>, i.e. <span class="math inline">\(\tilde{\mathrm{UB2}}_j&#39;(t^{*}) = 0\)</span>,
 then: <span class="math display">\[
@@ -2690,12 +2713,14 @@ then: <span class="math display">\[
     2\, v_j^{T}(K + t^{*}I)^{-3}v_j
   },
 \]</span> and <span class="math inline">\(t^{*}\)</span> lies strictly
-below the smallest eigenvalue of <span class="math inline">\(K\)</span>:
+below the largest eigenvalue of <span class="math inline">\(K\)</span>:
 <span class="math display">\[
-  t^{*} I \;\prec\; K,
-  \qquad
-  t^{*} &lt; \lambda_{\min}(K).
-\]</span></p>
+  t^{*} &lt; \lambda_{\max}(K).
+\]</span> (When <span class="math inline">\(K\)</span> is isotropic,
+<span class="math inline">\(\lambda_{\max}(K) =
+\lambda_{\min}(K)\)</span> and this recovers the stronger bound <span class="math inline">\(t^{*} I \prec K\)</span>; for anisotropic <span class="math inline">\(K\)</span> only the weaker bound below the largest
+eigenvalue holds – see the discussion after Claim 7 for why the
+analogous bound below <span class="math inline">\(\lambda_{\min}(K)\)</span> fails.)</p>
 <p><em>Proof.</em> From Remark 5.5.4 and Remark 5.5.5, <span class="math display">\[
   \tilde{\mathrm{UB2}}_j&#39;(t)
   = \frac{1}{2}\bigl(g_j(t) - \Delta\bigr)
@@ -2836,6 +2861,17 @@ eigenvalues of <span class="math inline">\(K+tI\)</span> and write <span class="
 <h4>5.5.5 Claim 7: UB2 derivatives and endpoint minimization</h4>
 <p>We now state the main result about the shape of <span class="math inline">\(\tilde{\mathrm{UB2}}_j(t)\)</span> and the
 location of its minima.</p>
+<blockquote>
+<p><strong>Erratum (corrected below).</strong> Part 1 originally stated
+the (incorrect) bound <span class="math inline">\(t^{*} &lt;
+\lambda_{\min}(K)\)</span> from the original Remark 5.5.7, and part 3
+used it to claim that <span class="math inline">\(\mathrm{UB2}_j(d)\)</span> <em>always</em> attains
+its minimum over <span class="math inline">\([\mathrm{low},\mathrm{upp}]\)</span> at an
+endpoint. Both are corrected below: part 1 now uses the valid bound
+<span class="math inline">\(t^{*} &lt; \lambda_{\max}(K)\)</span>, and
+part 3 is restated as an <em>isotropic</em> special case, followed by
+the corrected general statement for anisotropic <span class="math inline">\(K\)</span> (Remark 5.5.9 / Corrected Claim 7<span class="math inline">\(&#39;\)</span>).</p>
+</blockquote>
 <p><strong>Claim 7.</strong><br />
 Suppose <span class="math inline">\(\Delta &gt; 0\)</span> and <span class="math inline">\(r^{*}_j \neq 0\)</span>. Then:</p>
 <ol style="list-style-type: decimal">
@@ -2848,10 +2884,8 @@ Suppose <span class="math inline">\(\Delta &gt; 0\)</span> and <span class="math
   }{
     2\, v_j^{T}(K + t^{*}I)^{-3}v_j
   },
-\]</span> and lies strictly below the smallest eigenvalue of <span class="math inline">\(K\)</span>: <span class="math display">\[
-  t^{*} I \;\prec\; K,
-  \qquad
-  t^{*} &lt; \lambda_{\min}(K).
+\]</span> and lies strictly below the largest eigenvalue of <span class="math inline">\(K\)</span>: <span class="math display">\[
+  t^{*} &lt; \lambda_{\max}(K).
 \]</span></p></li>
 <li><p>Any inflection point <span class="math inline">\(t^{*} &gt;
 0\)</span> (where <span class="math inline">\(\tilde{\mathrm{UB2}}_j&#39;&#39;(t^{*}) =
@@ -2861,30 +2895,101 @@ Suppose <span class="math inline">\(\Delta &gt; 0\)</span> and <span class="math
   t^{*},
 \]</span> i.e. <span class="math inline">\(t^{*}\)</span> is at least
 twice the smallest eigenvalue of <span class="math inline">\(K\)</span>.</p></li>
-<li><p>Consequently, any critical point lies strictly below any
-inflection point, in the region where <span class="math inline">\(\tilde{\mathrm{UB2}}_j\)</span> is concave, and
+<li><p><strong>(Isotropic case only.)</strong> If <span class="math inline">\(K = \lambda I\)</span> for a scalar <span class="math inline">\(\lambda &gt; 0\)</span> (equivalently, the
+coefficient prior is a Zellner g-prior for the design/weights in use),
+then <span class="math inline">\(\lambda_{\min}(K) =
+\lambda_{\max}(K) = \lambda\)</span>, so part 1 gives <span class="math inline">\(t^{*} &lt; \lambda\)</span> and part 2 gives <span class="math inline">\(t^{*} \ge 2\lambda\)</span> for any
+critical/inflection point respectively; any critical point therefore
+lies strictly below any inflection point, in the region where <span class="math inline">\(\tilde{\mathrm{UB2}}_j\)</span> is concave, and
 over any interval <span class="math inline">\(t \in
 [1/\mathrm{upp},\,1/\mathrm{low}]\)</span> the minimum of <span class="math inline">\(\tilde{\mathrm{UB2}}_j(t)\)</span> must occur at
 one of the endpoints. Equivalently, the minimum of <span class="math inline">\(\mathrm{UB2}_j(d)\)</span> over <span class="math inline">\(d \in [\mathrm{low},\,\mathrm{upp}]\)</span>
-occurs at <span class="math inline">\(d = \mathrm{low}\)</span> or <span class="math inline">\(d = \mathrm{upp}\)</span>.</p></li>
+occurs at <span class="math inline">\(d = \mathrm{low}\)</span> or <span class="math inline">\(d = \mathrm{upp}\)</span>. <strong>For anisotropic
+<span class="math inline">\(K\)</span></strong> (<span class="math inline">\(\lambda_{\max}(K) &gt;
+\lambda_{\min}(K)\)</span>), this endpoint-only conclusion does
+<strong>not</strong> follow: part 1 only rules out critical points with
+<span class="math inline">\(t^{*} \ge \lambda_{\max}(K)\)</span>, so a
+critical point can occur anywhere in <span class="math inline">\((0,
+\lambda_{\max}(K))\)</span>, which overlaps the convex region <span class="math inline">\(t \ge 2\lambda_{\min}(K)\)</span> whenever <span class="math inline">\(\lambda_{\max}(K) &gt; 2\lambda_{\min}(K)\)</span>
+(condition number of <span class="math inline">\(K\)</span> greater than
+2). A critical point there is a genuine local minimum that can lie
+strictly below both endpoint values – see the discussion after this
+proof for concrete examples and the corrected general
+procedure.</p></li>
 </ol>
 <p><em>Proof of Claim 7.</em><br />
 Part 1 follows directly from Remark 5.5.7: at any critical point <span class="math inline">\(t^{*}\)</span> of <span class="math inline">\(\tilde{\mathrm{UB2}}_j(t)\)</span> with <span class="math inline">\(\Delta &gt; 0\)</span> and <span class="math inline">\(r^{*}_j \neq 0\)</span>, we have the stated
-implicit equation and the strict inequality <span class="math inline">\(t^{*} &lt; \lambda_{\min}(K)\)</span>.</p>
+implicit equation and the strict inequality <span class="math inline">\(t^{*} &lt; \lambda_{\max}(K)\)</span>.</p>
 <p>Part 2 follows from Remark 5.5.8: at any inflection point <span class="math inline">\(t^{*}\)</span>, <span class="math inline">\(\tilde{\mathrm{UB2}}_j&#39;&#39;(t^{*}) =
 0\)</span> implies <span class="math inline">\(t^{*} \ge
 2\,\lambda_{\min}(K)\)</span>.</p>
-<p>For part 3, combine these bounds with the sign pattern of <span class="math inline">\(\tilde{\mathrm{UB2}}_j&#39;&#39;(t)\)</span>
-implied by Remark 5.5.5. The function is strictly concave for <span class="math inline">\(t &lt; \lambda_{\min}(K)\)</span> and convex for
-<span class="math inline">\(t \ge 2\,\lambda_{\min}(K)\)</span>, so any
-critical point must lie in the concave region strictly below any
-inflection point. Over any compact interval <span class="math inline">\([1/\mathrm{upp},\,1/\mathrm{low}]\)</span>, a
+<p>For part 3 (isotropic case), combine these bounds with the sign
+pattern of <span class="math inline">\(\tilde{\mathrm{UB2}}_j&#39;&#39;(t)\)</span>
+implied by Remark 5.5.5. When <span class="math inline">\(\lambda_{\min}(K) = \lambda_{\max}(K) =
+\lambda\)</span>, the function is strictly concave for <span class="math inline">\(t &lt; \lambda\)</span> and convex for <span class="math inline">\(t \ge 2\lambda\)</span>, so any critical point
+(necessarily <span class="math inline">\(t^{*} &lt; \lambda\)</span>, by
+part 1) must lie in the concave region strictly below any inflection
+point (necessarily <span class="math inline">\(t^{*} \ge
+2\lambda\)</span>, by part 2). Over any compact interval <span class="math inline">\([1/\mathrm{upp},\,1/\mathrm{low}]\)</span>, a
 function that is concave around any interior critical point and
 eventually convex must attain its minimum at an endpoint of the
 interval, and hence the minimum of <span class="math inline">\(\tilde{\mathrm{UB2}}_j(t)\)</span> occurs at one
 of the endpoints. The equivalent statement for <span class="math inline">\(\mathrm{UB2}_j(d)\)</span> follows from the
 reparameterization <span class="math inline">\(t = 1/d\)</span>. <span class="math inline">\(\square\)</span></p>
 </div>
+</div>
+<div id="corrected-minimization-for-anisotropic-k" class="section level3">
+<h3>5.5.5<span class="math inline">\(&#39;\)</span> Corrected
+minimization for anisotropic <span class="math inline">\(K\)</span></h3>
+<p>Claim 7’s endpoint shortcut (part 3) is an <em>isotropic-only</em>
+result. When <span class="math inline">\(K\)</span> is anisotropic,
+<span class="math inline">\(\mathrm{UB2}_j(d)\)</span> can have a
+genuine interior local (and global) minimum over <span class="math inline">\([\mathrm{low},\mathrm{upp}]\)</span> that lies
+strictly below both <span class="math inline">\(\mathrm{UB2}_j(\mathrm{low})\)</span> and <span class="math inline">\(\mathrm{UB2}_j(\mathrm{upp})\)</span>. Concrete 2D
+and 3D examples with an interior minimum 50-58% below the endpoint-only
+estimate are given in <code>glmbayesCore</code>’s
+<code>data-raw/ub2_root_finding_prototype.R</code>; a condition-number
+sweep there shows the gap is exactly zero for <span class="math inline">\(\lambda_{\max}(K)/\lambda_{\min}(K) \le
+100\)</span> and grows for larger condition numbers. (In the
+accept-reject sampler this previously surfaced as spurious “Sign
+violation: UB2 &lt; 0” errors whenever a proposed/accepted dispersion
+landed near the true, uncounted-for interior minimum.)</p>
+<p><strong>Remark 5.5.9 (Exact minimization via root-finding).</strong>
+The only property of <span class="math inline">\(\mathrm{UB2}_{\mathrm{Min}, j}\)</span> actually
+required elsewhere in this chapter (Claims 1-6, and the
+across-face/across-block machinery) is <span class="math display">\[
+  \mathrm{UB2}_{\mathrm{Min}, j} \;\le\; \mathrm{UB2}_j(d)
+  \quad\text{for all } d \in [\mathrm{low}, \mathrm{upp}],
+\]</span> i.e. any valid lower bound suffices; Claim 7’s endpoint
+formula was never a separate requirement, only an (isotropic-only)
+shortcut for computing the exact minimum. Since <span class="math inline">\(t = 1/d\)</span> is always a scalar regardless of
+the coefficient dimension <span class="math inline">\(p\)</span>, the
+exact minimum of <span class="math inline">\(\tilde{\mathrm{UB2}}_j\)</span> over <span class="math inline">\(t \in [1/\mathrm{upp}, 1/\mathrm{low}]\)</span>
+can be found directly and cheaply for any <span class="math inline">\(K\)</span>:</p>
+<ol style="list-style-type: decimal">
+<li>By part 1 of Claim 7, any critical point <span class="math inline">\(t^{*}\)</span> satisfies <span class="math inline">\(t^{*} &lt; \lambda_{\max}(K)\)</span>, so it
+suffices to search <span class="math inline">\(t \in \bigl(0,\,
+\min(1/\mathrm{low},\, \lambda_{\max}(K))\bigr)\)</span>.</li>
+<li>Critical points satisfy <span class="math inline">\(h_j&#39;(t) :=
+2\,v_j^{T}(K+tI)^{-3}v_j \cdot t - \bigl(g_j(t) - \Delta\bigr)
+= 0\)</span> (equivalently, in the eigenbasis of <span class="math inline">\(K\)</span>, with <span class="math inline">\(w_i =
+(u_i^Tv_j)^2\)</span> for eigenvectors <span class="math inline">\(u_i\)</span>, <span class="math inline">\(h_j&#39;(t) = \sum_i w_i(\lambda_i - t)/(\lambda_i
++ t)^3 = \Delta\)</span>); bracket sign changes of this equation on a
+grid refined near each eigenvalue <span class="math inline">\(\lambda_i\)</span> of <span class="math inline">\(K\)</span>, and polish each bracket with a
+standard 1-D root finder.</li>
+<li><span class="math inline">\(\mathrm{UB2}_{\mathrm{Min}, j} =
+\min\)</span> of <span class="math inline">\(\tilde{\mathrm{UB2}}_j\)</span> evaluated at <span class="math inline">\(t = 1/\mathrm{upp}\)</span>, <span class="math inline">\(t = 1/\mathrm{low}\)</span>, and every root found
+in step 2. This is exact (not merely a tighter heuristic), and
+automatically reduces to Claim 7’s endpoint formula when <span class="math inline">\(K\)</span> is isotropic (no interior critical
+point is possible there, by part 3).</li>
+</ol>
+<p>This procedure is implemented in <code>glmbayes</code>
+(<code>src/EnvelopeDispersionBuild.cpp::bound_ub2_over_dispersion</code>,
+via the <code>ub2_exact_detail</code> helper namespace), ported from the
+identical, independently validated implementation in
+<code>glmbayesCore</code> – see <code>glmbayesCore</code>’s
+<code>data-raw/README_ub2_rootfinding_fix.md</code> for the exact patch
+and validation results.</p>
 </div>
 </div>
 </div>

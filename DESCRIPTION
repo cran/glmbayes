@@ -1,8 +1,8 @@
 Package: glmbayes
 Type: Package
 Title: Bayesian Generalized Linear Models (IID Samples)
-Version: 0.9.6
-Date: 2026-06-21
+Version: 0.9.7
+Date: 2026-07-19
 Authors@R: c(
     person("Kjell", "Nygren", role = c("aut", "cre"),
            email = "kjell.a.nygren@gmail.com"),
@@ -36,13 +36,14 @@ URL: https://CRAN.R-project.org/package=glmbayes,
         https://github.com/knygren/glmbayes,
         https://knygren.r-universe.dev/glmbayes
 BugReports: https://github.com/knygren/glmbayes/issues
-Imports: stats, coda, Rcpp (>= 1.1.1), RcppParallel, Rdpack (>=
-        0.11-0), opencltools (>= 0.8.1)
+Imports: stats, coda, insight, bayestestR, Rcpp (>= 1.1.1),
+        RcppParallel, Rdpack (>= 0.11-0), opencltools (>= 0.8.1),
+        nmathopencl
 RdMacros: Rdpack
-LinkingTo: Rcpp, RcppArmadillo, RcppParallel
+LinkingTo: Rcpp, RcppArmadillo, RcppParallel, opencltools
 Depends: MASS, R (>= 3.5.0)
-Suggests: knitr, rmarkdown, ggplot2, bayesrules, bayestestR,
-        LearnBayes, testthat (>= 3.0.0), spelling
+Suggests: knitr, rmarkdown, ggplot2, bayesrules, LearnBayes, testthat
+        (>= 3.0.0), spelling
 SystemRequirements: Optional OpenCL support. If available, GPU
         acceleration will be used; otherwise, computation runs on CPU.
 Encoding: UTF-8
@@ -52,7 +53,7 @@ Config/testthat/edition: 3
 LazyData: true
 Language: en-US
 NeedsCompilation: yes
-Packaged: 2026-06-21 17:36:54 UTC; kjell
+Packaged: 2026-07-19 13:41:31 UTC; kjell
 Author: Kjell Nygren [aut, cre],
   The R Core Team [ctb, cph] (R Mathlib sources, R stats modeling code,
     and derived/adapted routines),
@@ -65,4 +66,4 @@ Author: Kjell Nygren [aut, cre],
   Martin Maechler [ctb] (Portions of R Mathlib)
 Maintainer: Kjell Nygren <kjell.a.nygren@gmail.com>
 Repository: CRAN
-Date/Publication: 2026-06-21 18:10:02 UTC
+Date/Publication: 2026-07-19 14:20:02 UTC

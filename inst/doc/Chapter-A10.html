@@ -12,7 +12,7 @@
 
 <meta name="author" content="Kjell Nygren" />
 
-<meta name="date" content="2026-06-21" />
+<meta name="date" content="2026-07-19" />
 
 <title>Chapter A10: Accelerated EnvelopeBuild Implementation using OpenCL</title>
 
@@ -342,7 +342,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Chapter A10: Accelerated EnvelopeBuild
 Implementation using OpenCL</h1>
 <h4 class="author">Kjell Nygren</h4>
-<h4 class="date">2026-06-21</h4>
+<h4 class="date">2026-07-19</h4>
 
 
 
@@ -432,47 +432,51 @@ family function.</p>
 the package builds the program by <strong>concatenating</strong> several
 source components in a fixed order. This mirrors a C/C++ build where
 headers and libraries are included before the main source.</p>
-<div id="assembly-order" class="section level3">
-<h3>3.1 Assembly Order</h3>
-<p>The full program string is:</p>
-<pre><code>all_src = OPENCL.cl
-        + rmath (load_kernel_library(&quot;rmath&quot;))
-        + dpq   (load_kernel_library(&quot;dpq&quot;))
-        + nmath (load_kernel_library(&quot;nmath&quot;))
-        + kernel file (load_kernel_source, e.g. &quot;src/f2_f3_binomial_logit.cl&quot;)</code></pre>
+<div id="assembly-order-production" class="section level3">
+<h3>3.1 Assembly order (production)</h3>
+<p>Runtime GPU assembly uses
+<strong><code>load_likelihood_subgradient_program</code></strong> in
+<code>src/kernel_loader.cpp</code> (see <code>inst/cl/README.md</code>).
+Prelude, shims, and selective <strong><code>nmath/</code></strong> are
+loaded from <strong><code>nmathopencl</code></strong>; entry kernels
+from <strong><code>glmbayes</code></strong>
+(<code>inst/cl/src/f2_f3_*.cl</code>).</p>
+<p>For interactive exploration, mirror that split with
+<strong>opencltools</strong>:</p>
+<pre><code>all_src = opencltools::load_kernel_source(&quot;OPENCL.cl&quot;, package = &quot;nmathopencl&quot;)
+        + opencltools::load_kernel_library(&quot;libR_shims&quot;, package = &quot;nmathopencl&quot;)
+        + … (R_ext_types, R_shims, R_ext_runtime, R_ext_internals, System)
+        + opencltools::load_library_for_kernel(
+              system.file(&quot;cl/src/f2_f3_binomial_logit.cl&quot;, package = &quot;glmbayes&quot;),
+              system.file(&quot;cl/nmath&quot;, package = &quot;nmathopencl&quot;),
+              depends_tag = &quot;all_depends_nmath&quot;)
+        + opencltools::load_kernel_source(&quot;src/f2_f3_binomial_logit.cl&quot;, package = &quot;glmbayes&quot;)</code></pre>
 <ol style="list-style-type: decimal">
-<li><strong>OPENCL.cl</strong> – Global configuration: extensions
-(<code>cl_khr_fp64</code>, <code>cl_khr_printf</code>), IEEE constants
-(<code>ML_NAN</code>, <code>ML_POSINF</code>), feature detection for
-<code>expm1</code>/<code>log1p</code>, and utility macros.</li>
-<li><strong>rmath</strong> – Mathematical constants (M_E, M_PI, etc.)
-and distribution function declarations.</li>
-<li><strong>dpq</strong> – R-style density/CDF macros
-(<code>R_D__0</code>, <code>R_DT_val</code>, etc.) used in
-give_log/lower_tail logic.</li>
-<li><strong>nmath</strong> – Ported numerical routines (bd0, stirlerr,
-lgamma, dbinom, dpois, pnorm, etc.).</li>
-<li><strong>Kernel file</strong> – The model-specific kernel (e.g.,
-<code>f2_f3_binomial_logit.cl</code>) that computes f2 and f3 for each
-grid point.</li>
+<li><strong>OPENCL.cl</strong> and shim layers — from
+<strong>nmathopencl</strong>.</li>
+<li><strong>nmath subset</strong> — stems from
+<code>@all_depends_nmath</code> on the entry kernel; files from
+<strong>nmathopencl</strong> <code>inst/cl/nmath/</code>.</li>
+<li><strong>Kernel file</strong> — model-specific kernel from
+<strong>glmbayes</strong> <code>inst/cl/src/</code>.</li>
 </ol>
 </div>
-<div id="load_kernel_source-and-load_kernel_library" class="section level3">
-<h3>3.2 load_kernel_source and load_kernel_library</h3>
+<div id="opencltools-loaders" class="section level3">
+<h3>3.2 opencltools loaders</h3>
 <ul>
-<li><strong><code>load_kernel_source(relative_path)</code></strong> –
-Loads a single <code>.cl</code> file from <code>inst/cl/</code> via
-<code>system.file(&quot;cl&quot;, relative_path, package = &quot;glmbayes&quot;)</code>.</li>
-<li><strong><code>load_kernel_library(subdir)</code></strong> – Loads
-all <code>.cl</code> files in a subdirectory (e.g.,
-<code>&quot;nmath&quot;</code>, <code>&quot;rmath&quot;</code>, <code>&quot;dpq&quot;</code>), parses
-<code>@provides</code> and <code>@depends</code> annotations, performs a
-<strong>dependency-aware topological sort</strong>, and concatenates the
-files so that dependents appear after their dependencies.</li>
+<li><strong><code>opencltools::load_kernel_source(relative_path, package = …)</code></strong>
+– Loads a single <code>.cl</code> file via
+<code>system.file(&quot;cl&quot;, …)</code>.</li>
+<li><strong><code>opencltools::load_kernel_library(subdir, package = …)</code></strong>
+– Loads all <code>.cl</code> files in a subdirectory with
+<code>@provides</code> / <code>@depends</code> topological sort.</li>
+<li><strong><code>opencltools::load_library_for_kernel()</code></strong>
+– Minimal nmath subset from <code>@all_depends_nmath</code> tags (see
+<code>?opencltools::load_library_for_kernel</code>).</li>
 </ul>
 <p>The <code>@provides</code> and <code>@depends</code> tags allow
-modular, maintainable kernel code: each file declares what it provides
-and what it needs. See <code>?load_kernel_library</code> for
+modular, maintainable kernel code. See
+<strong><code>?opencltools::load_kernel_library</code></strong> for
 details.</p>
 </div>
 </div>
@@ -783,8 +787,8 @@ standardization, envelope build, sampling)</li>
 <code>has_opencl</code>, <code>diagnose_glmbayes</code></li>
 <li><strong><code>?EnvelopeBuild</code></strong>,
 <strong><code>?EnvelopeEval</code></strong> – use_opencl argument</li>
-<li><strong><code>?load_kernel_library</code></strong>,
-<strong><code>?load_kernel_source</code></strong> – Program
+<li><strong><code>?opencltools::load_kernel_library</code></strong>,
+<strong><code>?opencltools::load_kernel_source</code></strong> – Program
 assembly</li>
 <li><strong><code>?glmb</code></strong>,
 <strong><code>?rglmb</code></strong> – use_opencl argument</li>

@@ -12,7 +12,7 @@
 
 <meta name="author" content="Kjell Nygren" />
 
-<meta name="date" content="2026-06-21" />
+<meta name="date" content="2026-07-19" />
 
 <title>Chapter A01: A detailed overview of the glmbayes package</title>
 
@@ -364,7 +364,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Chapter A01: A detailed overview of the
 glmbayes package</h1>
 <h4 class="author">Kjell Nygren</h4>
-<h4 class="date">2026-06-21</h4>
+<h4 class="date">2026-07-19</h4>
 
 
 
@@ -782,26 +782,26 @@ FOR glmb SHOULD BE FAIRLY COMPLETE]</p>
 <span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="co">#&gt;  [5] boxcox           case.names       coerce           confint         </span></span>
 <span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co">#&gt;  [9] cooks.distance   deviance         dfbeta           dfbetas         </span></span>
 <span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co">#&gt; [13] dffits           drop1            dropterm         dummy.coef      </span></span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="co">#&gt; [17] effects          extractAIC       family           formula         </span></span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co">#&gt; [21] hatvalues        influence        initialize       kappa           </span></span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt; [25] labels           logLik           logtrans         model.frame     </span></span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt; [29] model.matrix     nobs             plot             predict         </span></span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt; [33] print            proj             qqnorm           qr              </span></span>
-<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt; [37] residuals        rstandard        rstudent         sexit_thresholds</span></span>
-<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#&gt; [41] show             simulate         slotsFromS3      summary         </span></span>
-<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co">#&gt; [45] variable.names   vcov            </span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="co">#&gt; [17] effects          extractAIC       family           find_algorithm  </span></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co">#&gt; [21] formula          hatvalues        influence        initialize      </span></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt; [25] kappa            labels           logLik           logtrans        </span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt; [29] model.frame      model.matrix     nobs             plot            </span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt; [33] predict          print            proj             qqnorm          </span></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt; [37] qr               residuals        rstandard        rstudent        </span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#&gt; [41] sexit_thresholds show             simulate         slotsFromS3     </span></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co">#&gt; [45] summary          variable.names   vcov            </span></span>
 <span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="co">#&gt; see &#39;?methods&#39; for accessing help and source code</span></span></code></pre></div>
 <p><em>Methods for class=“glm”</em></p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">methods</span>(<span class="at">class=</span><span class="st">&quot;glm&quot;</span>)</span>
 <span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co">#&gt;  [1] add1             addterm          anova            coerce          </span></span>
 <span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="co">#&gt;  [5] confint          cooks.distance   deviance         dfbetas         </span></span>
 <span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="co">#&gt;  [9] dffits           drop1            dropterm         effects         </span></span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="co">#&gt; [13] extractAIC       family           formula          gamma.shape     </span></span>
-<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="co">#&gt; [17] influence        initialize       logLik           model.frame     </span></span>
-<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="co">#&gt; [21] n_obs            nobs             predict          print           </span></span>
-<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a><span class="co">#&gt; [25] profile          residuals        rstandard        rstudent        </span></span>
-<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="co">#&gt; [29] sexit_thresholds show             sigma            slotsFromS3     </span></span>
-<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co">#&gt; [33] summary          vcov             weights         </span></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="co">#&gt; [13] extractAIC       family           find_algorithm   formula         </span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="co">#&gt; [17] gamma.shape      influence        initialize       logLik          </span></span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="co">#&gt; [21] model.frame      n_obs            nobs             predict         </span></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a><span class="co">#&gt; [25] print            profile          residuals        rstandard       </span></span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="co">#&gt; [29] rstudent         sexit_thresholds show             sigma           </span></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co">#&gt; [33] slotsFromS3      summary          vcov             weights         </span></span>
 <span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt; see &#39;?methods&#39; for accessing help and source code</span></span></code></pre></div>
 <p><em>Methods for class=“glmb”</em></p>
 <p>While most of the methods for the <em>glm</em> class (when it has its
@@ -819,11 +819,14 @@ hatvalues) which may require more work. Plans do exist to add the former
 and perhaps the latter (which likely would look at influence on
 posterior modes and not on posterior means).</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">methods</span>(<span class="at">class=</span><span class="st">&quot;glmb&quot;</span>)</span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="co">#&gt;  [1] anova          case.names     confint        cooks.distance dfbetas       </span></span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co">#&gt;  [6] dummy.coef     extractAIC     influence      logLik         plot          </span></span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co">#&gt; [11] predict        print          residuals      rstandard      rstudent      </span></span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&gt; [16] simulate       summary        variable.names vcov          </span></span>
-<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co">#&gt; see &#39;?methods&#39; for accessing help and source code</span></span></code></pre></div>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="co">#&gt;  [1] anova           case.names      check_prior     confint        </span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co">#&gt;  [5] cooks.distance  describe_prior  dfbetas         dummy.coef     </span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co">#&gt;  [9] extractAIC      find_algorithm  find_parameters get_data       </span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&gt; [13] get_parameters  get_priors      influence       logLik         </span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co">#&gt; [17] model_info      plot            predict         print          </span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co">#&gt; [21] residuals       rstandard       rstudent        simulate       </span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co">#&gt; [25] simulate_prior  summary         variable.names  vcov           </span></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="co">#&gt; see &#39;?methods&#39; for accessing help and source code</span></span></code></pre></div>
 <p>NOTE: CHECK WHICH METHODS FOR lmb that are inherited and functions
 vs. those that may require additional development.</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">methods</span>(<span class="at">class=</span><span class="st">&quot;lmb&quot;</span>)</span>
@@ -956,7 +959,7 @@ NOT WORKING FOR rlmb</p>
 <span id="cb15-32"><a href="#cb15-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb15-33"><a href="#cb15-33" tabindex="-1"></a><span class="co">#&gt; Expected Deviance Residuals:</span></span>
 <span id="cb15-34"><a href="#cb15-34" tabindex="-1"></a><span class="co">#&gt;        Min         1Q     Median         3Q        Max </span></span>
-<span id="cb15-35"><a href="#cb15-35" tabindex="-1"></a><span class="co">#&gt; -2.0317493 -0.9859988 -0.5026381  0.7919896  1.3771673 </span></span>
+<span id="cb15-35"><a href="#cb15-35" tabindex="-1"></a><span class="co">#&gt; -2.0386835 -0.9927967 -0.4872204  0.7865307  1.3775225 </span></span>
 <span id="cb15-36"><a href="#cb15-36" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb15-37"><a href="#cb15-37" tabindex="-1"></a><span class="co">#&gt; Prior Estimates with Standard Deviations</span></span>
 <span id="cb15-38"><a href="#cb15-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
@@ -967,25 +970,25 @@ NOT WORKING FOR rlmb</p>
 <span id="cb15-43"><a href="#cb15-43" tabindex="-1"></a><span class="co">#&gt; Bayesian Estimates Based on 1000 iid draws</span></span>
 <span id="cb15-44"><a href="#cb15-44" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb15-45"><a href="#cb15-45" tabindex="-1"></a><span class="co">#&gt;    Post.Mode Post.Mean  Post.Sd MC Error Pr(tail)    </span></span>
-<span id="cb15-46"><a href="#cb15-46" tabindex="-1"></a><span class="co">#&gt; V1  -0.01070  -0.01049  0.06397    0.002 0.447552    </span></span>
-<span id="cb15-47"><a href="#cb15-47" tabindex="-1"></a><span class="co">#&gt; V2   1.62939   1.63647  0.05848    0.002 0.000999 ***</span></span>
+<span id="cb15-46"><a href="#cb15-46" tabindex="-1"></a><span class="co">#&gt; V1  -0.01070  -0.01268  0.06509    0.002 0.423576    </span></span>
+<span id="cb15-47"><a href="#cb15-47" tabindex="-1"></a><span class="co">#&gt; V2   1.62939   1.63336  0.05909    0.002 0.000999 ***</span></span>
 <span id="cb15-48"><a href="#cb15-48" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
 <span id="cb15-49"><a href="#cb15-49" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
 <span id="cb15-50"><a href="#cb15-50" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb15-51"><a href="#cb15-51" tabindex="-1"></a><span class="co">#&gt; Distribution Percentiles</span></span>
 <span id="cb15-52"><a href="#cb15-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-53"><a href="#cb15-53" tabindex="-1"></a><span class="co">#&gt;         1.0%      2.5%      5.0%    Median     95.0%     97.5% 99.0%</span></span>
-<span id="cb15-54"><a href="#cb15-54" tabindex="-1"></a><span class="co">#&gt; V1 -0.166332 -0.144947 -0.124491 -0.007804  0.090118  0.106663 0.120</span></span>
-<span id="cb15-55"><a href="#cb15-55" tabindex="-1"></a><span class="co">#&gt; V2  1.512010  1.530986  1.538977  1.635129  1.733802  1.753711 1.778</span></span>
+<span id="cb15-53"><a href="#cb15-53" tabindex="-1"></a><span class="co">#&gt;        1.0%     2.5%     5.0%   Median    95.0%    97.5% 99.0%</span></span>
+<span id="cb15-54"><a href="#cb15-54" tabindex="-1"></a><span class="co">#&gt; V1 -0.16110 -0.13848 -0.11907 -0.01376  0.09715  0.11481 0.136</span></span>
+<span id="cb15-55"><a href="#cb15-55" tabindex="-1"></a><span class="co">#&gt; V2  1.50155  1.52461  1.53947  1.63225  1.73181  1.74943 1.772</span></span>
 <span id="cb15-56"><a href="#cb15-56" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-57"><a href="#cb15-57" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 1.995744 </span></span>
-<span id="cb15-58"><a href="#cb15-58" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 28.70508 </span></span>
-<span id="cb15-59"><a href="#cb15-59" tabindex="-1"></a><span class="co">#&gt; DIC: 114.7526 </span></span>
+<span id="cb15-57"><a href="#cb15-57" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 2.062617 </span></span>
+<span id="cb15-58"><a href="#cb15-58" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 28.76747 </span></span>
+<span id="cb15-59"><a href="#cb15-59" tabindex="-1"></a><span class="co">#&gt; DIC: 114.8819 </span></span>
 <span id="cb15-60"><a href="#cb15-60" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb15-61"><a href="#cb15-61" tabindex="-1"></a><span class="co">#&gt; Expected Mean dispersion: 1 </span></span>
 <span id="cb15-62"><a href="#cb15-62" tabindex="-1"></a><span class="co">#&gt; Sq.root of Expected Mean dispersion: 1 </span></span>
 <span id="cb15-63"><a href="#cb15-63" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-64"><a href="#cb15-64" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 1.311</span></span></code></pre></div>
+<span id="cb15-64"><a href="#cb15-64" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 1.266</span></span></code></pre></div>
 </div>
 <div id="methods-for-the-rlmb-rglmb-and-their-summary-functions" class="section level2">
 <h2>Methods for The <em>rlmb</em>, <em>rglmb</em>, and their summary

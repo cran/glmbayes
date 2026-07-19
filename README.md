@@ -17,14 +17,14 @@ The package includes a rich set of supporting tools for prior specification, mod
 that mirror those for lm() and glm(). Most functions are extensively documented, and a comprehensive set of vignettes
 are available to guide users through the package's capabilities.
 
-This repository is **0.9.6** in development. The current **CRAN release is version 0.9.5**
+The current **CRAN release is version 0.9.7**
 ([CRAN](https://CRAN.R-project.org/package=glmbayes)).
 The [GitHub](https://github.com/knygren/glmbayes) repository holds the source; [R-Universe](https://knygren.r-universe.dev/glmbayes) builds binaries from it.
 See [NEWS.md](https://github.com/knygren/glmbayes/blob/main/NEWS.md) for changes.
 
 ## Installation
 
-**CRAN (release 0.9.5)**
+**CRAN (release 0.9.7)**
 
 ```r
 install.packages("glmbayes")
@@ -38,7 +38,7 @@ install.packages("glmbayes",
                            "https://knygren.r-universe.dev"))
 ```
 
-Prebuilt binaries from CRAN (0.9.5) and R-Universe are built **without OpenCL GPU
+Prebuilt binaries from CRAN (0.9.7) and R-Universe are built **without OpenCL GPU
 support**. For the CRAN release, OpenCL requires installing **from source** on a
 system with OpenCL development files available. To set up GPU acceleration, follow
 
@@ -379,24 +379,12 @@ details behind the samplers.
 
 ## Future Plans
 
-- **R Mathlib (`nmath`) usage from C:** Today the package vendors local copies of
-  selected R Mathlib routines and headers in `*.c` sources. The plan is to switch
-  to calling the **same `nmath` functions that ship with R**, via the supported
-  linking/API path, so maintenance tracks base R instead of duplicating sources.
-- **OpenCL / GPU code upstream:** Routines currently living under the
-  **openclport** and **nmathopencl** namespaces are slated to move into dedicated
-  upstream packages. **nmathopencl** is already available on
-  [R-Universe](https://knygren.r-universe.dev/nmathopencl); a **CRAN** release is targeted,
-  after which glmbayes can depend on that package for a substantial share of
-  OpenCL- and GPU-related functionality rather than carrying those implementations
-  here.
-- **Conjugate priors for intercept-only GLMs:** Add **pfamily** specifications
-  that supply conjugate priors for **intercept-only** `glm()`-style models (a
-  single mean structure / scalar linear predictor), complementing the existing
-  prior families for general designs.
-- **bayestestR integration:** Add methods or small wrappers so **bayestestR**
-  summaries and diagnostics can be used with **`glmb` / `lmb`** fits in the same
-  way as with other Bayesian modeling workflows.
+The main near-term goal is to migrate much of the sampling back end — the
+**`src/*.cpp`** code and related R-layer simulation/envelope functions — into
+[**glmbayesCore**](https://github.com/knygren/glmbayesCore), leaving **glmbayes**
+focused on the user-facing **`glmb()`** / **`lmb()`** interface, priors,
+diagnostics, and documentation. **glmbayesCore** already hosts shared CPU/OpenCL
+nmath and several core samplers; the migration will extend that split.
 
 Further performance and algorithm work:
 
