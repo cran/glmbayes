@@ -12,7 +12,7 @@
 
 <meta name="author" content="Kjell Nygren" />
 
-<meta name="date" content="2026-07-19" />
+<meta name="date" content="2026-07-26" />
 
 <title>Chapter 08: Estimating Bayesian generalized linear models</title>
 
@@ -364,7 +364,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Chapter 08: Estimating Bayesian generalized
 linear models</h1>
 <h4 class="author">Kjell Nygren</h4>
-<h4 class="date">2026-07-19</h4>
+<h4 class="date">2026-07-26</h4>
 
 
 
@@ -624,11 +624,11 @@ initial comparison of the prior to the estimated posterior means.</p>
 <span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt; Posterior Mean Coefficients:</span></span>
 <span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; (Intercept)         Age2  </span></span>
-<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt;    -0.01363      1.62034  </span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt;    -0.01547      1.61809  </span></span>
 <span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 1.966349 </span></span>
-<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 28.7115 </span></span>
-<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt; DIC: 114.7297</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 2.037394 </span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 28.80323 </span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt; DIC: 114.8924</span></span>
 <span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a></span>
 <span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co"># Print prior mean as comparison</span></span>
 <span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">t</span>(mu1))</span>
@@ -667,7 +667,7 @@ the call to the summary function.</p>
 <span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; Expected Residuals:</span></span>
 <span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt;        Min         1Q     Median         3Q        Max </span></span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt; -2.0747519 -1.0111555 -0.4438766  0.7351543  1.3444792 </span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt; -2.0786671 -0.9942019 -0.4341926  0.7324099  1.3458398 </span></span>
 <span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; Prior and Maximum Likelihood Estimates with Standard Deviations</span></span>
 <span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
@@ -678,17 +678,17 @@ the call to the summary function.</p>
 <span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt; Bayesian Estimates Based on 1000 iid draws</span></span>
 <span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#&gt;             Post.Mode Post.Mean   Post.Sd  MC Error Pr(Null_tail) SE(tail)</span></span>
-<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.013688 -0.013632  0.060593  0.001916      0.000000    0.016</span></span>
-<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a><span class="co">#&gt; Age2         1.614377  1.620339  0.059634  0.001886      0.000000    0.000</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.013688 -0.015468  0.064810  0.002049      0.000000    0.016</span></span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a><span class="co">#&gt; Age2         1.614377  1.618086  0.057518  0.001819      0.000000    0.000</span></span>
 <span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a><span class="co">#&gt;             Pr(Prior_tail)    </span></span>
-<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="co">#&gt; (Intercept)          0.414    </span></span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="co">#&gt; (Intercept)           0.42    </span></span>
 <span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a><span class="co">#&gt; Age2                &lt;2e-16 ***</span></span>
 <span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
 <span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
 <span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a><span class="co">#&gt;   Directional Tail Summaries:</span></span>
 <span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a><span class="co">#&gt;                Metric vs Null vs Prior</span></span>
-<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a><span class="co">#&gt;  Mahalanobis Distance 28.8054   9.1319</span></span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a><span class="co">#&gt;  Mahalanobis Distance 28.7720   9.0922</span></span>
 <span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a><span class="co">#&gt;      Tail Probability  0.0000   0.0000</span></span>
 <span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a><span class="co">#&gt;   [Tail probabilities are P(delta^T * Z &lt;= 0) in whitened space]</span></span>
 <span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
@@ -696,17 +696,17 @@ the call to the summary function.</p>
 <span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a><span class="co">#&gt; Distribution Percentiles</span></span>
 <span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb9-35"><a href="#cb9-35" tabindex="-1"></a><span class="co">#&gt;                 1.0%     2.5%     5.0%   Median    95.0%    97.5% 99.0%</span></span>
-<span id="cb9-36"><a href="#cb9-36" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.15362 -0.13216 -0.11406 -0.01285  0.08717  0.10278 0.127</span></span>
-<span id="cb9-37"><a href="#cb9-37" tabindex="-1"></a><span class="co">#&gt; Age2         1.48832  1.51073  1.52637  1.61960  1.71806  1.73850 1.771</span></span>
+<span id="cb9-36"><a href="#cb9-36" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.15923 -0.13802 -0.12209 -0.01379  0.08861  0.10770 0.134</span></span>
+<span id="cb9-37"><a href="#cb9-37" tabindex="-1"></a><span class="co">#&gt; Age2         1.48741  1.51361  1.52336  1.61863  1.71254  1.73036 1.759</span></span>
 <span id="cb9-38"><a href="#cb9-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-39"><a href="#cb9-39" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 1.966349 </span></span>
-<span id="cb9-40"><a href="#cb9-40" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 28.7115 </span></span>
-<span id="cb9-41"><a href="#cb9-41" tabindex="-1"></a><span class="co">#&gt; DIC: 114.7297 </span></span>
+<span id="cb9-39"><a href="#cb9-39" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 2.037394 </span></span>
+<span id="cb9-40"><a href="#cb9-40" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 28.80323 </span></span>
+<span id="cb9-41"><a href="#cb9-41" tabindex="-1"></a><span class="co">#&gt; DIC: 114.8924 </span></span>
 <span id="cb9-42"><a href="#cb9-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb9-43"><a href="#cb9-43" tabindex="-1"></a><span class="co">#&gt; Expected Mean dispersion: 1 </span></span>
 <span id="cb9-44"><a href="#cb9-44" tabindex="-1"></a><span class="co">#&gt; Sq.root of Expected Mean dispersion: 1 </span></span>
 <span id="cb9-45"><a href="#cb9-45" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-46"><a href="#cb9-46" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 1.247</span></span></code></pre></div>
+<span id="cb9-46"><a href="#cb9-46" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 1.272</span></span></code></pre></div>
 <p><em>Interpreting the “Prior and Maximum Likelihood Estimates with
 Standard Deviations” table</em></p>
 <p>This table gives a side-by-side comparison of the prior and the data
@@ -823,11 +823,11 @@ as a rough book “mean.”</p>
 <span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt; Posterior Mean Coefficients:</span></span>
 <span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt; (Intercept)  humidity9am  </span></span>
-<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt;    -3.93972      0.03882  </span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt;    -3.94489      0.03889  </span></span>
 <span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 1.771844 </span></span>
-<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 874.63 </span></span>
-<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="co">#&gt; DIC: 876.4018</span></span></code></pre></div>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 1.821911 </span></span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 874.6306 </span></span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="co">#&gt; DIC: 876.4525</span></span></code></pre></div>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>br08_compare <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
 <span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="at">parameter =</span> book_br08<span class="sc">$</span>parameter,</span>
 <span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="st">`</span><span class="at">Book 80% lo</span><span class="st">`</span> <span class="ot">=</span> book_br08<span class="sc">$</span>book_lo,</span>
@@ -870,8 +870,8 @@ priors</caption>
 <td align="right">-5.0879</td>
 <td align="right">-4.1345</td>
 <td align="right">-4.6112</td>
-<td align="right">-3.9397</td>
-<td align="right">0.3122</td>
+<td align="right">-3.9449</td>
+<td align="right">0.3159</td>
 </tr>
 <tr class="even">
 <td align="left">humidity9am</td>
@@ -879,8 +879,8 @@ priors</caption>
 <td align="right">0.0415</td>
 <td align="right">0.0549</td>
 <td align="right">0.0482</td>
-<td align="right">0.0388</td>
-<td align="right">0.0045</td>
+<td align="right">0.0389</td>
+<td align="right">0.0046</td>
 </tr>
 </tbody>
 </table>
