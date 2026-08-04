@@ -1,8 +1,8 @@
 Package: glmbayes
 Type: Package
 Title: Bayesian Generalized Linear Models (IID Samples)
-Version: 0.9.72
-Date: 2026-07-26
+Version: 0.9.75
+Date: 2026-08-02
 Authors@R: c(
     person("Kjell", "Nygren", role = c("aut", "cre"),
            email = "kjell.a.nygren@gmail.com"),
@@ -53,7 +53,7 @@ Config/testthat/edition: 3
 LazyData: true
 Language: en-US
 NeedsCompilation: yes
-Packaged: 2026-07-26 11:22:51 UTC; kjell
+Packaged: 2026-08-02 16:56:21 UTC; kjell
 Author: Kjell Nygren [aut, cre],
   The R Core Team [ctb, cph] (R Mathlib sources, R stats modeling code,
     and derived/adapted routines),
@@ -66,4 +66,4 @@ Author: Kjell Nygren [aut, cre],
   Martin Maechler [ctb] (Portions of R Mathlib)
 Maintainer: Kjell Nygren <kjell.a.nygren@gmail.com>
 Repository: CRAN
-Date/Publication: 2026-07-26 12:00:02 UTC
+Date/Publication: 2026-08-04 19:20:02 UTC

@@ -394,8 +394,8 @@ tabular summaries you can cite in applied reports.</p>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; Parameter   |    Median |        95% CI |     pd |          ROPE | % in ROPE</span></span>
 <span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; ----------------------------------------------------------------------------</span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; (Intercept) | -7.04e-03 | [-0.13, 0.12] | 54.12% | [-0.10, 0.10] |    92.76%</span></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; Age2        |      1.62 | [ 1.51, 1.73] |   100% | [-0.10, 0.10] |        0%</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; (Intercept) | -6.75e-03 | [-0.13, 0.11] | 54.50% | [-0.10, 0.10] |    93.82%</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; Age2        |      1.62 | [ 1.52, 1.74] |   100% | [-0.10, 0.10] |        0%</span></span>
 <span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>bayestestR<span class="sc">::</span><span class="fu">hdi</span>(coef_draws, <span class="at">ci =</span> <span class="fl">0.89</span>)</span>
 <span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; Highest Density Interval</span></span>
 <span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
@@ -408,14 +408,14 @@ tabular summaries you can cite in applied reports.</p>
 <span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; Parameter   | Inside ROPE</span></span>
 <span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; -------------------------</span></span>
-<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; (Intercept) |     26.84 %</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; (Intercept) |     25.79 %</span></span>
 <span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt; Age2        |      0.00 %</span></span>
 <span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>bayestestR<span class="sc">::</span><span class="fu">p_direction</span>(coef_draws)</span>
 <span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; Probability of Direction</span></span>
 <span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt; Parameter   |     pd</span></span>
 <span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt; --------------------</span></span>
-<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co">#&gt; (Intercept) | 54.12%</span></span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co">#&gt; (Intercept) | 54.50%</span></span>
 <span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="co">#&gt; Age2        |   100%</span></span></code></pre></div>
 <p>Tune <strong><code>rope(..., range = ...)</code></strong> to match
 substantive “practical equivalence” hypotheses on the

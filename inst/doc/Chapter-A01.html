@@ -12,7 +12,7 @@
 
 <meta name="author" content="Kjell Nygren" />
 
-<meta name="date" content="2026-07-26" />
+<meta name="date" content="2026-08-02" />
 
 <title>Chapter A01: A detailed overview of the glmbayes package</title>
 
@@ -364,7 +364,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Chapter A01: A detailed overview of the
 glmbayes package</h1>
 <h4 class="author">Kjell Nygren</h4>
-<h4 class="date">2026-07-26</h4>
+<h4 class="date">2026-08-02</h4>
 
 
 
@@ -959,7 +959,7 @@ NOT WORKING FOR rlmb</p>
 <span id="cb15-32"><a href="#cb15-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb15-33"><a href="#cb15-33" tabindex="-1"></a><span class="co">#&gt; Expected Deviance Residuals:</span></span>
 <span id="cb15-34"><a href="#cb15-34" tabindex="-1"></a><span class="co">#&gt;        Min         1Q     Median         3Q        Max </span></span>
-<span id="cb15-35"><a href="#cb15-35" tabindex="-1"></a><span class="co">#&gt; -2.0339025 -0.9875463 -0.4926836  0.7927816  1.3813434 </span></span>
+<span id="cb15-35"><a href="#cb15-35" tabindex="-1"></a><span class="co">#&gt; -2.0404634 -0.9968981 -0.4919798  0.7767330  1.3651875 </span></span>
 <span id="cb15-36"><a href="#cb15-36" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb15-37"><a href="#cb15-37" tabindex="-1"></a><span class="co">#&gt; Prior Estimates with Standard Deviations</span></span>
 <span id="cb15-38"><a href="#cb15-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
@@ -969,26 +969,26 @@ NOT WORKING FOR rlmb</p>
 <span id="cb15-42"><a href="#cb15-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb15-43"><a href="#cb15-43" tabindex="-1"></a><span class="co">#&gt; Bayesian Estimates Based on 1000 iid draws</span></span>
 <span id="cb15-44"><a href="#cb15-44" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-45"><a href="#cb15-45" tabindex="-1"></a><span class="co">#&gt;    Post.Mode Post.Mean  Post.Sd MC Error Pr(tail)    </span></span>
-<span id="cb15-46"><a href="#cb15-46" tabindex="-1"></a><span class="co">#&gt; V1  -0.01070  -0.01248  0.06270    0.002 0.409590    </span></span>
-<span id="cb15-47"><a href="#cb15-47" tabindex="-1"></a><span class="co">#&gt; V2   1.62939   1.63493  0.05779    0.002 0.000999 ***</span></span>
+<span id="cb15-45"><a href="#cb15-45" tabindex="-1"></a><span class="co">#&gt;    Post.Mode Post.Mean   Post.Sd MC Error Pr(tail)    </span></span>
+<span id="cb15-46"><a href="#cb15-46" tabindex="-1"></a><span class="co">#&gt; V1 -0.010696 -0.009625  0.063576    0.002 0.461538    </span></span>
+<span id="cb15-47"><a href="#cb15-47" tabindex="-1"></a><span class="co">#&gt; V2  1.629390  1.633546  0.057366    0.002 0.000999 ***</span></span>
 <span id="cb15-48"><a href="#cb15-48" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
 <span id="cb15-49"><a href="#cb15-49" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
 <span id="cb15-50"><a href="#cb15-50" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb15-51"><a href="#cb15-51" tabindex="-1"></a><span class="co">#&gt; Distribution Percentiles</span></span>
 <span id="cb15-52"><a href="#cb15-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-53"><a href="#cb15-53" tabindex="-1"></a><span class="co">#&gt;        1.0%     2.5%     5.0%   Median    95.0%    97.5% 99.0%</span></span>
-<span id="cb15-54"><a href="#cb15-54" tabindex="-1"></a><span class="co">#&gt; V1 -0.15758 -0.13516 -0.11432 -0.01391  0.09287  0.11349 0.145</span></span>
-<span id="cb15-55"><a href="#cb15-55" tabindex="-1"></a><span class="co">#&gt; V2  1.50101  1.52672  1.54313  1.63316  1.73766  1.75407 1.778</span></span>
+<span id="cb15-53"><a href="#cb15-53" tabindex="-1"></a><span class="co">#&gt;         1.0%      2.5%      5.0%    Median     95.0%     97.5% 99.0%</span></span>
+<span id="cb15-54"><a href="#cb15-54" tabindex="-1"></a><span class="co">#&gt; V1 -0.162226 -0.137826 -0.121909 -0.006632  0.089525  0.112663 0.131</span></span>
+<span id="cb15-55"><a href="#cb15-55" tabindex="-1"></a><span class="co">#&gt; V2  1.505869  1.526776  1.538938  1.632810  1.724093  1.749096 1.769</span></span>
 <span id="cb15-56"><a href="#cb15-56" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-57"><a href="#cb15-57" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 1.937459 </span></span>
-<span id="cb15-58"><a href="#cb15-58" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 28.64407 </span></span>
-<span id="cb15-59"><a href="#cb15-59" tabindex="-1"></a><span class="co">#&gt; DIC: 114.6333 </span></span>
+<span id="cb15-57"><a href="#cb15-57" tabindex="-1"></a><span class="co">#&gt; Effective Number of Parameters: 1.958301 </span></span>
+<span id="cb15-58"><a href="#cb15-58" tabindex="-1"></a><span class="co">#&gt; Expected Residual Deviance: 28.66285 </span></span>
+<span id="cb15-59"><a href="#cb15-59" tabindex="-1"></a><span class="co">#&gt; DIC: 114.673 </span></span>
 <span id="cb15-60"><a href="#cb15-60" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb15-61"><a href="#cb15-61" tabindex="-1"></a><span class="co">#&gt; Expected Mean dispersion: 1 </span></span>
 <span id="cb15-62"><a href="#cb15-62" tabindex="-1"></a><span class="co">#&gt; Sq.root of Expected Mean dispersion: 1 </span></span>
 <span id="cb15-63"><a href="#cb15-63" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-64"><a href="#cb15-64" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 1.308</span></span></code></pre></div>
+<span id="cb15-64"><a href="#cb15-64" tabindex="-1"></a><span class="co">#&gt; Mean Likelihood Subgradient Candidates Per iid sample: 1.239</span></span></code></pre></div>
 </div>
 <div id="methods-for-the-rlmb-rglmb-and-their-summary-functions" class="section level2">
 <h2>Methods for The <em>rlmb</em>, <em>rglmb</em>, and their summary
